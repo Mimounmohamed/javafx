@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="content-scroll"
+            xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            fx:controller="com.example.controllers.SettingsController">
+
+    <VBox spacing="24" styleClass="content-root" maxWidth="700">
+        <padding><Insets top="24" right="24" bottom="32" left="24" /></padding>
+
+        <Label text="Settings" styleClass="page-title" />
+
+        <!-- ── Farm Information ──────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="16">
+            <Label text="Farm Information" styleClass="card-title" />
+            <Separator />
+
+            <GridPane hgap="20" vgap="14">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="120" prefWidth="130" />
+                    <ColumnConstraints hgrow="ALWAYS" />
+                </columnConstraints>
+
+                <Label text="Farm Name:" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                <TextField fx:id="farmNameField" styleClass="form-field"
+                           GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+                <Label text="Location:" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                <TextField fx:id="locationField" styleClass="form-field"
+                           GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+                <Label text="Owner:" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                <TextField fx:id="ownerField" styleClass="form-field"
+                           GridPane.rowIndex="2" GridPane.columnIndex="1" />
+            </GridPane>
+
+            <Label fx:id="farmIdLabel" styleClass="text-muted" />
+            <Button text="💾  Save Changes" onAction="#saveFarmInfo" styleClass="btn-primary" />
+        </VBox>
+
+        <!-- ── Appearance ────────────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="16">
+            <Label text="Appearance" styleClass="card-title" />
+            <Separator />
+            <HBox spacing="16" alignment="CENTER_LEFT">
+                <Label text="Theme:" styleClass="form-label" />
+                <ToggleButton fx:id="themeToggle" onAction="#toggleTheme"
+                              styleClass="theme-toggle" text="☀  Light Mode" selected="false" />
+            </HBox>
+        </VBox>
+
+        <!-- ── Farm Selection ────────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="16">
+            <Label text="Farm Selection" styleClass="card-title" />
+            <Separator />
+            <Label text="Switch to a different farm or create a new one on the startup screen."
+                   styleClass="text-muted" wrapText="true" />
+            <Button text="🔄  Switch Farm" onAction="#switchFarm"
+                    styleClass="btn-secondary" />
+        </VBox>
+
+        <!-- ── About ─────────────────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="10">
+            <Label text="About" styleClass="card-title" />
+            <Separator />
+            <Label text="Smart Farm Management System" styleClass="about-name" />
+            <Label text="Version 1.0.0  ·  Java 17  ·  JavaFX 21" styleClass="text-muted" />
+            <Label text="MVC + Service architecture" styleClass="text-muted" />
+        </VBox>
+
+    </VBox>
+</ScrollPane>

@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\catal\\\\OneDrive\\\\Documents\\\\tp poo\\\\javafx\\\\src\\\\main\\\\java\\\\com\\\\example\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\catal\\\\OneDrive\\\\Documents\\\\tp poo\\\\javafx\\\\src\\\\main\\\\resources\\\\com\\\\example\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\catal\\\\OneDrive\\\\Documents\\\\tp poo\\\\javafx\\\\src\\\\test\\\\java\\\\com\\\\example\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\catal\\\\OneDrive\\\\Documents\\\\tp poo\\\\javafx\\\\src\\\\main\\\\java\\\\com\\\\example\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\catal\\\\OneDrive\\\\Documents\\\\tp poo\\\\javafx\\\\src\\\\main\\\\resources\\\\com\\\\example\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\catal\\\\OneDrive\\\\Documents\\\\tp poo\\\\javafx\\\\src\\\\test\\\\java\\\\com\\\\example\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\catal\\\\OneDrive\\\\Documents\\\\tp poo\\\\javafx\\\\.mvn\\\\wrapper\")",
+      "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\.m2\\\\wrapper\\\\dists\" -Recurse -Depth 2)",
+      "PowerShell(.\\\\mvnw.cmd -U javafx:run 2>&1)",
+      "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\.m2\\\\repository\\\\org\\\\openjfx\" -ErrorAction SilentlyContinue -Recurse -Depth 2 | Select-Object FullName | head -30)",
+      "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\.m2\\\\repository\\\\org\\\\openjfx\" -ErrorAction SilentlyContinue -Recurse -Depth 2 | Select-Object -First 40 FullName)",
+      "PowerShell($env:USERPROFILE; Test-Path \"$env:USERPROFILE\\\\.m2\\\\repository\\\\org\\\\openjfx\"; Get-ChildItem \"$env:USERPROFILE\\\\.m2\\\\repository\\\\org\" -ErrorAction SilentlyContinue | Select-Object -First 10 Name)",
+      "Read(//c/Users/catal/.m2/repository/org/openjfx/**)",
+      "Bash(rm -rf \"C:/Users/catal/.m2/repository/org/openjfx/javafx-charts\" 2>/dev/null; echo \"cleared\")",
+      "PowerShell(.\\\\mvnw.cmd javafx:run 2>&1)",
+      "Bash(./mvnw.cmd javafx:run)",
+      "Bash(echo \"EXIT: $?\")",
+      "Read(//tmp/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\catal\\.m2\\repository\\org\\openjfx\\javafx-charts"
+    ]
+  }
+}

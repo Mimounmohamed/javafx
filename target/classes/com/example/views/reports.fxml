@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21"
+      fx:controller="com.example.controllers.ReportsController"
+      styleClass="content-root">
+
+    <!-- ── Header ───────────────────────────────────────────────────── -->
+    <HBox styleClass="page-header" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="20" right="24" bottom="16" left="24" /></padding>
+        <Label text="Reports" styleClass="page-title" />
+        <Region HBox.hgrow="ALWAYS" />
+        <ComboBox fx:id="periodCombo" promptText="Period" styleClass="filter-combo" prefWidth="140" />
+        <Button text="↺  Refresh" onAction="#refreshReport" styleClass="btn-secondary" />
+        <Button text="⬇  Export"  onAction="#exportReport"  styleClass="btn-primary"   />
+    </HBox>
+    <Separator />
+
+    <!-- ── Stats bar ────────────────────────────────────────────────── -->
+    <HBox styleClass="stats-bar" spacing="12" alignment="CENTER_LEFT">
+        <padding><Insets top="12" right="24" bottom="12" left="24" /></padding>
+        <VBox styleClass="stat-card stat-accent-blue" spacing="2" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label fx:id="statZones" text="—" styleClass="stat-value" />
+            <Label text="Zones" styleClass="stat-label" />
+        </VBox>
+        <VBox styleClass="stat-card stat-accent-green" spacing="2" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label fx:id="statAnimals" text="—" styleClass="stat-value" />
+            <Label text="Animals" styleClass="stat-label" />
+        </VBox>
+        <VBox styleClass="stat-card stat-accent-yellow" spacing="2" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label fx:id="statSensors" text="—" styleClass="stat-value" />
+            <Label text="Sensors" styleClass="stat-label" />
+        </VBox>
+        <VBox styleClass="stat-card stat-accent-red" spacing="2" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label fx:id="statActiveAlerts" text="—" styleClass="stat-value" />
+            <Label text="Active Alerts" styleClass="stat-label" />
+        </VBox>
+    </HBox>
+    <Separator />
+
+    <!-- ── Report list + Content ─────────────────────────────────────── -->
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.26">
+
+        <!-- Left: report type selector -->
+        <VBox styleClass="detail-panel" spacing="10">
+            <padding><Insets top="16" right="12" bottom="16" left="12" /></padding>
+            <Label text="Report Type" styleClass="card-title" />
+            <Separator />
+            <ListView fx:id="reportTypeList" VBox.vgrow="ALWAYS" styleClass="report-list" />
+        </VBox>
+
+        <!-- Right: report content -->
+        <VBox styleClass="kpi-card" spacing="10">
+            <padding><Insets top="16" right="16" bottom="16" left="16" /></padding>
+            <Label fx:id="reportTitle" text="Select a report from the left panel"
+                   styleClass="card-title" wrapText="true" />
+            <Separator />
+            <TextArea fx:id="reportContent" VBox.vgrow="ALWAYS"
+                      editable="false" styleClass="report-text" wrapText="false"
+                      promptText="Report content will appear here…" />
+        </VBox>
+
+    </SplitPane>
+</VBox>

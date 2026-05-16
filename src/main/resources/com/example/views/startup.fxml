@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21"
+      fx:controller="com.example.controllers.StartupController"
+      styleClass="startup-root"
+      spacing="24">
+
+    <!-- ── Header ──────────────────────────────────────────────────── -->
+    <VBox alignment="CENTER" spacing="6">
+        <Label text="🌾  Smart Farm Manager" styleClass="startup-title" />
+        <Label text="Select an existing farm or create a new one" styleClass="startup-subtitle" />
+    </VBox>
+
+    <!-- ── Two-panel body ─────────────────────────────────────────── -->
+    <HBox spacing="28" VBox.vgrow="ALWAYS">
+
+        <!-- Left: saved farm list -->
+        <VBox HBox.hgrow="ALWAYS" spacing="12">
+            <Label text="Your Farms" styleClass="startup-section-title" />
+            <ListView fx:id="farmList" VBox.vgrow="ALWAYS" styleClass="farm-list" />
+            <Label fx:id="emptyLabel" text="No farms yet — create your first farm on the right."
+                   styleClass="startup-subtitle" wrapText="true"
+                   visible="false" managed="false" />
+        </VBox>
+
+        <!-- Vertical divider -->
+        <Separator orientation="VERTICAL" />
+
+        <!-- Right: create new farm -->
+        <VBox spacing="16" prefWidth="320" minWidth="280">
+            <Label text="New Farm" styleClass="startup-section-title" />
+
+            <GridPane hgap="12" vgap="12">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="80" prefWidth="90" />
+                    <ColumnConstraints hgrow="ALWAYS" />
+                </columnConstraints>
+
+                <Label text="Name *" styleClass="form-label"
+                       GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                <TextField fx:id="newFarmName" promptText="e.g. Green Valley Farm"
+                           styleClass="form-field"
+                           GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+                <Label text="Location" styleClass="form-label"
+                       GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                <TextField fx:id="newFarmLocation" promptText="e.g. Algiers, Algeria"
+                           styleClass="form-field"
+                           GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+                <Label text="Owner *" styleClass="form-label"
+                       GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                <TextField fx:id="newFarmOwner" promptText="Your name"
+                           styleClass="form-field"
+                           GridPane.rowIndex="2" GridPane.columnIndex="1" />
+            </GridPane>
+
+            <Label fx:id="errorLabel" styleClass="startup-error"
+                   text="" visible="false" managed="false" wrapText="true" />
+
+            <Region VBox.vgrow="ALWAYS" />
+            <Button text="Create Farm →" onAction="#createNewFarm"
+                    styleClass="btn-primary" maxWidth="Infinity" />
+            <Button text="🎲  Generate Random Farm" onAction="#generateRandomFarm"
+                    styleClass="btn-secondary" maxWidth="Infinity" />
+        </VBox>
+
+    </HBox>
+
+    <Label text="Data is saved in ~/.smartfarm between sessions."
+           styleClass="startup-footer" />
+
+</VBox>
