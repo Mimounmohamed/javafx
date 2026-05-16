@@ -117,6 +117,8 @@ public class Farm {
         return Collections.unmodifiableList(alerts);
     }
 
+    public void clearAlerts() { alerts.clear(); }
+
     public List<Alert> getActiveAlerts() {
         return alerts.stream()
                 .filter(a -> a.isActive() || a.isAcknowledged())
