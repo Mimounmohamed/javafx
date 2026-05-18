@@ -24,6 +24,9 @@ public class AquacultureZONE extends ZONE {
         speciesList.remove(species);
     }
 
+    public void clearAllSpecies()   { speciesList.clear(); }
+    public void clearWaterSensors() { waterSensors.clear(); }
+
     public List<AquacultureSpecies> getSpeciesList() {
         return Collections.unmodifiableList(speciesList);
     }

@@ -4,7 +4,6 @@ import Alerts.Alert;
 import Alerts.AlertSeverity;
 import Farm.Farm;
 import com.example.services.AlertService;
-import com.example.services.DataRandomizerService;
 import com.example.services.FarmService;
 import com.example.services.SensorService;
 import com.example.services.ZoneService;
@@ -140,9 +139,4 @@ public class DashboardController {
     @FXML private void quickAddAqua()     { SceneManager.getInstance().navigateTo("zones"); }
     @FXML private void quickViewReports() { SceneManager.getInstance().navigateTo("reports"); }
 
-    @FXML
-    private void randomizeFarmData() {
-        DataRandomizerService.getInstance().randomize();
-        SceneManager.getInstance().navigateTo("dashboard");
-    }
 }

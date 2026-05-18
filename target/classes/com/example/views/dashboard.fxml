@@ -101,14 +101,12 @@
         <!-- ── Quick Actions ──────────────────────────────────────── -->
         <VBox styleClass="kpi-card" spacing="12">
             <Label text="Quick Actions" styleClass="card-title" />
-            <HBox spacing="12" alignment="CENTER_LEFT">
-                <Button text="+ Add Animal"          onAction="#quickAddAnimal"    styleClass="btn-primary" />
-                <Button text="+ Add Zone"            onAction="#quickAddZone"      styleClass="btn-primary" />
-                <Button text="&#127806; Add Crop"    onAction="#quickAddCrop"      styleClass="btn-secondary" />
+            <HBox spacing="12">
+                <Button text="+ Add Animal"          onAction="#quickAddAnimal"   styleClass="btn-primary" />
+                <Button text="+ Add Zone"            onAction="#quickAddZone"     styleClass="btn-primary" />
+                <Button text="&#127806; Add Crop"    onAction="#quickAddCrop"     styleClass="btn-secondary" />
                 <Button text="&#128031; Add Aqua Species" onAction="#quickAddAqua" styleClass="btn-secondary" />
                 <Button text="&#128203; View Reports" onAction="#quickViewReports" styleClass="btn-secondary" />
-                <Region HBox.hgrow="ALWAYS" />
-                <Button text="&#127922; Randomize Farm Data" onAction="#randomizeFarmData" styleClass="btn-danger" />
             </HBox>
         </VBox>
 

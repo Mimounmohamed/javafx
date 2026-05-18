@@ -28,6 +28,10 @@ public class CropZONE extends ZONE {
         fields.remove(crop);
     }
 
+    public void clearFields()     { fields.clear(); }
+    public void clearEnvSensors() { envSensors.clear(); }
+    public void clearSoilSensors(){ soilSensors.clear(); }
+
     public List<Crop> getFields() {
         return Collections.unmodifiableList(fields);
     }

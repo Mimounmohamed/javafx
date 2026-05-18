@@ -101,7 +101,8 @@ public class FarmRepository {
         sf.location   = p.getProperty("farm." + i + ".location",  "");
         sf.owner      = p.getProperty("farm." + i + ".owner",     "");
         sf.createdAt  = p.getProperty("farm." + i + ".createdAt", "");
-        sf.isDemo     = Boolean.parseBoolean(p.getProperty("farm." + i + ".isDemo", "false"));
+        sf.isDemo         = Boolean.parseBoolean(p.getProperty("farm." + i + ".isDemo",         "false"));
+        sf.wasRandomized  = Boolean.parseBoolean(p.getProperty("farm." + i + ".wasRandomized",  "false"));
 
         int zc = intProp(p, "farm." + i + ".zone.count", 0);
         for (int j = 0; j < zc; j++) {
@@ -134,7 +135,8 @@ public class FarmRepository {
         p.setProperty(pre + "location",  sf.location);
         p.setProperty(pre + "owner",     sf.owner);
         p.setProperty(pre + "createdAt", sf.createdAt);
-        p.setProperty(pre + "isDemo",    String.valueOf(sf.isDemo));
+        p.setProperty(pre + "isDemo",        String.valueOf(sf.isDemo));
+        p.setProperty(pre + "wasRandomized", String.valueOf(sf.wasRandomized));
 
         p.setProperty(pre + "zone.count", String.valueOf(sf.zones.size()));
         for (int j = 0; j < sf.zones.size(); j++) {
@@ -175,6 +177,7 @@ public class FarmRepository {
     public static class SavedFarm {
         public String id, name, location, owner, createdAt;
         public boolean isDemo;
+        public boolean wasRandomized;
         public List<SavedZone>   zones   = new ArrayList<>();
         public List<SavedAnimal> animals = new ArrayList<>();
 

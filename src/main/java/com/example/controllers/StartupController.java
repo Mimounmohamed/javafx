@@ -1,5 +1,6 @@
 package com.example.controllers;
 
+import com.example.services.DataRandomizerService;
 import com.example.services.FarmService;
 import com.example.utils.FarmRepository;
 import com.example.utils.RandomFarmGenerator;
@@ -69,23 +70,50 @@ public class StartupController {
         }
         try {
             FarmService.initWithNewFarm(name, loc, owner);
-            // Refresh list (newly saved farm will now be in repo)
-            List<FarmRepository.SavedFarm> updated = FarmRepository.loadAll();
-            farms.clear();
-            updated.stream().filter(f ->  f.isDemo).forEach(farms::add);
-            updated.stream().filter(f -> !f.isDemo).forEach(farms::add);
-            // Navigate into the app
-            SceneManager.getInstance().loadMainApp();
+            // Persist wasRandomized=true BEFORE populating so the flag survives
+            // even if populateNewFarm() throws partway through.
+            FarmService.getInstance().markAsRandomized();
+            FarmService.getInstance().autoSave();
         } catch (IllegalArgumentException e) {
             showError(e.getMessage());
+            return;
         }
+
+        // Populate — catch everything so a bug here never blocks navigation
+        try {
+            DataRandomizerService.getInstance().populateNewFarm();
+        } catch (Exception ex) {
+            System.err.println("[DataRandomizer] populateNewFarm failed:");
+            ex.printStackTrace(System.err);
+        }
+
+        // Refresh list and navigate regardless of population result
+        List<FarmRepository.SavedFarm> updated = FarmRepository.loadAll();
+        farms.clear();
+        updated.stream().filter(f ->  f.isDemo).forEach(farms::add);
+        updated.stream().filter(f -> !f.isDemo).forEach(farms::add);
+        SceneManager.getInstance().loadMainApp();
     }
 
     // ── Random farm ───────────────────────────────────────────────────
 
     @FXML
     private void generateRandomFarm() {
-        RandomFarmGenerator.generate();
+        String[] meta = RandomFarmGenerator.randomMeta();
+        try {
+            FarmService.initWithNewFarm(meta[0], meta[1], meta[2]);
+            FarmService.getInstance().markAsRandomized();
+            FarmService.getInstance().autoSave();
+        } catch (Exception e) {
+            showError("Failed to create farm: " + e.getMessage());
+            return;
+        }
+        try {
+            DataRandomizerService.getInstance().populateNewFarm();
+        } catch (Exception ex) {
+            System.err.println("[DataRandomizer] populateNewFarm failed:");
+            ex.printStackTrace(System.err);
+        }
         List<FarmRepository.SavedFarm> updated = FarmRepository.loadAll();
         farms.clear();
         updated.stream().filter(f ->  f.isDemo).forEach(farms::add);

@@ -43,6 +43,15 @@ public class RandomFarmGenerator {
     private static final String[] POL_NAMES   = {"Hen","Rooster","Chick"};
     private static final String[] POL_SPECIES = {"Gallus","Gallus","Gallus"};
 
+    /** Returns {name, location, owner} without touching FarmService. */
+    public static String[] randomMeta() {
+        return new String[] {
+            pick(NAMES) + " #" + (10 + RND.nextInt(90)),
+            pick(LOCATIONS),
+            pick(OWNERS)
+        };
+    }
+
     public static void generate() {
         String name     = pick(NAMES) + " #" + (10 + RND.nextInt(90));
         String location = pick(LOCATIONS);

@@ -10,7 +10,8 @@ public class SensorAlert extends Alert {
         if (alertType != AlertType.BioSensorAlert
                 && alertType != AlertType.WaterSensorAlert
                 && alertType != AlertType.SoilSensorAlert
-                && alertType != AlertType.EnvSensorAlert)
+                && alertType != AlertType.EnvSensorAlert
+                && alertType != AlertType.GPS_ESCAPE_ALERT)
             throw new IllegalArgumentException("SensorAlert requires a sensor AlertType");
         this.triggeringEvent = sensorReading;
     }

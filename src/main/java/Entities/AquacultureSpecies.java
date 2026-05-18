@@ -16,6 +16,10 @@ public class AquacultureSpecies {
         private final LocalDateTime date;
 
         HarvestRecord(double weightKg, int countHarvested, int countBefore) {
+            this(weightKg, countHarvested, countBefore, LocalDateTime.now());
+        }
+
+        HarvestRecord(double weightKg, int countHarvested, int countBefore, LocalDateTime date) {
             if (weightKg < 0)
                 throw new IllegalArgumentException("Harvest weight cannot be negative");
             if (countHarvested < 0)
@@ -29,7 +33,7 @@ public class AquacultureSpecies {
             this.weightKg       = weightKg;
             this.countHarvested = countHarvested;
             this.countBefore    = countBefore;
-            this.date           = LocalDateTime.now();
+            this.date           = date;
         }
 
         public double getCycleSurvivalRatePercent() {
@@ -85,8 +89,18 @@ public class AquacultureSpecies {
             throw new IllegalArgumentException(
                     "Cannot harvest " + countHarvested +
                             " — only " + numSpecies + " remaining");
-
         harvestHistory.add(new HarvestRecord(kg, countHarvested, numSpecies));
+        numSpecies -= countHarvested;
+    }
+
+    public void harvest(double kg, int countHarvested, LocalDateTime date) {
+        if (countHarvested < 0)
+            throw new IllegalArgumentException("Count harvested cannot be negative");
+        if (countHarvested > numSpecies)
+            throw new IllegalArgumentException(
+                    "Cannot harvest " + countHarvested +
+                            " — only " + numSpecies + " remaining");
+        harvestHistory.add(new HarvestRecord(kg, countHarvested, numSpecies, date));
         numSpecies -= countHarvested;
     }
 

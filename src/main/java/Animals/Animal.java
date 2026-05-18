@@ -20,12 +20,17 @@ public class Animal {
             this.timestamp = LocalDateTime.now();
         }
 
+        WeightRecord(double weight, LocalDateTime timestamp) {
+            this.weight = weight;
+            this.timestamp = timestamp;
+        }
+
         public double getWeight()            { return weight; }
         public LocalDateTime getTimestamp()  { return timestamp; }
 
         @Override
         public String toString() {
-            return timestamp.toString().substring(0, 19) + " — " + weight + " kg";
+            return timestamp.toLocalDate() + " " + timestamp.toLocalTime().toString().substring(0, 5) + " — " + weight + " kg";
         }
     }
 
@@ -38,12 +43,17 @@ public class Animal {
             this.timestamp = LocalDateTime.now();
         }
 
+        MilkRecord(double liters, LocalDateTime timestamp) {
+            this.liters = liters;
+            this.timestamp = timestamp;
+        }
+
         public double getLiters()            { return liters; }
         public LocalDateTime getTimestamp()  { return timestamp; }
 
         @Override
         public String toString() {
-            return timestamp.toString().substring(0, 19) + " — " + String.format("%.2f L", liters);
+            return timestamp.toLocalDate() + " " + timestamp.toLocalTime().toString().substring(0, 5) + " — " + String.format("%.2f L", liters);
         }
     }
 
@@ -56,12 +66,17 @@ public class Animal {
             this.timestamp = LocalDateTime.now();
         }
 
+        EggRecord(int count, LocalDateTime timestamp) {
+            this.count = count;
+            this.timestamp = timestamp;
+        }
+
         public int getCount()                { return count; }
         public LocalDateTime getTimestamp()  { return timestamp; }
 
         @Override
         public String toString() {
-            return timestamp.toString().substring(0, 19) + " — " + count + " eggs";
+            return timestamp.toLocalDate() + " " + timestamp.toLocalTime().toString().substring(0, 5) + " — " + count + " eggs";
         }
     }
 
@@ -116,6 +131,11 @@ public class Animal {
     public void updateWeight(double w) {
         this.weight = w;
         this.weightHistory.add(new WeightRecord(w));
+    }
+
+    public void updateWeight(double w, LocalDateTime timestamp) {
+        this.weight = w;
+        this.weightHistory.add(new WeightRecord(w, timestamp));
     }
 
     public void setHealthStatus(AnimalHealthStatus h) {
@@ -174,10 +194,22 @@ public class Animal {
         this.milkHistory.add(new MilkRecord(liters));
     }
 
+    public void recordMilkYield(double liters, LocalDateTime timestamp) {
+        if (liters < 0) throw new IllegalArgumentException("liters cannot be negative");
+        this.milkYieldLiters += liters;
+        this.milkHistory.add(new MilkRecord(liters, timestamp));
+    }
+
     public void recordEgg(int count) {
         if (count < 0) throw new IllegalArgumentException("count cannot be negative");
         this.eggCount += count;
         this.eggHistory.add(new EggRecord(count));
+    }
+
+    public void recordEgg(int count, LocalDateTime timestamp) {
+        if (count < 0) throw new IllegalArgumentException("count cannot be negative");
+        this.eggCount += count;
+        this.eggHistory.add(new EggRecord(count, timestamp));
     }
 
     public void resetProductionStats() {

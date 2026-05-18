@@ -45,6 +45,8 @@ public class LivestockZONE extends ZONE {
         animals.remove(animal);
     }
 
+    public void clearAnimals() { animals.clear(); }
+
     public List<Animal> getAnimals() {
         return Collections.unmodifiableList(animals);
     }
@@ -65,6 +67,8 @@ public class LivestockZONE extends ZONE {
         bioSensors.remove(sensor);
     }
 
+    public void clearBioSensors()       { bioSensors.clear(); }
+
     public List<BioSensor> getBioSensors() {
         return Collections.unmodifiableList(bioSensors);
     }
@@ -76,6 +80,8 @@ public class LivestockZONE extends ZONE {
     public void removeGpsCollarSensor(GPSCollarSensor sensor) {
         gpsCollarSensors.remove(sensor);
     }
+
+    public void clearGpsCollarSensors() { gpsCollarSensors.clear(); }
 
     public List<GPSCollarSensor> getGpsCollarSensors() {
         return Collections.unmodifiableList(gpsCollarSensors);

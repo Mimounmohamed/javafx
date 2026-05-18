@@ -41,6 +41,7 @@ Reports\ReportType.class
 com\example\controllers\SensorChartDialog$1.class
 com\example\controllers\SensorChartDialog$2.class
 Animals\Animal$EggRecord.class
+Entities\Crop$YieldRecord.class
 com\example\controllers\MainController.class
 com\example\controllers\AnimalsController$1.class
 com\example\services\ReportService$1.class
@@ -67,6 +68,7 @@ Reports\AquacultureProductionReport.class
 Entities\SoilRequirements.class
 Sensors\GPSCollarSensor.class
 com\example\utils\SceneManager.class
+com\example\services\DataRandomizerService$1.class
 ZONES\CropZONE.class
 Entities\GrowthStage.class
 Reports\FarmReport.class
@@ -77,6 +79,7 @@ Reports\CropProductionReport.class
 Sensors\EnvSensor.class
 com\example\controllers\ZonesController.class
 Alerts\AlertResolution.class
+com\example\services\DataRandomizerService.class
 Alerts\HealthAlert.class
 com\example\controllers\ZonesController$2.class
 ZONES\ZoneStatus.class

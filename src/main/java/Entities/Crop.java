@@ -2,10 +2,33 @@ package Entities;
 import Additional_classes.Range;
 import ZONES.GoegraphicBoundries;
 import ZONES.ZONE;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 public class Crop {
+
+    public static class YieldRecord {
+        private final double kg;
+        private final LocalDateTime date;
+
+        public YieldRecord(double kg, LocalDateTime date) {
+            this.kg   = kg;
+            this.date = date;
+        }
+
+        public double        getKg()   { return kg; }
+        public LocalDateTime getDate() { return date; }
+
+        @Override
+        public String toString() {
+            return date.toString().substring(0, 10) + " — " + String.format("%.2f kg", kg);
+        }
+    }
+
     private String id;
     private CropType cropType;
     private String variety;
@@ -18,6 +41,7 @@ public class Crop {
     private double yieldKg;
     private Date harvestDate;
     private GoegraphicBoundries boundary;
+    private final List<YieldRecord> yieldHistory = new ArrayList<>();
 
     public Crop(CropType cropType, String variety, Date plantingDate, Date expectedHarvestDate,Range optimalPHRange, Range optimalMoistureRange, ZONE zone) {
         if (cropType == null) throw new IllegalArgumentException("cropType cannot be null");
@@ -65,15 +89,24 @@ public class Crop {
 
     public void recordHarvest(double kg) {
         if (kg < 0) throw new IllegalArgumentException("kg cannot be negative");
-        this.yieldKg = this.yieldKg + kg;
-        this.harvestDate = new Date(); // Set harvest date when recording harvest
+        this.yieldKg += kg;
+        this.harvestDate = new Date();
+        this.yieldHistory.add(new YieldRecord(kg, LocalDateTime.now()));
     }
 
-    public Date getHarvestDate()           { return harvestDate; }
-    public double getYieldKg()             { return yieldKg; }
-    public boolean wasHarvested()          { return yieldKg > 0; }
+    public void recordHarvest(double kg, LocalDateTime date) {
+        if (kg < 0) throw new IllegalArgumentException("kg cannot be negative");
+        this.yieldKg += kg;
+        this.harvestDate = new Date(date.toEpochSecond(java.time.ZoneOffset.UTC) * 1000L);
+        this.yieldHistory.add(new YieldRecord(kg, date));
+    }
 
-    public boolean hasBoundary()           { return boundary != null && boundary.size() >= 3; }
-    public GoegraphicBoundries getBoundary(){ return boundary; }
+    public List<YieldRecord> getYieldHistory()  { return Collections.unmodifiableList(yieldHistory); }
+    public Date getHarvestDate()                 { return harvestDate; }
+    public double getYieldKg()                   { return yieldKg; }
+    public boolean wasHarvested()                { return yieldKg > 0; }
+
+    public boolean hasBoundary()                 { return boundary != null && boundary.size() >= 3; }
+    public GoegraphicBoundries getBoundary()     { return boundary; }
     public void setBoundary(GoegraphicBoundries b) { this.boundary = b; }
 }

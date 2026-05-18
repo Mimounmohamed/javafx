@@ -92,7 +92,13 @@ public class AnimalService {
     }
 
     public void resolveHealthEvent(Animal animal, AnimalHealthStatus status) {
+        Animals.AnimalHealthStatus before = animal.getHealthStatus();
         animal.resolveLastHealthEvent(status);
+        // Log the recovery as its own history entry
+        Animals.HealthEvent recovery = new Animals.HealthEvent(
+            animal, status, before, status,
+            "Resolved — status restored to " + status);
+        animal.addHealthEvent(recovery);
         fs().autoSave();
     }
 }

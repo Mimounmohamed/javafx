@@ -272,31 +272,48 @@ public class AnimalsController {
 
         addRow("Zone",    a.getZone().getName());
 
+        // ── Production stats ───────────────────────────────────────────
         if (a.getMilkYieldLiters() > 0) {
             addRow("Milk Total", String.format("%.2f L  (%d records)", a.getMilkYieldLiters(), a.getMilkHistory().size()));
             if (!a.getMilkHistory().isEmpty()) {
-                addSectionTitle("Milk History");
-                ListView<String> milkList = new ListView<>();
-                milkList.setPrefHeight(Math.min(120, a.getMilkHistory().size() * 28.0));
-                milkList.getStyleClass().add("event-list");
-                for (int i = a.getMilkHistory().size() - 1; i >= 0; i--)
-                    milkList.getItems().add(a.getMilkHistory().get(i).toString());
-                detailPanel.getChildren().add(milkList);
+                Button milkHistBtn = new Button("View Milk History (" + a.getMilkHistory().size() + " records)");
+                milkHistBtn.getStyleClass().add("btn-secondary");
+                milkHistBtn.setMaxWidth(Double.MAX_VALUE);
+                milkHistBtn.setOnAction(e -> showHistoryDialog("Milk History — " + a.getName(),
+                    a.getMilkHistory().stream()
+                        .map(Object::toString)
+                        .collect(java.util.stream.Collectors.toList())));
+                detailPanel.getChildren().add(milkHistBtn);
             }
         }
         if (a.getEggCount() > 0) {
             addRow("Egg Total", String.format("%d eggs  (%d records)", a.getEggCount(), a.getEggHistory().size()));
             if (!a.getEggHistory().isEmpty()) {
-                addSectionTitle("Egg History");
-                ListView<String> eggList = new ListView<>();
-                eggList.setPrefHeight(Math.min(120, a.getEggHistory().size() * 28.0));
-                eggList.getStyleClass().add("event-list");
-                for (int i = a.getEggHistory().size() - 1; i >= 0; i--)
-                    eggList.getItems().add(a.getEggHistory().get(i).toString());
-                detailPanel.getChildren().add(eggList);
+                Button eggHistBtn = new Button("View Egg History (" + a.getEggHistory().size() + " records)");
+                eggHistBtn.getStyleClass().add("btn-secondary");
+                eggHistBtn.setMaxWidth(Double.MAX_VALUE);
+                eggHistBtn.setOnAction(e -> showHistoryDialog("Egg History — " + a.getName(),
+                    a.getEggHistory().stream()
+                        .map(Object::toString)
+                        .collect(java.util.stream.Collectors.toList())));
+                detailPanel.getChildren().add(eggHistBtn);
             }
         }
 
+        // ── Weight history button ──────────────────────────────────────
+        if (a.getWeightHistory().size() > 1) {
+            addRow("Weight Records", a.getWeightHistory().size() + " entries");
+            Button wHistBtn = new Button("View Weight History (" + a.getWeightHistory().size() + " records)");
+            wHistBtn.getStyleClass().add("btn-secondary");
+            wHistBtn.setMaxWidth(Double.MAX_VALUE);
+            wHistBtn.setOnAction(e -> showHistoryDialog("Weight History — " + a.getName(),
+                a.getWeightHistory().stream()
+                    .map(Object::toString)
+                    .collect(java.util.stream.Collectors.toList())));
+            detailPanel.getChildren().add(wHistBtn);
+        }
+
+        // ── Bio sensors ───────────────────────────────────────────────
         if (!a.getBioSensors().isEmpty()) {
             addSectionTitle("Bio Sensors");
             for (BioSensor s : a.getBioSensors()) {
@@ -314,18 +331,7 @@ public class AnimalsController {
             addRow("GPS Collar", gpsInfo);
         }
 
-        // Weight history (skip first entry which is the initial weight)
-        if (a.getWeightHistory().size() > 1) {
-            addSectionTitle("Weight History");
-            ListView<String> wList = new ListView<>();
-            wList.setPrefHeight(Math.min(130, a.getWeightHistory().size() * 28.0));
-            wList.getStyleClass().add("event-list");
-            for (Animal.WeightRecord wr : a.getWeightHistory())
-                wList.getItems().add(wr.toString());
-            detailPanel.getChildren().add(wList);
-        }
-
-        // Unresolved health events
+        // ── Unresolved health events ───────────────────────────────────
         List<HealthEvent> unresolved = a.getUnresolvedEvents();
         if (!unresolved.isEmpty()) {
             addSectionTitle("Unresolved Events");
@@ -334,18 +340,20 @@ public class AnimalsController {
                     e.getEventType() + " — " + e.getDescription());
         }
 
-        // Full health history
+        // ── Health history button ──────────────────────────────────────
         if (!a.getHealthHistory().isEmpty()) {
-            addSectionTitle("Health History");
-            ListView<String> evList = new ListView<>();
-            evList.setPrefHeight(Math.min(150, a.getHealthHistory().size() * 40.0));
-            evList.getStyleClass().add("event-list");
-            for (HealthEvent e : a.getHealthHistory())
-                evList.getItems().add(String.format("[%s]  %s → %s  |  %s%s",
-                    e.getDate().toLocalDate(), e.getStatusBefore(),
-                    e.getEventType(), e.getDescription(),
-                    e.isResolved() ? "  ✓" : ""));
-            detailPanel.getChildren().add(evList);
+            addRow("Health Events", a.getHealthHistory().size() + " recorded");
+            Button healthHistBtn = new Button("View Health History (" + a.getHealthHistory().size() + " events)");
+            healthHistBtn.getStyleClass().add("btn-secondary");
+            healthHistBtn.setMaxWidth(Double.MAX_VALUE);
+            healthHistBtn.setOnAction(ev -> showHistoryDialog("Health History — " + a.getName(),
+                a.getHealthHistory().stream()
+                    .map(e -> String.format("[%s]  %s → %s  |  %s%s",
+                        e.getDate().toLocalDate(), e.getStatusBefore(),
+                        e.getEventType(), e.getDescription(),
+                        e.isResolved() ? "  ✓" : ""))
+                    .collect(java.util.stream.Collectors.toList())));
+            detailPanel.getChildren().add(healthHistBtn);
         }
 
         // ── Actions ───────────────────────────────────────────────────
@@ -557,6 +565,29 @@ public class AnimalsController {
             refreshStats();
             showDetail(a);
         });
+    }
+
+    private void showHistoryDialog(String title, List<String> entries) {
+        ListView<String> list = new ListView<>();
+        list.getItems().addAll(entries);
+        list.getStyleClass().add("event-list");
+        list.setPrefHeight(Math.min(400, entries.size() * 26.0 + 30));
+        list.setPrefWidth(460);
+
+        VBox content = new VBox(list);
+        content.setPadding(new Insets(12, 16, 8, 16));
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle(title);
+        dialog.setHeaderText(null);
+        // Must set owner so the dialog appears in front of the main window
+        if (animalTable.getScene() != null)
+            dialog.initOwner(animalTable.getScene().getWindow());
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setMinWidth(500);
+        applyDialogStyle(dialog);
+        dialog.showAndWait();
     }
 
     private void addRow(String key, String value) {

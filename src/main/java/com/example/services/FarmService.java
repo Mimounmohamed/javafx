@@ -18,11 +18,15 @@ public class FarmService {
     private final String savedId;  // null = never persisted (shouldn't happen with new flow)
     private final boolean demo;
 
+    private boolean wasRandomized = false;
+
     private FarmService(Farm farm, String savedId, boolean demo) {
         this.farm    = farm;
         this.savedId = savedId;
         this.demo    = demo;
     }
+
+    public void markAsRandomized() { this.wasRandomized = true; }
 
     // ── Factory methods ───────────────────────────────────────────────
 
@@ -48,30 +52,40 @@ public class FarmService {
         }
 
         Farm farm = new Farm(saved.name, saved.location, saved.owner);
+        FarmService svc = new FarmService(farm, saved.id, false);
 
-        for (FarmRepository.SavedZone sz : saved.zones) {
-            switch (sz.type) {
-                case "LIVESTOCK" -> {
-                    LivestockZONE lz = new LivestockZONE(sz.name, LIvestockType.valueOf(sz.lstType));
-                    farm.addZone(lz);
-                }
-                case "CROP"         -> farm.addZone(new CropZONE(sz.name));
-                case "AQUACULTURE"  -> farm.addZone(new AquacultureZONE(sz.name));
+        if (saved.wasRandomized) {
+            svc.wasRandomized = true;
+            instance = svc;
+            try {
+                DataRandomizerService.getInstance().populateNewFarm();
+            } catch (Exception ex) {
+                System.err.println("[DataRandomizer] populateNewFarm failed on load:");
+                ex.printStackTrace(System.err);
             }
+        } else {
+            for (FarmRepository.SavedZone sz : saved.zones) {
+                switch (sz.type) {
+                    case "LIVESTOCK" -> {
+                        LivestockZONE lz = new LivestockZONE(sz.name, LIvestockType.valueOf(sz.lstType));
+                        farm.addZone(lz);
+                    }
+                    case "CROP"        -> farm.addZone(new CropZONE(sz.name));
+                    case "AQUACULTURE" -> farm.addZone(new AquacultureZONE(sz.name));
+                }
+            }
+            for (FarmRepository.SavedAnimal sa : saved.animals) {
+                LivestockZONE zone = farm.getLivestockZones().stream()
+                    .filter(z -> z.getName().equals(sa.zoneName))
+                    .findFirst().orElse(null);
+                if (zone == null) continue;
+                Animal a = new Animal(sa.species, sa.name,
+                    LIvestockType.valueOf(sa.type), sa.age, sa.weight, zone);
+                a.setHealthStatus(AnimalHealthStatus.valueOf(sa.health));
+                zone.addAnimal(a);
+            }
+            instance = svc;
         }
-
-        for (FarmRepository.SavedAnimal sa : saved.animals) {
-            LivestockZONE zone = farm.getLivestockZones().stream()
-                .filter(z -> z.getName().equals(sa.zoneName))
-                .findFirst().orElse(null);
-            if (zone == null) continue;
-            Animal a = new Animal(sa.species, sa.name,
-                LIvestockType.valueOf(sa.type), sa.age, sa.weight, zone);
-            a.setHealthStatus(AnimalHealthStatus.valueOf(sa.health));
-            zone.addAnimal(a);
-        }
-
-        instance = new FarmService(farm, saved.id, false);
     }
 
     public static FarmService getInstance() {
@@ -91,7 +105,8 @@ public class FarmService {
         sf.location  = farm.getLocation();
         sf.owner     = farm.getOwnerName();
         sf.createdAt = farm.getCreatedAt().toString().substring(0, 16);
-        sf.isDemo    = false;
+        sf.isDemo        = false;
+        sf.wasRandomized = wasRandomized;
 
         for (LivestockZONE z : farm.getLivestockZones()) {
             FarmRepository.SavedZone sz = new FarmRepository.SavedZone();
@@ -129,6 +144,7 @@ public class FarmService {
     // ── Accessors ─────────────────────────────────────────────────────
 
     public Farm   getFarm()          { return farm; }
+    public String getSavedId()       { return savedId; }
     public String getFarmName()      { return farm.getName(); }
     public String getFarmLocation()  { return farm.getLocation(); }
     public String getOwnerName()     { return farm.getOwnerName(); }
