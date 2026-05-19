@@ -34,8 +34,10 @@
                     text="📡   Sensors"   styleClass="nav-btn" maxWidth="Infinity" />
             <Button fx:id="btnAlerts"    onAction="#navAlerts"
                     text="🔔   Alerts"    styleClass="nav-btn" maxWidth="Infinity" />
-            <Button fx:id="btnReports"   onAction="#navReports"
-                    text="📋   Reports"   styleClass="nav-btn" maxWidth="Infinity" />
+            <Button fx:id="btnReports"    onAction="#navReports"
+                    text="📋   Reports"    styleClass="nav-btn" maxWidth="Infinity" />
+            <Button fx:id="btnSimulation" onAction="#navSimulation"
+                    text="⏩   Simulation" styleClass="nav-btn" maxWidth="Infinity" />
 
             <Region VBox.vgrow="ALWAYS" />
             <Separator styleClass="sidebar-sep" />

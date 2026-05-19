@@ -71,8 +71,15 @@
                    text="" visible="false" managed="false" wrapText="true" />
 
             <Region VBox.vgrow="ALWAYS" />
-            <Button text="Create Farm →" onAction="#createNewFarm"
-                    styleClass="btn-primary" maxWidth="Infinity" />
+
+            <Label text="Start with:" styleClass="form-label" />
+            <HBox spacing="8">
+                <Button text="📋  Sample Data" onAction="#createWithSampleData"
+                        styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                <Button text="⬜  Empty Farm" onAction="#createEmptyFarm"
+                        styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+            </HBox>
+
             <Button text="🎲  Generate Random Farm" onAction="#generateRandomFarm"
                     styleClass="btn-secondary" maxWidth="Infinity" />
         </VBox>

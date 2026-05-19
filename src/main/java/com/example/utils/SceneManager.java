@@ -36,8 +36,9 @@ public class SceneManager {
         ROUTES.put("animals",   "/com/example/views/animals.fxml");
         ROUTES.put("sensors",   "/com/example/views/sensors.fxml");
         ROUTES.put("alerts",    "/com/example/views/alerts.fxml");
-        ROUTES.put("reports",   "/com/example/views/reports.fxml");
-        ROUTES.put("settings",  "/com/example/views/settings.fxml");
+        ROUTES.put("reports",    "/com/example/views/reports.fxml");
+        ROUTES.put("simulation", "/com/example/views/simulation.fxml");
+        ROUTES.put("settings",   "/com/example/views/settings.fxml");
     }
 
     private SceneManager() {}

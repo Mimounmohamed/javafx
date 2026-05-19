@@ -59,7 +59,12 @@ public class StartupController {
     // ── Create new farm ───────────────────────────────────────────────
 
     @FXML
-    private void createNewFarm() {
+    private void createWithSampleData() { doCreateFarm(true); }
+
+    @FXML
+    private void createEmptyFarm() { doCreateFarm(false); }
+
+    private void doCreateFarm(boolean populate) {
         String name  = newFarmName.getText().trim();
         String loc   = newFarmLocation.getText().trim();
         String owner = newFarmOwner.getText().trim();
@@ -70,24 +75,22 @@ public class StartupController {
         }
         try {
             FarmService.initWithNewFarm(name, loc, owner);
-            // Persist wasRandomized=true BEFORE populating so the flag survives
-            // even if populateNewFarm() throws partway through.
-            FarmService.getInstance().markAsRandomized();
+            if (populate) FarmService.getInstance().markAsRandomized();
             FarmService.getInstance().autoSave();
         } catch (IllegalArgumentException e) {
             showError(e.getMessage());
             return;
         }
 
-        // Populate — catch everything so a bug here never blocks navigation
-        try {
-            DataRandomizerService.getInstance().populateNewFarm();
-        } catch (Exception ex) {
-            System.err.println("[DataRandomizer] populateNewFarm failed:");
-            ex.printStackTrace(System.err);
+        if (populate) {
+            try {
+                DataRandomizerService.getInstance().populateNewFarm();
+            } catch (Exception ex) {
+                System.err.println("[DataRandomizer] populateNewFarm failed:");
+                ex.printStackTrace(System.err);
+            }
         }
 
-        // Refresh list and navigate regardless of population result
         List<FarmRepository.SavedFarm> updated = FarmRepository.loadAll();
         farms.clear();
         updated.stream().filter(f ->  f.isDemo).forEach(farms::add);

@@ -326,8 +326,12 @@ public class AnimalsController {
         }
 
         if (a.hasGPSCollar()) {
-            String gpsInfo = "code " + a.getGpsCollarSensor().getCode();
-            if (a.getGpsCollarSensor().hasEscaped()) gpsInfo += "  ⚠ OUTSIDE ZONE";
+            Sensors.GPSCollarSensor gps = a.getGpsCollarSensor();
+            double lat = gps.getCurrentLatitude(), lon = gps.getCurrentLongitude();
+            String gpsInfo = "code " + gps.getCode();
+            if (lat != 0.0 || lon != 0.0)
+                gpsInfo += String.format("  (%.5f°, %.5f°)", lat, lon);
+            if (gps.hasEscaped()) gpsInfo += "  ⚠ OUTSIDE ZONE";
             addRow("GPS Collar", gpsInfo);
         }
 

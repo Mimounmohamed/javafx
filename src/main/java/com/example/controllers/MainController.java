@@ -29,6 +29,7 @@ public class MainController {
     @FXML private Button btnSensors;
     @FXML private Button btnAlerts;
     @FXML private Button btnReports;
+    @FXML private Button btnSimulation;
     @FXML private Button btnSettings;
 
     private boolean expanded = true;
@@ -37,9 +38,9 @@ public class MainController {
     private static final DateTimeFormatter CLOCK_FMT =
         DateTimeFormatter.ofPattern("EEE dd MMM  HH:mm:ss");
 
-    private static final String[] ICONS  = {"📊", "🗺", "🐄", "📡", "🔔", "📋", "⚙"};
+    private static final String[] ICONS  = {"📊", "🗺", "🐄", "📡", "🔔", "📋", "⏩", "⚙"};
     private static final String[] LABELS = {"Dashboard", "Zones", "Animals",
-                                            "Sensors", "Alerts", "Reports", "Settings"};
+                                            "Sensors", "Alerts", "Reports", "Simulation", "Settings"};
 
     @FXML
     public void initialize() {
@@ -81,7 +82,7 @@ public class MainController {
         logoLabel.setManaged(expanded);
 
         Button[] buttons = {btnDashboard, btnZones, btnAnimals,
-                            btnSensors,  btnAlerts, btnReports, btnSettings};
+                            btnSensors,  btnAlerts, btnReports, btnSimulation, btnSettings};
         for (int i = 0; i < buttons.length; i++) {
             buttons[i].setText(expanded ? ICONS[i] + "   " + LABELS[i] : ICONS[i]);
         }
@@ -104,6 +105,7 @@ public class MainController {
     @FXML private void navAnimals()   { setActive(btnAnimals);   SceneManager.getInstance().navigateTo("animals"); }
     @FXML private void navSensors()   { setActive(btnSensors);   SceneManager.getInstance().navigateTo("sensors"); }
     @FXML private void navAlerts()    { setActive(btnAlerts);    SceneManager.getInstance().navigateTo("alerts"); }
-    @FXML private void navReports()   { setActive(btnReports);   SceneManager.getInstance().navigateTo("reports"); }
-    @FXML private void navSettings()  { setActive(btnSettings);  SceneManager.getInstance().navigateTo("settings"); }
+    @FXML private void navReports()    { setActive(btnReports);    SceneManager.getInstance().navigateTo("reports"); }
+    @FXML private void navSimulation() { setActive(btnSimulation); SceneManager.getInstance().navigateTo("simulation"); }
+    @FXML private void navSettings()   { setActive(btnSettings);   SceneManager.getInstance().navigateTo("settings"); }
 }
