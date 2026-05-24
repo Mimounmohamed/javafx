@@ -1599,3 +1599,401 @@
 .crop-stage-lbl-current { -fx-text-fill: #0F6E56; -fx-font-weight: bold; }
 .crop-stage-lbl-alert   { -fx-text-fill: #854F0B; -fx-font-weight: bold; }
 .crop-stage-lbl-future  { -fx-text-fill: #B0AFA8; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   DIALOG REDESIGN — Modern Clean Style
+   Appended below all other rules — overrides everything above.
+   Palette:
+     white         #ffffff      surface-bg    #F9FAFB
+     border-rest   #D1D5DB      border-focus  #1D9E75
+     text-primary  #111827      text-muted    #6B7280
+     text-label    #374151      glow-green    rgba(29,158,117,0.15)
+     green-primary #1D9E75      green-hover   #18896a
+     divider       #E5E5E2
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Dialog shell ─────────────────────────────────────────────────── */
+.dialog-pane {
+    -fx-background-color: #ffffff;
+    -fx-padding: 0;
+}
+
+/* ── Header panel (shown when setHeaderText is used) ──────────────── */
+.dialog-pane:header .header-panel {
+    -fx-background-color: #ffffff;
+    -fx-padding: 20 24 16 24;
+    -fx-border-color: transparent transparent #E5E5E2 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.dialog-pane:header .header-panel .label {
+    -fx-text-fill: #111827;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-wrap-text: true;
+}
+
+/* ── Content area ─────────────────────────────────────────────────── */
+.dialog-pane > .content {
+    -fx-background-color: #ffffff;
+    -fx-padding: 0;
+}
+
+/* ── Footer / button bar ──────────────────────────────────────────── */
+.dialog-pane > .button-bar {
+    -fx-background-color: #ffffff;
+    -fx-padding: 14 20 18 20;
+    -fx-border-color: #E5E5E2 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+.dialog-pane > .button-bar > .container {
+    -fx-alignment: CENTER_RIGHT;
+}
+
+/* ── Primary button — solid green, always fully opaque ────────────── */
+.btn-primary {
+    -fx-background-color: #1D9E75;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-opacity: 1.0;
+}
+.btn-primary:hover    { -fx-background-color: #18896a; }
+.btn-primary:pressed  { -fx-background-color: #12734f; }
+.btn-primary:disabled { -fx-background-color: #A7D7C5; -fx-opacity: 1.0; }
+
+/* ── Secondary / Cancel button — transparent, gray border ─────────── */
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 13px;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+.btn-secondary:hover {
+    -fx-background-color: #F9FAFB;
+    -fx-text-fill: #374151;
+    -fx-border-color: #9CA3AF;
+}
+
+/* ── Danger button ────────────────────────────────────────────────── */
+.btn-danger {
+    -fx-background-color: transparent;
+    -fx-border-color: #F09595;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #A32D2D;
+    -fx-font-size: 13px;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+.btn-danger:hover { -fx-background-color: #FCEBEB; }
+
+/* ── Form label — above each field ───────────────────────────────── */
+.dialog-form-label {
+    -fx-text-fill: #374151;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* ── Form field — white, thin gray border, 6px radius ────────────── */
+.dialog-form-field {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #111827;
+    -fx-prompt-text-fill: #9CA3AF;
+    -fx-padding: 8 12;
+    -fx-font-size: 13px;
+}
+.dialog-form-field:focused {
+    -fx-border-color: #1D9E75;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(three-pass-box, rgba(29,158,117,0.15), 6, 0, 0, 0);
+}
+
+/* ── Generic TextField inside any dialog pane ─────────────────────── */
+.dialog-pane .text-field {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #111827;
+    -fx-prompt-text-fill: #9CA3AF;
+    -fx-padding: 8 12;
+    -fx-font-size: 13px;
+}
+.dialog-pane .text-field:focused {
+    -fx-border-color: #1D9E75;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(three-pass-box, rgba(29,158,117,0.15), 6, 0, 0, 0);
+}
+
+/* ── ComboBox inside dialogs — no green tint ──────────────────────── */
+.dialog-pane .combo-box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 13px;
+    -fx-padding: 1 4;
+}
+.dialog-pane .combo-box:focused {
+    -fx-border-color: #1D9E75;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(three-pass-box, rgba(29,158,117,0.15), 6, 0, 0, 0);
+}
+.dialog-pane .combo-box > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #111827;
+    -fx-padding: 5 10;
+}
+.dialog-pane .combo-box .arrow-button { -fx-background-color: transparent; }
+.dialog-pane .combo-box .arrow        { -fx-background-color: #6B7280; }
+
+/* ── TextArea inside dialogs ──────────────────────────────────────── */
+.dialog-pane .text-area {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #D1D5DB;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-border-width: 1;
+}
+.dialog-pane .text-area .content {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 6;
+    -fx-padding: 8 12;
+    -fx-font-size: 12px;
+    -fx-text-fill: #374151;
+}
+.dialog-pane .text-area:focused {
+    -fx-border-color: #1D9E75;
+    -fx-border-width: 1.5;
+}
+
+/* ── ScrollPane inside dialogs ────────────────────────────────────── */
+.dialog-pane .scroll-pane {
+    -fx-background: #ffffff;
+    -fx-background-color: #ffffff;
+}
+.dialog-pane .scroll-pane > .viewport { -fx-background-color: #ffffff; }
+
+/* ── ListView inside dialogs ──────────────────────────────────────── */
+.dialog-pane .list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #E5E5E2;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-border-width: 1;
+}
+.dialog-pane .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #374151;
+    -fx-padding: 6 10;
+    -fx-font-size: 12px;
+}
+.dialog-pane .list-cell:odd      { -fx-background-color: #FAFAFA; }
+.dialog-pane .list-cell:selected { -fx-background-color: #E8F5F0; -fx-text-fill: #1D9E75; }
+.dialog-pane .list-cell:hover    { -fx-background-color: #F9FAFB; }
+
+/* ── Separator inside dialogs ─────────────────────────────────────── */
+.dialog-pane .separator .line {
+    -fx-border-color: #E5E5E2;
+    -fx-border-width: 0.5 0 0 0;
+}
+
+/* ── Tab pane inside dialog (BoundaryEditorDialog) ────────────────── */
+.dialog-pane .tab-pane { -fx-background-color: #ffffff; }
+.dialog-pane .tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: transparent transparent #E5E5E2 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.dialog-pane .tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 9 18;
+}
+.dialog-pane .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 13px;
+}
+.dialog-pane .tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #1D9E75 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+.dialog-pane .tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-label {
+    -fx-text-fill: #1D9E75;
+    -fx-font-weight: bold;
+}
+.dialog-pane .tab-pane > .tab-header-area > .headers-region > .tab:hover > .tab-container > .tab-label {
+    -fx-text-fill: #111827;
+}
+.dialog-pane .tab-pane > .tab-content-area {
+    -fx-background-color: #ffffff;
+    -fx-padding: 0;
+}
+
+/* ── kpi-card used inside ZoneMapDialog side panel ────────────────── */
+.dialog-pane .kpi-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8;
+    -fx-border-color: #E5E5E2;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 14;
+    -fx-effect: none;
+}
+
+/* ── stats-bar inside ZoneAlertHistoryDialog ──────────────────────── */
+.dialog-pane .stats-bar {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: transparent transparent #E5E5E2 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* ── Custom dialog header — used by standalone dialog classes ─────── */
+.dialog-custom-header {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #E5E5E2 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 16 20 14 20;
+}
+.dialog-custom-header-icon  { -fx-font-size: 20px; }
+.dialog-custom-header-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+.dialog-custom-header-sub {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6B7280;
+}
+.dialog-header-close-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 14px;
+    -fx-padding: 3 8;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-background-radius: 4;
+}
+.dialog-header-close-btn:hover {
+    -fx-background-color: #F3F4F6;
+    -fx-text-fill: #374151;
+}
+
+/* ── Hint / muted text below a field ─────────────────────────────── */
+.dialog-hint { -fx-text-fill: #9CA3AF; -fx-font-size: 11px; }
+
+/* ── Light card block (conditional sections) ──────────────────────── */
+.dialog-card {
+    -fx-background-color: #F9FAFB;
+    -fx-background-radius: 8;
+    -fx-border-color: #E5E5E2;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 12 14;
+}
+
+/* ── ComboBox inside formGroup — same border style as text-field ──── */
+.dialog-form-combo {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 13px;
+    -fx-padding: 1 4;
+}
+.dialog-form-combo:focused {
+    -fx-border-color: #1D9E75;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(three-pass-box, rgba(29,158,117,0.15), 6, 0, 0, 0);
+}
+.dialog-form-combo > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #111827;
+    -fx-padding: 5 10;
+}
+.dialog-form-combo .arrow-button { -fx-background-color: transparent; }
+.dialog-form-combo .arrow        { -fx-background-color: #6B7280; }
+
+/* ── BoundaryEditorDialog: bounds inputs inside canvas area ───────── */
+.dialog-pane .text-field.text-input {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+/* === Add Zone Redesign === */
+.az-form-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #374151;
+}
+
+/* Pill toggle buttons — zone type selector */
+.az-pill-btn {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 13px;
+    -fx-padding: 8 12;
+    -fx-cursor: hand;
+    -fx-min-height: 36px;
+    -fx-alignment: center;
+}
+.az-pill-btn:selected {
+    -fx-background-color: #EAF3DE;
+    -fx-border-color: #1D9E75;
+    -fx-border-width: 1.5;
+    -fx-text-fill: #145C3E;
+    -fx-font-weight: 500;
+}
+.az-pill-btn:hover {
+    -fx-background-color: #F3F4F6;
+}
+.az-pill-btn:selected:hover {
+    -fx-background-color: #D8EDD0;
+}
+
+/* Livestock options card */
+.az-livestock-card {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 14 16;
+}
+.az-card-section-label {
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #9CA3AF;
+    -fx-letter-spacing: 0.5px;
+}
+
+/* Primary button — solid green even when initially disabled */
+.btn-primary:disabled {
+    -fx-background-color: #A7D7C5;
+    -fx-text-fill: #ffffff;
+    -fx-opacity: 1.0;
+}

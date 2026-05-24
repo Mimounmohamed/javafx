@@ -443,7 +443,10 @@ public class SensorsController {
             tf.getStyleClass().setAll("dialog-form-field");
             tf.setMaxWidth(Double.MAX_VALUE);
         }
-        if (input instanceof ComboBox<?> cb) cb.setMaxWidth(Double.MAX_VALUE);
+        if (input instanceof ComboBox<?> cb) {
+            cb.setMaxWidth(Double.MAX_VALUE);
+            cb.getStyleClass().setAll("combo-box", "dialog-form-combo");
+        }
         return new VBox(6, lbl, input);
     }
 
@@ -456,5 +459,11 @@ public class SensorsController {
         Button cancel = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
         if (ok != null)     ok.getStyleClass().add("btn-primary");
         if (cancel != null) cancel.getStyleClass().add("btn-secondary");
+
+        String title = dialog.getTitle() == null ? "" : dialog.getTitle();
+        String icon  = title.contains("Inject") ? "📊" : "📡";
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 18px;");
+        dialog.setGraphic(iconLbl);
     }
 }

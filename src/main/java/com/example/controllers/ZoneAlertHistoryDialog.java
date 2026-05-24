@@ -13,6 +13,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
@@ -53,6 +54,7 @@ public class ZoneAlertHistoryDialog extends Dialog<Void> {
 
     public ZoneAlertHistoryDialog(ZONE zone, List<String> styleSheets) {
         setTitle("Alert History — " + zone.getName());
+        setHeaderText(null);
         setResizable(true);
         getDialogPane().setPrefSize(980, 680);
         getDialogPane().getStylesheets().addAll(styleSheets);
@@ -64,15 +66,20 @@ public class ZoneAlertHistoryDialog extends Dialog<Void> {
 
         VBox root = new VBox(0);
 
+        // ── Custom header ──────────────────────────────────────────────────
+        root.getChildren().add(buildCustomHeader(
+            "🔔", "Alert History — " + zone.getName(),
+            zoneAlerts.size() + " alert(s) total"));
+
         // ── Stats bar ──────────────────────────────────────────────────────
         root.getChildren().add(buildStatsBar(zoneAlerts));
-        root.getChildren().add(new Separator());
 
         // ── Filter bar ─────────────────────────────────────────────────────
-        root.getChildren().add(buildFilterBar());
         root.getChildren().add(new Separator());
+        root.getChildren().add(buildFilterBar());
 
         // ── Table ─────────────────────────────────────────────────────────
+        root.getChildren().add(new Separator());
         table = buildTable();
         VBox.setVgrow(table, Priority.ALWAYS);
         root.getChildren().add(table);
@@ -88,6 +95,34 @@ public class ZoneAlertHistoryDialog extends Dialog<Void> {
         if (closeBtn != null) closeBtn.getStyleClass().add("btn-primary");
 
         setResultConverter(bt -> null);
+    }
+
+    private HBox buildCustomHeader(String icon, String title, String subtitle) {
+        Label iconLbl = new Label(icon);
+        iconLbl.getStyleClass().add("dialog-custom-header-icon");
+
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("dialog-custom-header-title");
+
+        Label subLbl = new Label(subtitle);
+        subLbl.getStyleClass().add("dialog-custom-header-sub");
+
+        VBox textBox = new VBox(2, titleLbl, subLbl);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.getStyleClass().add("dialog-header-close-btn");
+        closeBtn.setOnAction(e -> {
+            Button footerClose = (Button) getDialogPane().lookupButton(ButtonType.CLOSE);
+            if (footerClose != null) footerClose.fire();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(12, iconLbl, textBox, spacer, closeBtn);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getStyleClass().add("dialog-custom-header");
+        return header;
     }
 
     // ── Stats bar ─────────────────────────────────────────────────────────

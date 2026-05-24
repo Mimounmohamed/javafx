@@ -12,6 +12,7 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -28,6 +29,9 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import ZONES.AquacultureZONE;
 import ZONES.CropZONE;
@@ -45,6 +49,7 @@ public class SensorHistoryDialog extends Dialog<Void> {
 
     public SensorHistoryDialog(ZONE zone, List<String> styleSheets) {
         setTitle("Sensor History — " + zone.getName());
+        setHeaderText(null);
         setResizable(true);
         getDialogPane().setPrefSize(920, 720);
         getDialogPane().getStylesheets().addAll(styleSheets);
@@ -69,12 +74,46 @@ public class SensorHistoryDialog extends Dialog<Void> {
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
-        getDialogPane().setContent(scroll);
+        VBox wrapper = new VBox(0,
+            buildCustomHeader("📡", "Sensor History — " + zone.getName(),
+                sensors.size() + " sensor(s) · all readings"),
+            scroll);
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+
+        getDialogPane().setContent(wrapper);
         getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         Button closeBtn = (Button) getDialogPane().lookupButton(ButtonType.CLOSE);
         if (closeBtn != null) closeBtn.getStyleClass().add("btn-primary");
 
         setResultConverter(bt -> null);
+    }
+
+    private HBox buildCustomHeader(String icon, String title, String subtitle) {
+        Label iconLbl = new Label(icon);
+        iconLbl.getStyleClass().add("dialog-custom-header-icon");
+
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("dialog-custom-header-title");
+
+        Label subLbl = new Label(subtitle);
+        subLbl.getStyleClass().add("dialog-custom-header-sub");
+
+        VBox textBox = new VBox(2, titleLbl, subLbl);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.getStyleClass().add("dialog-header-close-btn");
+        closeBtn.setOnAction(e -> {
+            Button footerClose = (Button) getDialogPane().lookupButton(ButtonType.CLOSE);
+            if (footerClose != null) footerClose.fire();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(12, iconLbl, textBox, spacer, closeBtn);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getStyleClass().add("dialog-custom-header");
+        return header;
     }
 
     // ── Sensor list by zone type ─────────────────────────────────────────

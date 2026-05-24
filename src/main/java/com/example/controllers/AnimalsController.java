@@ -825,7 +825,10 @@ public class AnimalsController {
             tf.getStyleClass().setAll("dialog-form-field");
             tf.setMaxWidth(Double.MAX_VALUE);
         }
-        if (input instanceof ComboBox<?> cb) cb.setMaxWidth(Double.MAX_VALUE);
+        if (input instanceof ComboBox<?> cb) {
+            cb.setMaxWidth(Double.MAX_VALUE);
+            cb.getStyleClass().setAll("combo-box", "dialog-form-combo");
+        }
         VBox box = new VBox(6, lbl, input);
         return box;
     }
@@ -839,5 +842,17 @@ public class AnimalsController {
         Button cancel = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
         if (ok != null)     ok.getStyleClass().add("btn-primary");
         if (cancel != null) cancel.getStyleClass().add("btn-secondary");
+
+        String title = dialog.getTitle() == null ? "" : dialog.getTitle();
+        String icon  = "🐄";
+        if      (title.contains("Weight"))  icon = "⚖";
+        else if (title.contains("Milk"))    icon = "🥛";
+        else if (title.contains("Egg"))     icon = "🥚";
+        else if (title.contains("Resolve")) icon = "✅";
+        else if (title.contains("Sick") || title.contains("Quarantine")) icon = "🩺";
+        else if (title.contains("Events"))  icon = "📋";
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 18px;");
+        dialog.setGraphic(iconLbl);
     }
 }

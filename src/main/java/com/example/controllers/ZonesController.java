@@ -460,54 +460,10 @@ public class ZonesController {
 
     @FXML
     private void showAddZoneDialog() {
-        ComboBox<String> typeCombo = new ComboBox<>();
-        typeCombo.getItems().addAll("Livestock", "Crop", "Aquaculture");
-        typeCombo.setValue("Livestock");
-
-        TextField nameField = new TextField();
-        nameField.setPromptText("e.g. North Pasture");
-
-        ComboBox<String> lstTypeCombo = new ComboBox<>();
-        lstTypeCombo.getItems().addAll("RUMINANT", "POULTRY");
-        lstTypeCombo.setValue("RUMINANT");
-
-        VBox lstTypeGroup = formGroup("Livestock Type", lstTypeCombo);
-        typeCombo.setOnAction(e -> {
-            boolean isLs = "Livestock".equals(typeCombo.getValue());
-            lstTypeGroup.setVisible(isLs);
-            lstTypeGroup.setManaged(isLs);
-        });
-
-        VBox form = new VBox(16,
-            formGroup("Zone Type", typeCombo),
-            formGroup("Zone Name", nameField),
-            lstTypeGroup
-        );
-        form.setPadding(new Insets(20, 24, 8, 24));
-
-        Dialog<ZONE> dialog = new Dialog<>();
-        dialog.setTitle("Add Zone");
-        dialog.setHeaderText("Add a new zone to the farm");
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(420);
-        applyDialogStyle(dialog);
-
-        Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okBtn.setText("Add Zone");
-        okBtn.setDisable(true);
-        nameField.textProperty().addListener((obs, o, n) -> okBtn.setDisable(n.trim().isEmpty()));
-
-        dialog.setResultConverter(bt -> {
-            if (bt != ButtonType.OK) return null;
-            String name = nameField.getText().trim();
-            return switch (typeCombo.getValue()) {
-                case "Livestock" -> new LivestockZONE(name, LIvestockType.valueOf(lstTypeCombo.getValue()));
-                case "Crop"      -> new CropZONE(name);
-                default          -> new AquacultureZONE(name);
-            };
-        });
-
+        var sheets = detailPanel.getScene() == null ? null : detailPanel.getScene().getStylesheets();
+        String css = (sheets != null && !sheets.isEmpty()) ? sheets.get(0)
+            : getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        AddZoneDialog dialog = new AddZoneDialog(css);
         dialog.showAndWait().ifPresent(zone -> {
             zoneService.addZone(zone);
             reloadTables();
@@ -1858,7 +1814,10 @@ public class ZonesController {
             tf.getStyleClass().setAll("dialog-form-field");
             tf.setMaxWidth(Double.MAX_VALUE);
         }
-        if (input instanceof ComboBox<?> cb) cb.setMaxWidth(Double.MAX_VALUE);
+        if (input instanceof ComboBox<?> cb) {
+            cb.setMaxWidth(Double.MAX_VALUE);
+            cb.getStyleClass().setAll("combo-box", "dialog-form-combo");
+        }
         VBox box = new VBox(6, lbl, input);
         return box;
     }
@@ -1872,6 +1831,21 @@ public class ZonesController {
         Button cancel = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
         if (ok != null)     ok.getStyleClass().add("btn-primary");
         if (cancel != null) cancel.getStyleClass().add("btn-secondary");
+
+        String title = dialog.getTitle() == null ? "" : dialog.getTitle();
+        String icon  = "🌿";
+        if      (title.contains("Animal"))   icon = "🐄";
+        else if (title.contains("Zone"))     icon = "📍";
+        else if (title.contains("Sensor"))   icon = "📡";
+        else if (title.contains("Feeding"))  icon = "🍽";
+        else if (title.contains("Rename"))   icon = "✏";
+        else if (title.contains("Crop"))     icon = "🌾";
+        else if (title.contains("Species") || title.contains("Aqua")) icon = "🐟";
+        else if (title.contains("Harvest") || title.contains("Mortality") || title.contains("Restock")) icon = "📦";
+        else if (title.contains("Inject") || title.contains("Reading")) icon = "📊";
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 18px;");
+        dialog.setGraphic(iconLbl);
     }
 
     private void reloadTables() {

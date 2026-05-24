@@ -70,10 +70,7 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
         this.parentBoundary = parentBoundary;
 
         setTitle("Boundary Editor — " + name);
-        String header = parentBoundary != null
-            ? "Draw the boundary for \"" + name + "\"  (must stay inside the zone outline)"
-            : "Define the geographic boundary for \"" + name + "\"";
-        setHeaderText(header);
+        setHeaderText(null);
         getDialogPane().setMinWidth(780);
         getDialogPane().setMinHeight(640);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -86,6 +83,10 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
         okBtn.setText("Save Boundary");
         okBtn.getStyleClass().add("btn-primary");
         cancelBtn.getStyleClass().add("btn-secondary");
+
+        String subtitle = parentBoundary != null
+            ? "Must stay inside the zone outline · 3 points minimum"
+            : "Define the geographic boundary · 3 points minimum";
 
         // Pre-load existing child boundary
         if (existing != null && !existing.getPoints().isEmpty()) {
@@ -107,7 +108,12 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
         tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         tabPane.getTabs().addAll(buildDrawTab(), buildManualTab(), buildJsonTab());
-        getDialogPane().setContent(tabPane);
+
+        VBox dialogRoot = new VBox(0,
+            buildCustomHeader("🗺", "Boundary Editor — " + name, subtitle),
+            tabPane);
+        VBox.setVgrow(tabPane, Priority.ALWAYS);
+        getDialogPane().setContent(dialogRoot);
 
         setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
@@ -747,5 +753,33 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
     private void showError(String msg) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setTitle("Input Error"); a.setHeaderText(null); a.setContentText(msg); a.showAndWait();
+    }
+
+    private HBox buildCustomHeader(String icon, String title, String subtitle) {
+        Label iconLbl = new Label(icon);
+        iconLbl.getStyleClass().add("dialog-custom-header-icon");
+
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("dialog-custom-header-title");
+
+        Label subLbl = new Label(subtitle);
+        subLbl.getStyleClass().add("dialog-custom-header-sub");
+
+        VBox textBox = new VBox(2, titleLbl, subLbl);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.getStyleClass().add("dialog-header-close-btn");
+        closeBtn.setOnAction(e -> {
+            Button footerCancel = (Button) getDialogPane().lookupButton(ButtonType.CANCEL);
+            if (footerCancel != null) footerCancel.fire();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(12, iconLbl, textBox, spacer, closeBtn);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getStyleClass().add("dialog-custom-header");
+        return header;
     }
 }

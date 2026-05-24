@@ -9,6 +9,7 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -23,6 +24,9 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.time.format.DateTimeFormatter;
@@ -37,21 +41,35 @@ public class SensorChartDialog extends Dialog<Void> {
     public SensorChartDialog(NumericSensor ns, List<String> styleSheets) {
         String label = SensorService.getInstance().getSensorTypeLabel(ns);
         setTitle("Reading History — " + label);
+        setHeaderText(null);
         setResizable(true);
         getDialogPane().setPrefSize(980, 640);
         getDialogPane().getStylesheets().addAll(styleSheets);
 
-        VBox content = new VBox(12);
-        content.setPadding(new Insets(16));
+        VBox content = new VBox(0);
+
+        // ── Custom header ───────────────────────────────────────────────────
+        content.getChildren().add(buildCustomHeader(
+            "📊",
+            "Reading History — " + label,
+            "Zone: " + ns.getZone().getName() + "  ·  Range: [" +
+                ns.getMinThreshold() + " – " + ns.getMaxThreshold() + " " + ns.getUnit() + "]"
+        ));
+
+        VBox body = new VBox(12);
+        body.setPadding(new Insets(16));
+        content.getChildren().add(body);
 
         // ── Info banner ────────────────────────────────────────────────────
         Label info = new Label(String.format(
-            "Zone: %s  ·  Status: %s  ·  Last: %.2f %s  ·  Range: [%.2f – %.2f %s]",
-            ns.getZone().getName(), ns.getStatus(),
-            Double.isNaN(ns.getLastValue()) ? 0.0 : ns.getLastValue(), ns.getUnit(),
-            ns.getMinThreshold(), ns.getMaxThreshold(), ns.getUnit()));
-        info.setStyle("-fx-font-size: 12px; -fx-text-fill: #475569;");
-        content.getChildren().add(info);
+            "Status: %s  ·  Last reading: %.2f %s",
+            ns.getStatus(),
+            Double.isNaN(ns.getLastValue()) ? 0.0 : ns.getLastValue(), ns.getUnit()));
+        info.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280; " +
+            "-fx-background-color: #F9FAFB; -fx-padding: 8 12; " +
+            "-fx-background-radius: 6; -fx-border-color: #E5E5E2; " +
+            "-fx-border-radius: 6; -fx-border-width: 1;");
+        body.getChildren().add(info);
 
         // ── Collect readings ───────────────────────────────────────────────
         List<NumericSensorReading> readings = new ArrayList<>();
@@ -61,13 +79,13 @@ public class SensorChartDialog extends Dialog<Void> {
         if (readings.isEmpty()) {
             Label empty = new Label("No readings recorded yet.");
             empty.getStyleClass().add("text-muted");
-            content.getChildren().add(empty);
+            body.getChildren().add(empty);
         } else {
-            content.getChildren().add(buildChart(ns, readings));
+            body.getChildren().add(buildChart(ns, readings));
             Label tableTitle = new Label("All Readings (" + readings.size() + ")");
             tableTitle.getStyleClass().add("section-title");
             tableTitle.setPadding(new Insets(8, 0, 2, 0));
-            content.getChildren().addAll(tableTitle, buildTable(readings));
+            body.getChildren().addAll(tableTitle, buildTable(readings));
         }
 
         getDialogPane().setContent(content);
@@ -75,6 +93,34 @@ public class SensorChartDialog extends Dialog<Void> {
         Button closeBtn = (Button) getDialogPane().lookupButton(ButtonType.CLOSE);
         if (closeBtn != null) closeBtn.getStyleClass().add("btn-primary");
         setResultConverter(bt -> null);
+    }
+
+    private HBox buildCustomHeader(String icon, String title, String subtitle) {
+        Label iconLbl = new Label(icon);
+        iconLbl.getStyleClass().add("dialog-custom-header-icon");
+
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("dialog-custom-header-title");
+
+        Label subLbl = new Label(subtitle);
+        subLbl.getStyleClass().add("dialog-custom-header-sub");
+
+        VBox textBox = new VBox(2, titleLbl, subLbl);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.getStyleClass().add("dialog-header-close-btn");
+        closeBtn.setOnAction(e -> {
+            Button footerClose = (Button) getDialogPane().lookupButton(ButtonType.CLOSE);
+            if (footerClose != null) footerClose.fire();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(12, iconLbl, textBox, spacer, closeBtn);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getStyleClass().add("dialog-custom-header");
+        return header;
     }
 
     // ── Chart ──────────────────────────────────────────────────────────────

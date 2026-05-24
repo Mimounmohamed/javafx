@@ -9,14 +9,17 @@ import ZONES.GoegraphicBoundries;
 import ZONES.LivestockZONE;
 import ZONES.ZONE;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -172,8 +175,15 @@ public class ZoneMapDialog extends Dialog<Void> {
         VBox.setVgrow(sidePanel, Priority.ALWAYS);
 
         HBox main = new HBox(12, canvas, sidePanel);
-        VBox root = new VBox(0, main);
-        root.setPadding(new Insets(12));
+        main.setPadding(new Insets(12));
+
+        String zoneType = zone instanceof ZONES.AquacultureZONE ? "Aquaculture"
+            : zone instanceof ZONES.CropZONE ? "Crop" : "Livestock";
+
+        VBox root = new VBox(0,
+            buildCustomHeader("📍", "Zone Map — " + zone.getName(),
+                zoneType + " zone · " + (hasGeoBounds ? "geo-coordinates active" : "normalized positions")),
+            main);
 
         getDialogPane().setContent(root);
         getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
@@ -182,6 +192,34 @@ public class ZoneMapDialog extends Dialog<Void> {
         if (!styleSheets.isEmpty())
             getDialogPane().getStylesheets().addAll(styleSheets);
         setResultConverter(bt -> null);
+    }
+
+    private HBox buildCustomHeader(String icon, String title, String subtitle) {
+        Label iconLbl = new Label(icon);
+        iconLbl.getStyleClass().add("dialog-custom-header-icon");
+
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("dialog-custom-header-title");
+
+        Label subLbl = new Label(subtitle);
+        subLbl.getStyleClass().add("dialog-custom-header-sub");
+
+        VBox textBox = new VBox(2, titleLbl, subLbl);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.getStyleClass().add("dialog-header-close-btn");
+        closeBtn.setOnAction(e -> {
+            Button footerClose = (Button) getDialogPane().lookupButton(ButtonType.CLOSE);
+            if (footerClose != null) footerClose.fire();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(12, iconLbl, textBox, spacer, closeBtn);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getStyleClass().add("dialog-custom-header");
+        return header;
     }
 
     // ── Interaction — only active for fallback (normalized) items ─────
