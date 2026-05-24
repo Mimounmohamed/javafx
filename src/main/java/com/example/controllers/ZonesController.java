@@ -85,6 +85,10 @@ public class ZonesController {
     @FXML private Label statCropCount;
     @FXML private Label statAquaCount;
 
+    // injected for distress banner — visibility wired separately
+    @FXML private HBox  distressBanner;
+    @FXML private Label distressBannerText;
+
     private final ZoneService zoneService = ZoneService.getInstance();
 
     private ObservableList<LivestockZONE>   lsData;

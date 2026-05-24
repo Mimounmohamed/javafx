@@ -745,3 +745,473 @@
 }
 .dialog-form-field:focused { -fx-border-color: #22c55e; -fx-border-width: 1.5; }
 .dialog-form-label { -fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Zone Management — redesigned styles
+   Palette:
+     green-primary  #1D9E75   green-light #EAF3DE   green-dark #3B6D11
+     red-light      #FCEBEB   red-mid     #E24B4A   red-dark   #A32D2D
+     amber-light    #FAEEDA   amber-dark  #854F0B
+     blue-light     #E6F1FB   blue-dark   #185FA5
+     gray-page      #F5F5F3   gray-border #e0e0e0   gray-text  #888780
+     text-primary   #2C2C2A
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Zone page root ───────────────────────────────────────────────── */
+.zones-root {
+    -fx-background-color: #F5F5F3;
+}
+
+/* ── Page header bar ──────────────────────────────────────────────── */
+.zones-page-header {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-min-height: 58px;
+}
+
+.zones-farm-name {
+    -fx-text-fill: #888780;
+    -fx-font-size: 11px;
+}
+
+.zones-page-title {
+    -fx-text-fill: #2C2C2A;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+/* ── Ghost button (activate / suspend moved to detail panel) ─────── */
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-border-color: #c0c0c0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #888780;
+    -fx-font-size: 12px;
+    -fx-padding: 6 12;
+    -fx-cursor: hand;
+}
+
+.btn-ghost:hover {
+    -fx-background-color: #F5F5F3;
+    -fx-text-fill: #2C2C2A;
+}
+
+/* ── Stat cards row ───────────────────────────────────────────────── */
+.zones-stats-row {
+    -fx-background-color: #F5F5F3;
+}
+
+.zones-stat-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 12 14;
+    -fx-min-width: 90;
+}
+
+.zones-stat-card-green {
+    -fx-border-color: #1D9E75 #e0e0e0 #e0e0e0 #1D9E75;
+    -fx-border-width: 1 1 1 3;
+}
+
+.zones-stat-card-title {
+    -fx-text-fill: #888780;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.zones-stat-card-number {
+    -fx-text-fill: #2C2C2A;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.zones-stat-card-sub {
+    -fx-text-fill: #888780;
+    -fx-font-size: 11px;
+}
+
+/* ── Distress alert banner ────────────────────────────────────────── */
+.zones-distress-banner {
+    -fx-background-color: #FAECE7;
+    -fx-border-color: #F0997B;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-margin: 0 24 0 24;
+}
+
+.zones-distress-icon {
+    -fx-text-fill: #712B13;
+    -fx-font-size: 16px;
+}
+
+.zones-distress-text {
+    -fx-text-fill: #712B13;
+    -fx-font-size: 13px;
+}
+
+.zones-distress-link {
+    -fx-text-fill: #712B13;
+    -fx-font-size: 13px;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+/* ── SplitPane for zones ──────────────────────────────────────────── */
+.zones-split {
+    -fx-background-color: #F5F5F3;
+    -fx-padding: 12 24 16 24;
+}
+
+.zones-split > .split-pane-divider {
+    -fx-background-color: #e0e0e0;
+    -fx-padding: 0 1;
+}
+
+/* ── Left list panel ──────────────────────────────────────────────── */
+.zones-list-panel {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+/* ── Inline search row ────────────────────────────────────────────── */
+.zones-search-row {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-min-height: 42px;
+    -fx-max-height: 42px;
+}
+
+.zones-search-icon {
+    -fx-text-fill: #888780;
+    -fx-font-size: 13px;
+}
+
+.zones-search-field {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-text-fill: #2C2C2A;
+    -fx-prompt-text-fill: #888780;
+    -fx-padding: 8 4;
+    -fx-font-size: 13px;
+}
+
+.zones-search-field:focused {
+    -fx-border-width: 0;
+    -fx-effect: null;
+}
+
+/* ── Zone type tab pane ───────────────────────────────────────────── */
+.zones-zone-tabs {
+    -fx-background-color: #ffffff;
+}
+
+.zones-zone-tabs > .tab-header-area > .tab-header-background {
+    -fx-background-color: #F5F5F3;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.zones-zone-tabs > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 9 14;
+}
+
+.zones-zone-tabs > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+    -fx-text-fill: #888780;
+    -fx-font-size: 12px;
+}
+
+.zones-zone-tabs > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #1D9E75 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+.zones-zone-tabs > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-label {
+    -fx-text-fill: #3B6D11;
+    -fx-font-weight: bold;
+}
+
+.zones-zone-tabs > .tab-header-area > .headers-region > .tab:hover > .tab-container > .tab-label {
+    -fx-text-fill: #2C2C2A;
+}
+
+/* ── Zone table ───────────────────────────────────────────────────── */
+.zones-table {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.zones-table .column-header-background {
+    -fx-background-color: #F5F5F3;
+}
+
+.zones-table .column-header,
+.zones-table .filler {
+    -fx-background-color: #F5F5F3;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.zones-table .column-header .label {
+    -fx-text-fill: #888780;
+    -fx-font-size: 11px;
+    -fx-font-weight: normal;
+}
+
+.zones-table .table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #f5f5f3 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: #2C2C2A;
+}
+
+.zones-table .table-row-cell:odd {
+    -fx-background-color: #fdfdfd;
+}
+
+.zones-table .table-row-cell:selected,
+.zones-table .table-row-cell:selected:odd {
+    -fx-background-color: #EAF3DE;
+}
+
+.zones-table .table-row-cell:hover {
+    -fx-background-color: #f7f7f5;
+}
+
+.zones-table .table-row-cell:selected:hover {
+    -fx-background-color: #ddf0cc;
+}
+
+.zones-table .table-cell {
+    -fx-text-fill: #2C2C2A;
+    -fx-padding: 8 10;
+    -fx-font-size: 13px;
+}
+
+/* ── Detail panel (right side) ────────────────────────────────────── */
+.zones-detail-scroll {
+    -fx-background: #ffffff;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.zones-detail-scroll > .viewport {
+    -fx-background-color: #ffffff;
+}
+
+.zones-detail-panel {
+    -fx-background-color: #ffffff;
+}
+
+/* ── Status badge — updated to pill style ─────────────────────────── */
+.badge {
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 99;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.badge-active {
+    -fx-background-color: #EAF3DE;
+    -fx-text-fill: #3B6D11;
+}
+
+.badge-suspended {
+    -fx-background-color: #E6F1FB;
+    -fx-text-fill: #185FA5;
+}
+
+/* ── Type badge (blue pill, used by controller for type column) ────── */
+.badge-type {
+    -fx-background-color: #E6F1FB;
+    -fx-text-fill: #185FA5;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 99;
+    -fx-font-size: 11px;
+}
+
+/* ── Detail panel section headers — updated accent ────────────────── */
+.detail-section-title {
+    -fx-text-fill: #1D9E75;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+    -fx-padding: 6 12 6 10;
+    -fx-background-color: #EAF3DE;
+    -fx-background-radius: 0 4 4 0;
+    -fx-border-color: transparent transparent transparent #1D9E75;
+    -fx-border-width: 0 0 0 3;
+}
+
+/* ── Detail key/value rows ────────────────────────────────────────── */
+.detail-key {
+    -fx-text-fill: #888780;
+    -fx-font-size: 11px;
+    -fx-min-width: 120;
+    -fx-pref-width: 120;
+}
+
+.detail-value {
+    -fx-text-fill: #2C2C2A;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-wrap-text: true;
+}
+
+/* ── Record Feeding Now — prominent CTA ───────────────────────────── */
+.btn-primary {
+    -fx-background-color: #1D9E75;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+    -fx-padding: 8 18;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.btn-primary:hover    { -fx-background-color: #18896a; }
+.btn-primary:pressed  { -fx-background-color: #12734f; }
+
+/* ── Danger button ────────────────────────────────────────────────── */
+.btn-danger {
+    -fx-background-color: transparent;
+    -fx-border-color: #F09595;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #A32D2D;
+    -fx-font-size: 13px;
+    -fx-padding: 8 18;
+    -fx-cursor: hand;
+}
+
+.btn-danger:hover { -fx-background-color: #FCEBEB; }
+
+/* ── Secondary button ─────────────────────────────────────────────── */
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #2C2C2A;
+    -fx-font-size: 13px;
+    -fx-padding: 8 18;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #F5F5F3;
+    -fx-text-fill: #2C2C2A;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Animals screen — additional styles
+   Reuses zones-* classes for shared elements.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Page root ────────────────────────────────────────────────────── */
+.animals-root {
+    -fx-background-color: #F5F5F3;
+}
+
+/* ── Amber stat card (Sick) ───────────────────────────────────────── */
+.animals-stat-card-amber {
+    -fx-border-color: #854F0B #e0e0e0 #e0e0e0 #854F0B;
+    -fx-border-width: 1 1 1 3;
+}
+
+/* ── Red stat card (Quarantined) ──────────────────────────────────── */
+.animals-stat-card-red {
+    -fx-border-color: #A32D2D #e0e0e0 #e0e0e0 #A32D2D;
+    -fx-border-width: 1 1 1 3;
+}
+
+/* ── Filter / search row ──────────────────────────────────────────── */
+.animals-filter-row {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-min-height: 46px;
+    -fx-max-height: 46px;
+}
+
+/* ── Filter combo boxes (zone / health dropdowns) ─────────────────── */
+.animals-filter-combo {
+    -fx-background-color: #F5F5F3;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-text-fill: #2C2C2A;
+    -fx-padding: 1 4;
+    -fx-cursor: hand;
+}
+
+.animals-filter-combo .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2C2C2A;
+    -fx-padding: 4 8;
+    -fx-font-size: 12px;
+}
+
+.animals-filter-combo .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.animals-filter-combo .arrow {
+    -fx-background-color: #888780;
+}
+
+.animals-filter-combo:focused {
+    -fx-border-color: #1D9E75;
+}
+
+/* ── Health badge overrides (animals-specific shades) ─────────────── */
+.badge-healthy {
+    -fx-background-color: #EAF3DE;
+    -fx-text-fill: #3B6D11;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 99;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.badge-sick {
+    -fx-background-color: #FAEEDA;
+    -fx-text-fill: #854F0B;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 99;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.badge-quarantined {
+    -fx-background-color: #FCEBEB;
+    -fx-text-fill: #A32D2D;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 99;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
