@@ -83,6 +83,7 @@ Reports\ReportAquacultureZone.class
 Entities\CropType.class
 Reports\CropProductionReport.class
 Sensors\EnvSensor.class
+com\example\controllers\ZonesController.class
 Alerts\AlertResolution.class
 com\example\services\DataRandomizerService.class
 Alerts\HealthAlert.class

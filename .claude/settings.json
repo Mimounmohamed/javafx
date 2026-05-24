@@ -5,7 +5,8 @@
       "Bash(Get-Content \"C:\\\\Users\\\\catal\\\\.claude\\\\projects\\\\c--Users-catal-OneDrive-Documents-tp-poo-javafx\\\\cfdbe3c5-49ad-4b8f-9ce0-174920d306c9.jsonl\")",
       "Bash(Select-Object -Last 200)",
       "Read(//c/Users/catal/.claude/projects/c--Users-catal-OneDrive-Documents-tp-poo-javafx/**)",
-      "PowerShell(\\(Get-Command mvn -ErrorAction SilentlyContinue\\).Source; $env:JAVA_HOME; $env:PATH -split \";\" | Select-String -Pattern \"java|maven|jdk\" -CaseSensitive:$false)"
+      "PowerShell(\\(Get-Command mvn -ErrorAction SilentlyContinue\\).Source; $env:JAVA_HOME; $env:PATH -split \";\" | Select-String -Pattern \"java|maven|jdk\" -CaseSensitive:$false)",
+      "Bash(mvn clean *)"
     ]
   }
 }

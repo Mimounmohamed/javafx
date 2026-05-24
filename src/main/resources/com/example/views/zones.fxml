@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
@@ -29,50 +29,62 @@
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
         <Button text="➕ Add Zone" onAction="#showAddZoneDialog" styleClass="btn-primary" />
-        <!-- Kept for @FXML binding — visual activate/suspend live in the detail panel -->
+        <!-- Kept for @FXML binding — not displayed -->
         <Button text="✔ Activate" onAction="#activateZone" styleClass="btn-ghost"
                 visible="false" managed="false" />
         <Button text="⏸ Suspend"  onAction="#suspendZone"  styleClass="btn-ghost"
                 visible="false" managed="false" />
     </HBox>
-    <Separator />
 
-    <!-- ── Stat cards ────────────────────────────────────────────────── -->
-    <HBox styleClass="zones-stats-row" spacing="12" fillHeight="true">
-        <padding><Insets top="14" right="24" bottom="14" left="24" /></padding>
+    <!-- ── Stat strip (Animals-style flat strip with separators) ─────── -->
+    <HBox styleClass="animals-stat-strip" fillHeight="true">
 
-        <VBox styleClass="zones-stat-card" spacing="3" alignment="TOP_LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="TOTAL ZONES"             styleClass="zones-stat-card-title" />
-            <Label fx:id="statTotalZones" text="—" styleClass="zones-stat-card-number" />
-            <Label fx:id="statTotalSub"  text="all types" styleClass="zones-stat-card-sub" />
+        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
+              HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="TOTAL ZONES" styleClass="animals-stat-cell-title" />
+            <Label fx:id="statTotalZones" text="—" styleClass="animals-stat-number-green" />
+            <Label fx:id="statTotalSub"   text="all types" styleClass="animals-stat-cell-sub" />
         </VBox>
 
-        <VBox styleClass="zones-stat-card zones-stat-card-green" spacing="3" alignment="TOP_LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="ACTIVE"                   styleClass="zones-stat-card-title" />
-            <Label fx:id="statActiveZones" text="—" styleClass="zones-stat-card-number" />
-            <Label fx:id="statActiveSub"  text="all running" styleClass="zones-stat-card-sub" />
+        <Separator orientation="VERTICAL" />
+
+        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
+              HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="ACTIVE" styleClass="animals-stat-cell-title" />
+            <Label fx:id="statActiveZones" text="—" styleClass="animals-stat-number-green" />
+            <Label fx:id="statActiveSub"   text="all running" styleClass="animals-stat-cell-sub" />
         </VBox>
 
-        <VBox styleClass="zones-stat-card" spacing="3" alignment="TOP_LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="LIVESTOCK"                    styleClass="zones-stat-card-title" />
-            <Label fx:id="statLivestockCount" text="—" styleClass="zones-stat-card-number" />
-            <Label fx:id="statLivestockSub"  text="no alerts" styleClass="zones-stat-card-sub" />
+        <Separator orientation="VERTICAL" />
+
+        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
+              HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="LIVESTOCK" styleClass="animals-stat-cell-title" />
+            <Label fx:id="statLivestockCount" text="—" styleClass="animals-stat-number-green" />
+            <Label fx:id="statLivestockSub"   text="no alerts" styleClass="animals-stat-cell-sub" />
         </VBox>
 
-        <VBox styleClass="zones-stat-card" spacing="3" alignment="TOP_LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="CROP"                    styleClass="zones-stat-card-title" />
-            <Label fx:id="statCropCount" text="—" styleClass="zones-stat-card-number" />
-            <Label fx:id="statCropSub"  text="no alerts" styleClass="zones-stat-card-sub" />
+        <Separator orientation="VERTICAL" />
+
+        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
+              HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="CROP" styleClass="animals-stat-cell-title" />
+            <Label fx:id="statCropCount" text="—" styleClass="animals-stat-number-green" />
+            <Label fx:id="statCropSub"   text="no alerts" styleClass="animals-stat-cell-sub" />
         </VBox>
 
-        <VBox styleClass="zones-stat-card" spacing="3" alignment="TOP_LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="AQUACULTURE"              styleClass="zones-stat-card-title" />
-            <Label fx:id="statAquaCount" text="—" styleClass="zones-stat-card-number" />
-            <Label fx:id="statAquaSub"  text="no alerts" styleClass="zones-stat-card-sub" />
+        <Separator orientation="VERTICAL" />
+
+        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
+              HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="AQUACULTURE" styleClass="animals-stat-cell-title" />
+            <Label fx:id="statAquaCount" text="—" styleClass="animals-stat-number-green" />
+            <Label fx:id="statAquaSub"   text="no alerts" styleClass="animals-stat-cell-sub" />
         </VBox>
+
     </HBox>
 
-    <!-- ── Distress alert banner (hidden until wired in controller) ───── -->
+    <!-- ── Distress alert banner (hidden until triggered in controller) ─ -->
     <HBox fx:id="distressBanner" styleClass="zones-distress-banner"
           alignment="CENTER_LEFT" spacing="10"
           visible="false" managed="false">
@@ -81,21 +93,24 @@
         <Label fx:id="distressBannerText"
                text="Sensor distress detected — animal showing anomaly"
                styleClass="zones-distress-text" HBox.hgrow="ALWAYS" wrapText="true" />
-        <Hyperlink text="View →" styleClass="zones-distress-link" />
     </HBox>
 
     <!-- ── Main split: zone list ‖ detail panel ──────────────────────── -->
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.52" styleClass="zones-split">
 
-        <!-- LEFT: search + zone-type tabs ────────────────────────────── -->
+        <!-- LEFT: filter row + zone-type tabs ────────────────────────── -->
         <VBox styleClass="zones-list-panel">
 
-            <!-- Inline search row (no separate toolbar) -->
-            <HBox styleClass="zones-search-row" alignment="CENTER_LEFT" spacing="8">
+            <!-- Filter row (matches Animals: search + combos) -->
+            <HBox styleClass="animals-filter-row" alignment="CENTER_LEFT" spacing="8">
                 <padding><Insets top="0" right="12" bottom="0" left="12" /></padding>
                 <Label text="🔍" styleClass="zones-search-icon" />
                 <TextField fx:id="searchField" promptText="Search zones…"
                            styleClass="zones-search-field" HBox.hgrow="ALWAYS" />
+                <ComboBox fx:id="filterType"   promptText="All Types"
+                          styleClass="animals-filter-combo" prefWidth="115" />
+                <ComboBox fx:id="filterStatus" promptText="All Status"
+                          styleClass="animals-filter-combo" prefWidth="105" />
             </HBox>
 
             <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="zone-tabs zones-zone-tabs" VBox.vgrow="ALWAYS">
@@ -120,11 +135,11 @@
                     <TableView fx:id="cropTable" maxHeight="Infinity"
                                styleClass="zones-table">
                         <columns>
-                            <TableColumn fx:id="crColCode"    text="Code"       prefWidth="65"  />
-                            <TableColumn fx:id="crColName"    text="Name"       prefWidth="150" />
-                            <TableColumn fx:id="crColFields"  text="Crops"      prefWidth="60"  />
+                            <TableColumn fx:id="crColCode"    text="Code"        prefWidth="65"  />
+                            <TableColumn fx:id="crColName"    text="Name"        prefWidth="150" />
+                            <TableColumn fx:id="crColFields"  text="Crops"       prefWidth="60"  />
                             <TableColumn fx:id="crColSurface" text="Surface(ha)" prefWidth="95" />
-                            <TableColumn fx:id="crColStatus"  text="Status"     prefWidth="90" />
+                            <TableColumn fx:id="crColStatus"  text="Status"      prefWidth="90" />
                         </columns>
                         <placeholder>
                             <Label text="No crop zones — click ➕ Add Zone" styleClass="text-muted" />
@@ -150,27 +165,26 @@
             </TabPane>
         </VBox>
 
-        <!-- RIGHT: persistent header + 2-tab detail panel ───────────── -->
-        <VBox styleClass="zones-detail-outer">
+        <!-- RIGHT: Animals-style header + 2-tab detail panel ───────────── -->
+        <VBox styleClass="animals-detail-outer">
 
-            <!-- Zone name header (hidden until a zone is selected) -->
-            <VBox fx:id="zoneDetailHeader" styleClass="zones-detail-header-area"
+            <!-- Dynamic header (avatar · name · subtitle · status · ghost btns) -->
+            <!-- Populated by controller; zoneDetailName kept as invisible ref -->
+            <VBox fx:id="zoneDetailHeader" styleClass="animals-detail-header-area"
                   visible="false" managed="false">
-                <HBox alignment="CENTER_LEFT" spacing="8">
-                    <padding><Insets top="12" right="12" bottom="10" left="16" /></padding>
-                    <Label fx:id="zoneDetailName" styleClass="zones-detail-zone-name" HBox.hgrow="ALWAYS" />
-                    <Button text="✕" onAction="#closeDetail" styleClass="btn-ghost" />
-                </HBox>
+                <Label fx:id="zoneDetailName" visible="false" managed="false" />
             </VBox>
 
-            <!-- Details / Actions tab pane -->
+            <!-- Detail tabs — same styleClass as Animals -->
             <TabPane fx:id="zoneDetailTabs" tabClosingPolicy="UNAVAILABLE"
                      styleClass="animals-detail-tabs" VBox.vgrow="ALWAYS"
                      visible="false" managed="false">
 
-                <Tab text="Details">
+                <Tab text="Info">
                     <ScrollPane fitToWidth="true" styleClass="animals-tab-scroll">
-                        <VBox fx:id="detailPanel" styleClass="detail-panel zones-detail-panel animals-tab-vbox" spacing="0">
+                        <VBox fx:id="detailPanel"
+                              styleClass="detail-panel zones-detail-panel animals-tab-vbox"
+                              spacing="0">
                             <padding><Insets top="14" right="16" bottom="16" left="16" /></padding>
                         </VBox>
                     </ScrollPane>
@@ -178,7 +192,9 @@
 
                 <Tab text="Actions">
                     <ScrollPane fitToWidth="true" styleClass="animals-tab-scroll">
-                        <VBox fx:id="actionsPanel" styleClass="zones-detail-panel animals-tab-vbox" spacing="6">
+                        <VBox fx:id="actionsPanel"
+                              styleClass="zones-detail-panel animals-tab-vbox"
+                              spacing="6">
                             <padding><Insets top="14" right="16" bottom="16" left="16" /></padding>
                         </VBox>
                     </ScrollPane>

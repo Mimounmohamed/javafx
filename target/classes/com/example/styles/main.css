@@ -1403,3 +1403,199 @@
 }
 .animals-action-tile-danger:hover  { -fx-background-color: #FCEBEB; }
 .animals-danger-section-label      { -fx-text-fill: #888780; -fx-font-size: 10px; -fx-font-weight: bold; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Zones screen — shared with Animals, missing styles added
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Zone avatar circle ───────────────────────────────────────────── */
+.zones-avatar {
+    -fx-min-width: 40; -fx-min-height: 40;
+    -fx-max-width: 40; -fx-max-height: 40;
+    -fx-background-radius: 99;
+    -fx-alignment: CENTER;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+.zones-avatar-active    { -fx-background-color: #EAF3DE; -fx-text-fill: #3B6D11; }
+.zones-avatar-suspended { -fx-background-color: #F0F0EE; -fx-text-fill: #888780; }
+
+/* ── Animal chips (coloured pills in zone detail) ─────────────────── */
+.zones-animal-chip {
+    -fx-background-radius: 99;
+    -fx-padding: 3 9 3 9;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+.zones-animal-chip-healthy     { -fx-background-color: #EAF3DE; -fx-text-fill: #3B6D11; }
+.zones-animal-chip-sick        { -fx-background-color: #FCEBEB; -fx-text-fill: #A32D2D; }
+.zones-animal-chip-quarantined { -fx-background-color: #FAEEDA; -fx-text-fill: #854F0B; }
+
+/* ── Animals link in livestock table ──────────────────────────────── */
+.zones-animals-link {
+    -fx-text-fill: #1D9E75;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+/* ── Sensor rows in zone detail ───────────────────────────────────── */
+.zones-sensor-row {
+    -fx-background-color: #F5F5F3;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+}
+.zones-sensor-row-distress {
+    -fx-background-color: #FCEBEB;
+    -fx-background-radius: 8;
+    -fx-border-color: #F09595;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+.zones-sensor-name-alert { -fx-text-fill: #A32D2D; -fx-font-size: 12px; -fx-font-weight: bold; }
+.zones-sensor-code-alert { -fx-text-fill: #E24B4A; -fx-font-size: 10px; }
+
+/* ── Distress badge ───────────────────────────────────────────────── */
+.badge-distress {
+    -fx-background-color: #FCEBEB;
+    -fx-text-fill: #A32D2D;
+    -fx-padding: 3 8 3 8;
+    -fx-background-radius: 99;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+/* ── Action group label in zone Actions tab ───────────────────────── */
+.zones-action-group-label {
+    -fx-text-fill: #888780;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 0 2 0;
+}
+
+/* ── Stat sub-label warning (e.g. "3 quarantined") ────────────────── */
+.zones-stat-card-sub-warn {
+    -fx-text-fill: #854F0B;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Zones — Fix 1: spacing / visual hierarchy
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Lightweight section header (replaces green banner) ───────────── */
+.zones-section-header {
+    -fx-border-color: transparent transparent #E5E5E2 #1D9E75;
+    -fx-border-width: 0 0 1 3;
+    -fx-padding: 4 8 8 8;
+    -fx-background-color: transparent;
+}
+.zones-section-header-text {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #888780;
+}
+
+/* ── Animal chips — updated padding + borders ─────────────────────── */
+.zones-animal-chip {
+    -fx-background-radius: 99;
+    -fx-border-radius: 99;
+    -fx-padding: 7 12;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+.zones-animal-chip-healthy {
+    -fx-background-color: #EAF3DE;
+    -fx-text-fill: #3B6D11;
+    -fx-border-color: #B7D98B;
+    -fx-border-width: 1;
+}
+.zones-animal-chip-sick {
+    -fx-background-color: #FCEBEB;
+    -fx-text-fill: #A32D2D;
+    -fx-border-color: #F09595;
+    -fx-border-width: 1;
+}
+.zones-animal-chip-quarantined {
+    -fx-background-color: #FAEEDA;
+    -fx-text-fill: #854F0B;
+    -fx-border-color: #FAC775;
+    -fx-border-width: 1;
+}
+
+/* ── Animal management rows ───────────────────────────────────────── */
+.zones-animal-mgmt-row {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #F0EFEC transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.zones-animal-mgmt-name {
+    -fx-font-size: 13px;
+    -fx-text-fill: #2C2C2A;
+    -fx-font-weight: bold;
+}
+
+/* ── 28×28 icon button (map/remove in animal rows) ────────────────── */
+.zones-icon-btn {
+    -fx-background-color: #F5F5F3;
+    -fx-border-color: #E0E0DD;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #2C2C2A;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+}
+.zones-icon-btn:hover { -fx-background-color: #EBEBEA; }
+
+/* ── Small green outline button in section headers ────────────────── */
+.zones-add-entity-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: #1D9E75;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #1D9E75;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 10;
+    -fx-cursor: hand;
+    -fx-min-height: 26;
+    -fx-max-height: 26;
+}
+.zones-add-entity-btn:hover { -fx-background-color: #EAF3DE; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Zones — Fix 2: crop growth stage pipeline
+   ═══════════════════════════════════════════════════════════════════ */
+
+.crop-stage-pipeline {
+    -fx-background-color: #FAFAF8;
+    -fx-background-radius: 6;
+    -fx-border-color: #E5E5E2;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+}
+.crop-stage-dot {
+    -fx-background-radius: 99;
+    -fx-border-radius: 99;
+    -fx-border-width: 2;
+    -fx-alignment: center;
+    -fx-font-size: 8px;
+    -fx-font-weight: bold;
+}
+.crop-stage-dot-done    { -fx-background-color: #1D9E75; -fx-border-color: #1D9E75; -fx-text-fill: white; }
+.crop-stage-dot-current { -fx-background-color: #0F6E56; -fx-border-color: #0F6E56; -fx-text-fill: white; }
+.crop-stage-dot-alert   { -fx-background-color: #EF9F27; -fx-border-color: #EF9F27; -fx-text-fill: white; }
+.crop-stage-dot-future  { -fx-background-color: white;   -fx-border-color: #C0C0BA; -fx-text-fill: #888780; }
+
+.crop-stage-line-done   { -fx-background-color: #1D9E75; }
+.crop-stage-line-future { -fx-background-color: #DEDDD8; }
+
+.crop-stage-lbl         { -fx-font-size: 9px; -fx-text-fill: #B0AFA8; -fx-alignment: center; }
+.crop-stage-lbl-done    { -fx-text-fill: #1D9E75; }
+.crop-stage-lbl-current { -fx-text-fill: #0F6E56; -fx-font-weight: bold; }
+.crop-stage-lbl-alert   { -fx-text-fill: #854F0B; -fx-font-weight: bold; }
+.crop-stage-lbl-future  { -fx-text-fill: #B0AFA8; }
