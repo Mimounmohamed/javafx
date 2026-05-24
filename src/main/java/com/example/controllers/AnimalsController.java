@@ -16,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -24,6 +25,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -31,13 +33,16 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class AnimalsController {
 
+    // ── Table ─────────────────────────────────────────────────────────
     @FXML private TableView<Animal>            animalTable;
     @FXML private TableColumn<Animal, String>  colId;
     @FXML private TableColumn<Animal, String>  colName;
@@ -46,21 +51,30 @@ public class AnimalsController {
     @FXML private TableColumn<Animal, String>  colZone;
     @FXML private TableColumn<Animal, String>  colHealth;
 
+    // ── Filters ───────────────────────────────────────────────────────
     @FXML private ComboBox<String> filterZone;
     @FXML private ComboBox<String> filterHealth;
     @FXML private TextField        searchField;
-    @FXML private VBox             detailPanel;
 
+    // ── Stat labels ───────────────────────────────────────────────────
     @FXML private Label statTotalAnimals;
     @FXML private Label statHealthy;
     @FXML private Label statSick;
     @FXML private Label statQuarantined;
+
+    // ── Detail panels (Info tab keeps original fx:id; two new panels) ─
+    @FXML private VBox detailPanel;       // Info tab content
+    @FXML private VBox detailHeaderPanel; // dynamic header above tabs
+    @FXML private VBox sensorsPanel;      // Sensors tab content
+    @FXML private VBox actionsPanel;      // Actions tab content
 
     private ObservableList<Animal> allAnimals;
     private FilteredList<Animal>   filteredAnimals;
 
     private final AnimalService animalService = AnimalService.getInstance();
     private final ZoneService   zoneService   = ZoneService.getInstance();
+
+    // ── Initialise ────────────────────────────────────────────────────
 
     @FXML
     public void initialize() {
@@ -82,7 +96,7 @@ public class AnimalsController {
         statQuarantined.setText(String.valueOf(quarantined));
     }
 
-    // ── Table ─────────────────────────────────────────────────────────
+    // ── Table setup ───────────────────────────────────────────────────
 
     private void setupTable() {
         colId.setCellValueFactory(d      -> new SimpleStringProperty(d.getValue().getId().substring(0, 8)));
@@ -91,11 +105,43 @@ public class AnimalsController {
         colType.setCellValueFactory(d    -> new SimpleStringProperty(d.getValue().getType().toString()));
         colZone.setCellValueFactory(d    -> new SimpleStringProperty(d.getValue().getZone().getName()));
 
+        // ID column — monospace muted
+        colId.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); setStyle(""); return; }
+                setText(item);
+                setStyle("-fx-font-family: monospace; -fx-font-size: 10px; -fx-text-fill: #888780;");
+            }
+        });
+
+        // Name column — bold
+        colName.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); setStyle(""); return; }
+                setText(item);
+                setStyle("-fx-font-weight: bold; -fx-text-fill: #2C2C2A;");
+            }
+        });
+
+        // Type column — blue pill
+        colType.setCellFactory(col -> new TableCell<>() {
+            private final Label pill = new Label();
+            { pill.getStyleClass().add("animals-pill-type"); }
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setGraphic(null); return; }
+                pill.setText(item);
+                setGraphic(pill);
+            }
+        });
+
+        // Health column — coloured pill
         colHealth.setCellFactory(col -> new TableCell<>() {
             private final Label badge = new Label();
             { badge.getStyleClass().add("badge"); }
-            @Override
-            protected void updateItem(String item, boolean empty) {
+            @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                     setGraphic(null); return;
@@ -121,7 +167,7 @@ public class AnimalsController {
         };
     }
 
-    // ── Filters ───────────────────────────────────────────────────────
+    // ── Filter setup ──────────────────────────────────────────────────
 
     private void setupFilters() {
         filterZone.getItems().add("All Zones");
@@ -152,7 +198,7 @@ public class AnimalsController {
         });
     }
 
-    // ── Add Animal dialog ─────────────────────────────────────────────
+    // ── Add Animal dialog — @FXML handler (unchanged) ─────────────────
 
     @FXML
     private void showAddAnimalDialog() {
@@ -184,12 +230,12 @@ public class AnimalsController {
         });
 
         VBox form = new VBox(14,
-            formGroup("Name", nameField),
-            formGroup("Species", speciesField),
-            formGroup("Type", typeCombo),
-            formGroup("Age (years)", ageField),
-            formGroup("Weight (kg)", weightField),
-            formGroup("Zone", zoneCombo)
+            formGroup("Name",         nameField),
+            formGroup("Species",      speciesField),
+            formGroup("Type",         typeCombo),
+            formGroup("Age (years)",  ageField),
+            formGroup("Weight (kg)",  weightField),
+            formGroup("Zone",         zoneCombo)
         );
         form.setPadding(new Insets(20, 24, 8, 24));
 
@@ -232,163 +278,275 @@ public class AnimalsController {
         });
     }
 
-    // ── Detail panel ─────────────────────────────────────────────────
+    // ── Detail panel — top-level dispatcher ───────────────────────────
 
     private void showDetail(Animal a) {
+        detailHeaderPanel.getChildren().clear();
         detailPanel.getChildren().clear();
-        addRow("ID",      a.getId().substring(0, 8));
-        addRow("Name",    a.getName());
-        addRow("Species", a.getSpecies());
-        addRow("Type",    a.getType().toString());
-        addRow("Age",     a.getAge() + " years");
-        addRow("Weight",  String.format("%.1f kg", a.getWeight()));
-        addRow("Health",  a.getHealthStatus().toString());
+        sensorsPanel.getChildren().clear();
+        actionsPanel.getChildren().clear();
 
-        if (a.isSick()) {
-            Label badge = new Label("🤒 SICK — monitor closely");
-            badge.getStyleClass().addAll("badge", "badge-sick");
-            detailPanel.getChildren().add(badge);
-        } else if (a.isQuarantined()) {
-            Label badge = new Label("🔒 QUARANTINED — isolated from herd");
-            badge.getStyleClass().addAll("badge", "badge-quarantined");
-            detailPanel.getChildren().add(badge);
-        }
+        buildDetailHeader(a);
+        buildInfoTab(a);
+        buildSensorsTab(a);
+        buildActionsTab(a);
+    }
 
+    // ── Panel header (avatar · name · health pill · ghost buttons) ────
+
+    private void buildDetailHeader(Animal a) {
+        // Avatar circle — letter + health color
+        Label avatar = new Label(a.getName().substring(0, 1).toUpperCase());
+        avatar.getStyleClass().addAll("animals-avatar", avatarCss(a.getHealthStatus()));
+
+        // Name + subtitle VBox
+        Label nameLbl = new Label(a.getName());
+        nameLbl.getStyleClass().add("animals-detail-name");
+        Label subtitleLbl = new Label(
+            a.getSpecies() + " · " + a.getType() + " · " + a.getId().substring(0, 8));
+        subtitleLbl.getStyleClass().add("animals-detail-subtitle");
+        VBox nameBox = new VBox(2, nameLbl, subtitleLbl);
+        HBox.setHgrow(nameBox, Priority.ALWAYS);
+
+        // Hero row
+        HBox heroRow = new HBox(10, avatar, nameBox);
+        heroRow.setAlignment(Pos.CENTER_LEFT);
+
+        // Health pill
+        Label healthPill = new Label(a.getHealthStatus().toString());
+        healthPill.getStyleClass().addAll("badge", healthCss(a.getHealthStatus()));
+
+        // Ghost action buttons
+        HBox actionBtns = new HBox(6);
         if (a.getHealthStatus() == AnimalHealthStatus.Healthy) {
-            HBox healthBtns = new HBox(8);
-            Button sickBtn = new Button("🤒 Mark as Sick");
-            sickBtn.getStyleClass().add("btn-secondary");
-            sickBtn.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(sickBtn, Priority.ALWAYS);
+            Button sickBtn = new Button("Mark sick");
+            sickBtn.getStyleClass().add("btn-ghost");
             sickBtn.setOnAction(e -> showMarkHealthDialog(a, AnimalHealthStatus.Sick));
-            Button quarantineBtn = new Button("🔒 Quarantine");
-            quarantineBtn.getStyleClass().add("btn-secondary");
-            quarantineBtn.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(quarantineBtn, Priority.ALWAYS);
-            quarantineBtn.setOnAction(e -> showMarkHealthDialog(a, AnimalHealthStatus.Quarantined));
-            healthBtns.getChildren().addAll(sickBtn, quarantineBtn);
-            detailPanel.getChildren().add(healthBtns);
+            Button quarBtn = new Button("Quarantine");
+            quarBtn.getStyleClass().add("btn-ghost-danger");
+            quarBtn.setOnAction(e -> showMarkHealthDialog(a, AnimalHealthStatus.Quarantined));
+            actionBtns.getChildren().addAll(sickBtn, quarBtn);
+        } else {
+            Button resolveBtn = new Button("Resolve");
+            resolveBtn.getStyleClass().add("btn-ghost");
+            resolveBtn.setOnAction(e -> showResolveHealthDialog(a));
+            actionBtns.getChildren().add(resolveBtn);
         }
+        Button mapBtn = new Button("📍 Zone Map");
+        mapBtn.getStyleClass().add("btn-ghost");
+        mapBtn.setOnAction(e -> openZoneMap(a));
+        actionBtns.getChildren().add(mapBtn);
 
-        addRow("Zone",    a.getZone().getName());
+        // Health row
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox healthRow = new HBox(8, healthPill, spacer, actionBtns);
+        healthRow.setAlignment(Pos.CENTER_LEFT);
 
-        // ── Production stats ───────────────────────────────────────────
+        detailHeaderPanel.setSpacing(10);
+        detailHeaderPanel.setPadding(new Insets(14, 16, 12, 16));
+        detailHeaderPanel.getChildren().addAll(heroRow, healthRow);
+    }
+
+    private String avatarCss(AnimalHealthStatus s) {
+        return switch (s) {
+            case Healthy     -> "animals-avatar-healthy";
+            case Sick        -> "animals-avatar-sick";
+            case Quarantined -> "animals-avatar-quarantined";
+        };
+    }
+
+    // ── Info tab ──────────────────────────────────────────────────────
+
+    private void buildInfoTab(Animal a) {
+        addSectionTitle(detailPanel, "Animal details");
+        addRow(detailPanel, "Age",    a.getAge() + " years");
+        addRow(detailPanel, "Weight", String.format("%.1f kg", a.getWeight()));
+        addRow(detailPanel, "Zone",   a.getZone().getName());
+        addRow(detailPanel, "Health", a.getHealthStatus().toString());
+
+        // Milk production
         if (a.getMilkYieldLiters() > 0) {
-            addRow("Milk Total", String.format("%.2f L  (%d records)", a.getMilkYieldLiters(), a.getMilkHistory().size()));
+            addSectionTitle(detailPanel, "Milk production");
+            addRow(detailPanel, "Total yield", String.format("%.2f L  (%d records)",
+                a.getMilkYieldLiters(), a.getMilkHistory().size()));
             if (!a.getMilkHistory().isEmpty()) {
-                Button milkHistBtn = new Button("View Milk History (" + a.getMilkHistory().size() + " records)");
-                milkHistBtn.getStyleClass().add("btn-secondary");
-                milkHistBtn.setMaxWidth(Double.MAX_VALUE);
-                milkHistBtn.setOnAction(e -> showHistoryDialog("Milk History — " + a.getName(),
+                Button btn = new Button("View milk history (" + a.getMilkHistory().size() + " records)");
+                btn.getStyleClass().add("btn-secondary");
+                btn.setMaxWidth(Double.MAX_VALUE);
+                btn.setOnAction(e -> showHistoryDialog("Milk History — " + a.getName(),
                     a.getMilkHistory().stream()
                         .map(Object::toString)
                         .collect(java.util.stream.Collectors.toList())));
-                detailPanel.getChildren().add(milkHistBtn);
+                detailPanel.getChildren().add(btn);
             }
         }
+
+        // Egg production
         if (a.getEggCount() > 0) {
-            addRow("Egg Total", String.format("%d eggs  (%d records)", a.getEggCount(), a.getEggHistory().size()));
+            addSectionTitle(detailPanel, "Egg production");
+            addRow(detailPanel, "Total eggs", String.format("%d eggs  (%d records)",
+                a.getEggCount(), a.getEggHistory().size()));
             if (!a.getEggHistory().isEmpty()) {
-                Button eggHistBtn = new Button("View Egg History (" + a.getEggHistory().size() + " records)");
-                eggHistBtn.getStyleClass().add("btn-secondary");
-                eggHistBtn.setMaxWidth(Double.MAX_VALUE);
-                eggHistBtn.setOnAction(e -> showHistoryDialog("Egg History — " + a.getName(),
+                Button btn = new Button("View egg history (" + a.getEggHistory().size() + " records)");
+                btn.getStyleClass().add("btn-secondary");
+                btn.setMaxWidth(Double.MAX_VALUE);
+                btn.setOnAction(e -> showHistoryDialog("Egg History — " + a.getName(),
                     a.getEggHistory().stream()
                         .map(Object::toString)
                         .collect(java.util.stream.Collectors.toList())));
-                detailPanel.getChildren().add(eggHistBtn);
+                detailPanel.getChildren().add(btn);
             }
         }
 
-        // ── Weight history button ──────────────────────────────────────
+        // Weight history
         if (a.getWeightHistory().size() > 1) {
-            addRow("Weight Records", a.getWeightHistory().size() + " entries");
-            Button wHistBtn = new Button("View Weight History (" + a.getWeightHistory().size() + " records)");
-            wHistBtn.getStyleClass().add("btn-secondary");
-            wHistBtn.setMaxWidth(Double.MAX_VALUE);
-            wHistBtn.setOnAction(e -> showHistoryDialog("Weight History — " + a.getName(),
+            addRow(detailPanel, "Weight records", a.getWeightHistory().size() + " entries");
+            Button btn = new Button("View weight history (" + a.getWeightHistory().size() + " records)");
+            btn.getStyleClass().add("btn-secondary");
+            btn.setMaxWidth(Double.MAX_VALUE);
+            btn.setOnAction(e -> showHistoryDialog("Weight History — " + a.getName(),
                 a.getWeightHistory().stream()
                     .map(Object::toString)
                     .collect(java.util.stream.Collectors.toList())));
-            detailPanel.getChildren().add(wHistBtn);
+            detailPanel.getChildren().add(btn);
         }
 
-        // ── Bio sensors ───────────────────────────────────────────────
-        if (!a.getBioSensors().isEmpty()) {
-            addSectionTitle("Bio Sensors");
-            for (BioSensor s : a.getBioSensors()) {
-                String distress = s.isAnimalInDistress() ? " ⚠ DISTRESS" : "";
-                addRow(s.getMeasureType().toString(),
-                    String.format("%.2f %s  [%.1f – %.1f]%s",
-                        s.getLastValue(), s.getUnit(),
-                        s.getMinThreshold(), s.getMaxThreshold(), distress));
-            }
-        }
-
-        if (a.hasGPSCollar()) {
-            Sensors.GPSCollarSensor gps = a.getGpsCollarSensor();
-            double lat = gps.getCurrentLatitude(), lon = gps.getCurrentLongitude();
-            String gpsInfo = "code " + gps.getCode();
-            if (lat != 0.0 || lon != 0.0)
-                gpsInfo += String.format("  (%.5f°, %.5f°)", lat, lon);
-            if (gps.hasEscaped()) gpsInfo += "  ⚠ OUTSIDE ZONE";
-            addRow("GPS Collar", gpsInfo);
-        }
-
-        // ── Unresolved health events ───────────────────────────────────
+        // Unresolved health events
         List<HealthEvent> unresolved = a.getUnresolvedEvents();
         if (!unresolved.isEmpty()) {
-            addSectionTitle("Unresolved Events");
+            addSectionTitle(detailPanel, "Unresolved events");
             for (HealthEvent e : unresolved)
-                addRow(e.getDate().toLocalDate().toString(),
+                addRow(detailPanel, e.getDate().toLocalDate().toString(),
                     e.getEventType() + " — " + e.getDescription());
         }
 
-        // ── Health history button ──────────────────────────────────────
+        // Health history
         if (!a.getHealthHistory().isEmpty()) {
-            addRow("Health Events", a.getHealthHistory().size() + " recorded");
-            Button healthHistBtn = new Button("View Health History (" + a.getHealthHistory().size() + " events)");
-            healthHistBtn.getStyleClass().add("btn-secondary");
-            healthHistBtn.setMaxWidth(Double.MAX_VALUE);
-            healthHistBtn.setOnAction(ev -> showHistoryDialog("Health History — " + a.getName(),
+            addRow(detailPanel, "Health events", a.getHealthHistory().size() + " recorded");
+            Button btn = new Button("View health history (" + a.getHealthHistory().size() + " events)");
+            btn.getStyleClass().add("btn-secondary");
+            btn.setMaxWidth(Double.MAX_VALUE);
+            btn.setOnAction(ev -> showHistoryDialog("Health History — " + a.getName(),
                 a.getHealthHistory().stream()
                     .map(e -> String.format("[%s]  %s → %s  |  %s%s",
                         e.getDate().toLocalDate(), e.getStatusBefore(),
                         e.getEventType(), e.getDescription(),
                         e.isResolved() ? "  ✓" : ""))
                     .collect(java.util.stream.Collectors.toList())));
-            detailPanel.getChildren().add(healthHistBtn);
+            detailPanel.getChildren().add(btn);
+        }
+    }
+
+    // ── Sensors tab ───────────────────────────────────────────────────
+
+    private void buildSensorsTab(Animal a) {
+        if (!a.getBioSensors().isEmpty()) {
+            addSectionTitle(sensorsPanel, "Bio sensors");
+            for (BioSensor s : a.getBioSensors()) {
+                boolean alert = s.isAnimalInDistress();
+
+                // Sensor name + reading row
+                Label typeLbl = new Label(s.getMeasureType().toString());
+                typeLbl.getStyleClass().add("animals-sensor-name");
+                Label readingLbl = new Label(String.format("%.2f %s", s.getLastValue(), s.getUnit()));
+                readingLbl.getStyleClass().add(alert ? "animals-sensor-reading-alert" : "animals-sensor-reading-ok");
+                Region sp1 = new Region();
+                HBox.setHgrow(sp1, Priority.ALWAYS);
+                HBox nameRow = new HBox(typeLbl, sp1, readingLbl);
+                nameRow.setAlignment(Pos.CENTER_LEFT);
+
+                // Range bar (ProgressBar styled via CSS)
+                double range = s.getMaxThreshold() - s.getMinThreshold();
+                double normalized = (range > 0)
+                    ? Math.max(0, Math.min(1, (s.getLastValue() - s.getMinThreshold()) / range))
+                    : 0;
+                ProgressBar bar = new ProgressBar(normalized);
+                bar.setMaxWidth(Double.MAX_VALUE);
+                bar.setPrefHeight(6);
+                bar.getStyleClass().add(alert ? "animals-range-bar-alert" : "animals-range-bar");
+
+                // Min / status / max row
+                Label minLbl = new Label(String.format("%.1f", s.getMinThreshold()));
+                minLbl.getStyleClass().add("animals-sensor-range-lbl");
+                Label statusLbl = new Label(alert ? "Out of range" : "Normal range");
+                statusLbl.getStyleClass().add(alert ? "animals-sensor-status-alert" : "animals-sensor-status-ok");
+                Label maxLbl = new Label(String.format("%.1f", s.getMaxThreshold()));
+                maxLbl.getStyleClass().add("animals-sensor-range-lbl");
+                Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
+                Region sp3 = new Region(); HBox.setHgrow(sp3, Priority.ALWAYS);
+                HBox rangeRow = new HBox(minLbl, sp2, statusLbl, sp3, maxLbl);
+                rangeRow.setAlignment(Pos.CENTER);
+
+                VBox card = new VBox(8, nameRow, bar, rangeRow);
+                card.getStyleClass().add(alert ? "animals-sensor-card-alert" : "animals-sensor-card");
+                card.setPadding(new Insets(10, 12, 10, 12));
+                sensorsPanel.getChildren().add(card);
+            }
         }
 
-        // ── Actions ───────────────────────────────────────────────────
-        addSectionTitle("Actions");
+        if (a.hasGPSCollar()) {
+            addSectionTitle(sensorsPanel, "GPS collar");
+            GPSCollarSensor gps = a.getGpsCollarSensor();
 
-        Button wBtn = new Button("📏 Record Weight");
-        wBtn.getStyleClass().add("btn-secondary");
-        wBtn.setMaxWidth(Double.MAX_VALUE);
+            Label gpsLbl = new Label("GPS collar");
+            gpsLbl.getStyleClass().add("animals-sensor-name");
+            Label activeLbl = new Label(gps.hasEscaped() ? "⚠ Outside zone" : "● Active");
+            activeLbl.getStyleClass().add(gps.hasEscaped() ? "animals-sensor-reading-alert" : "animals-gps-active");
+            Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+            HBox gpsRow = new HBox(gpsLbl, sp, activeLbl);
+            gpsRow.setAlignment(Pos.CENTER_LEFT);
+
+            Label codeLbl = new Label("Code");
+            codeLbl.getStyleClass().add("detail-key");
+            Label codeVal = new Label(gps.getCode());
+            codeVal.getStyleClass().add("animals-gps-code");
+            HBox.setHgrow(codeVal, Priority.ALWAYS);
+            HBox codeRow = new HBox(codeLbl, codeVal);
+            codeRow.getStyleClass().add("detail-row");
+
+            double lat = gps.getCurrentLatitude(), lon = gps.getCurrentLongitude();
+            VBox card = new VBox(8, gpsRow, codeRow);
+            if (lat != 0.0 || lon != 0.0) {
+                Label posLbl = new Label(String.format("%.5f°, %.5f°", lat, lon));
+                posLbl.getStyleClass().add("animals-sensor-range-lbl");
+                card.getChildren().add(posLbl);
+            }
+            card.getStyleClass().add("animals-sensor-card");
+            card.setPadding(new Insets(10, 12, 10, 12));
+            sensorsPanel.getChildren().add(card);
+        }
+
+        if (a.getBioSensors().isEmpty() && !a.hasGPSCollar()) {
+            Label none = new Label("No sensors attached to this animal.");
+            none.getStyleClass().add("text-muted");
+            sensorsPanel.getChildren().add(none);
+        }
+    }
+
+    // ── Actions tab ───────────────────────────────────────────────────
+
+    private void buildActionsTab(Animal a) {
+        addSectionTitle(actionsPanel, "Record data");
+
+        Button wBtn = actionTile("📏 Record weight");
         wBtn.setOnAction(e -> showRecordWeightDialog(a));
-        detailPanel.getChildren().add(wBtn);
+        actionsPanel.getChildren().add(wBtn);
 
         if (a.getType() == LIvestockType.RUMINANT) {
-            Button milkBtn = new Button("🥛 Record Milk Yield");
-            milkBtn.getStyleClass().add("btn-secondary");
-            milkBtn.setMaxWidth(Double.MAX_VALUE);
+            Button milkBtn = actionTile("🥛 Record milk yield");
             milkBtn.setOnAction(e -> showRecordMilkDialog(a));
-            detailPanel.getChildren().add(milkBtn);
+            actionsPanel.getChildren().add(milkBtn);
         }
 
         if (a.getType() == LIvestockType.POULTRY) {
-            Button eggBtn = new Button("🥚 Record Eggs");
-            eggBtn.getStyleClass().add("btn-secondary");
-            eggBtn.setMaxWidth(Double.MAX_VALUE);
+            Button eggBtn = actionTile("🥚 Record eggs");
             eggBtn.setOnAction(e -> showRecordEggDialog(a));
-            detailPanel.getChildren().add(eggBtn);
+            actionsPanel.getChildren().add(eggBtn);
         }
 
         if (a.getMilkYieldLiters() > 0 || a.getEggCount() > 0) {
-            Button resetBtn = new Button("🔄 Reset Production Stats");
-            resetBtn.getStyleClass().add("btn-secondary");
-            resetBtn.setMaxWidth(Double.MAX_VALUE);
+            Button resetBtn = actionTile("🔄 Reset production stats");
             resetBtn.setOnAction(e -> {
                 Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
                 confirm.setTitle("Reset Production Stats");
@@ -398,45 +556,54 @@ public class AnimalsController {
                     if (bt == ButtonType.OK) { animalService.resetProductionStats(a); showDetail(a); }
                 });
             });
-            detailPanel.getChildren().add(resetBtn);
+            actionsPanel.getChildren().add(resetBtn);
         }
 
+        // Manage section
+        actionsPanel.getChildren().add(new Separator());
+        addSectionTitle(actionsPanel, "Manage");
+
+        Button zoneMapBtn = actionTile("📍 View in zone boundaries");
+        zoneMapBtn.setOnAction(e -> openZoneMap(a));
+        actionsPanel.getChildren().add(zoneMapBtn);
+
         if (a.getHealthStatus() != AnimalHealthStatus.Healthy) {
-            Button resolveBtn = new Button("✅ Resolve Health Status");
-            resolveBtn.getStyleClass().add("btn-secondary");
-            resolveBtn.setMaxWidth(Double.MAX_VALUE);
+            Button resolveBtn = actionTile("✅ Resolve health status");
             resolveBtn.setOnAction(e -> showResolveHealthDialog(a));
-            detailPanel.getChildren().add(resolveBtn);
+            actionsPanel.getChildren().add(resolveBtn);
         }
 
         if (!a.hasGPSCollar()) {
-            Button attachGpsBtn = new Button("📡 Attach GPS Collar");
-            attachGpsBtn.getStyleClass().add("btn-secondary");
-            attachGpsBtn.setMaxWidth(Double.MAX_VALUE);
-            attachGpsBtn.setOnAction(e -> {
+            Button attachBtn = actionTile("📡 Attach GPS collar");
+            attachBtn.setOnAction(e -> {
                 GPSCollarSensor gps = new GPSCollarSensor(a);
                 a.attachGPSCollar(gps);
-                if (a.getZone() instanceof ZONES.LivestockZONE lz)
+                if (a.getZone() instanceof LivestockZONE lz)
                     lz.addGpsCollarSensor(gps);
                 FarmService.getInstance().autoSave();
                 showDetail(a);
             });
-            detailPanel.getChildren().add(attachGpsBtn);
+            actionsPanel.getChildren().add(attachBtn);
         } else {
-            Button removeGpsBtn = new Button("📡 Remove GPS Collar");
-            removeGpsBtn.getStyleClass().add("btn-secondary");
-            removeGpsBtn.setMaxWidth(Double.MAX_VALUE);
+            Button removeGpsBtn = actionTile("📡 Remove GPS collar");
             removeGpsBtn.setOnAction(e -> {
                 a.removeGPSCollar();
                 FarmService.getInstance().autoSave();
                 showDetail(a);
             });
-            detailPanel.getChildren().add(removeGpsBtn);
+            actionsPanel.getChildren().add(removeGpsBtn);
         }
 
-        Button removeBtn = new Button("❌ Remove Animal");
-        removeBtn.getStyleClass().add("btn-danger");
+        // Danger zone
+        actionsPanel.getChildren().add(new Separator());
+        Label dangerLbl = new Label("DANGER ZONE");
+        dangerLbl.getStyleClass().add("animals-danger-section-label");
+        actionsPanel.getChildren().add(dangerLbl);
+
+        Button removeBtn = new Button("❌ Remove animal");
+        removeBtn.getStyleClass().add("animals-action-tile-danger");
         removeBtn.setMaxWidth(Double.MAX_VALUE);
+        removeBtn.setAlignment(Pos.CENTER_LEFT);
         removeBtn.setOnAction(e -> {
             Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
             confirm.setTitle("Remove Animal");
@@ -446,15 +613,43 @@ public class AnimalsController {
                 if (bt == ButtonType.OK) {
                     animalService.removeAnimal(a);
                     allAnimals.remove(a);
+                    detailHeaderPanel.getChildren().clear();
                     detailPanel.getChildren().clear();
+                    sensorsPanel.getChildren().clear();
+                    actionsPanel.getChildren().clear();
+                    Label placeholder = new Label("Select an animal to view details");
+                    placeholder.getStyleClass().add("text-muted");
+                    detailPanel.getChildren().add(placeholder);
                     refreshStats();
                 }
             });
         });
-        detailPanel.getChildren().add(removeBtn);
+        actionsPanel.getChildren().add(removeBtn);
     }
 
-    // ── Action dialogs ────────────────────────────────────────────────
+    // ── Zone map ──────────────────────────────────────────────────────
+
+    private void openZoneMap(Animal a) {
+        List<String> sheets = animalTable.getScene() == null
+            ? new ArrayList<>()
+            : new ArrayList<>(animalTable.getScene().getStylesheets());
+        ZoneMapDialog dlg = new ZoneMapDialog(a.getZone(), sheets, ZoneMapDialog.key(a));
+        if (animalTable.getScene() != null)
+            dlg.initOwner(animalTable.getScene().getWindow());
+        dlg.showAndWait();
+    }
+
+    // ── Action tile helper ────────────────────────────────────────────
+
+    private Button actionTile(String text) {
+        Button btn = new Button(text);
+        btn.getStyleClass().add("animals-action-tile");
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setAlignment(Pos.CENTER_LEFT);
+        return btn;
+    }
+
+    // ── Record dialogs (all @FXML handler targets — unchanged) ────────
 
     private void showRecordWeightDialog(Animal a) {
         TextField field = new TextField(String.format("%.1f", a.getWeight()));
@@ -493,7 +688,9 @@ public class AnimalsController {
             try { return Double.parseDouble(field.getText().trim()); }
             catch (NumberFormatException e) { return null; }
         });
-        dialog.showAndWait().ifPresent(liters -> { if (liters >= 0) { animalService.recordMilkYield(a, liters); showDetail(a); } });
+        dialog.showAndWait().ifPresent(liters -> {
+            if (liters >= 0) { animalService.recordMilkYield(a, liters); showDetail(a); }
+        });
     }
 
     private void showRecordEggDialog(Animal a) {
@@ -513,7 +710,9 @@ public class AnimalsController {
             try { return Integer.parseInt(field.getText().trim()); }
             catch (NumberFormatException e) { return null; }
         });
-        dialog.showAndWait().ifPresent(count -> { if (count >= 0) { animalService.recordEgg(a, count); showDetail(a); } });
+        dialog.showAndWait().ifPresent(count -> {
+            if (count >= 0) { animalService.recordEgg(a, count); showDetail(a); }
+        });
     }
 
     private void showResolveHealthDialog(Animal a) {
@@ -577,14 +776,11 @@ public class AnimalsController {
         list.getStyleClass().add("event-list");
         list.setPrefHeight(Math.min(400, entries.size() * 26.0 + 30));
         list.setPrefWidth(460);
-
         VBox content = new VBox(list);
         content.setPadding(new Insets(12, 16, 8, 16));
-
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.setHeaderText(null);
-        // Must set owner so the dialog appears in front of the main window
         if (animalTable.getScene() != null)
             dialog.initOwner(animalTable.getScene().getWindow());
         dialog.getDialogPane().setContent(content);
@@ -594,7 +790,9 @@ public class AnimalsController {
         dialog.showAndWait();
     }
 
-    private void addRow(String key, String value) {
+    // ── Detail panel helpers ──────────────────────────────────────────
+
+    private void addRow(VBox panel, String key, String value) {
         Label keyLbl = new Label(key);
         keyLbl.getStyleClass().add("detail-key");
         Label valLbl = new Label(value);
@@ -603,19 +801,19 @@ public class AnimalsController {
         HBox row = new HBox(keyLbl, valLbl);
         row.getStyleClass().add("detail-row");
         HBox.setHgrow(valLbl, Priority.ALWAYS);
-        detailPanel.getChildren().add(row);
+        panel.getChildren().add(row);
     }
 
-    private void addSectionTitle(String title) {
-        if (!detailPanel.getChildren().isEmpty()) {
+    private void addSectionTitle(VBox panel, String title) {
+        if (!panel.getChildren().isEmpty()) {
             Separator sep = new Separator();
-            sep.setPrefHeight(2);
-            detailPanel.getChildren().add(sep);
+            sep.setPrefHeight(1);
+            panel.getChildren().add(sep);
         }
         Label lbl = new Label(title.toUpperCase());
         lbl.getStyleClass().add("detail-section-title");
         lbl.setMaxWidth(Double.MAX_VALUE);
-        detailPanel.getChildren().add(lbl);
+        panel.getChildren().add(lbl);
     }
 
     // ── Dialog helpers ────────────────────────────────────────────────

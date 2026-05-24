@@ -2,6 +2,7 @@ package com.example.controllers;
 
 import Additional_classes.Range;
 import Animals.Animal;
+import Animals.AnimalHealthStatus;
 import Animals.FeedingProgram;
 import Entities.AquacultureSpecies;
 import Entities.Crop;
@@ -19,6 +20,7 @@ import Sensors.WaterMeasureType;
 import Sensors.WaterSensor;
 import com.example.services.FarmService;
 import com.example.services.ZoneService;
+import com.example.utils.SceneManager;
 import javafx.util.StringConverter;
 import ZONES.AquacultureZONE;
 import ZONES.CropZONE;
@@ -32,6 +34,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -40,10 +43,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -56,6 +61,7 @@ import java.util.function.Function;
 
 public class ZonesController {
 
+    // ── Table columns (all existing fx:ids preserved) ─────────────────
     @FXML private TableView<LivestockZONE>     livestockTable;
     @FXML private TableColumn<LivestockZONE, String>  lsColCode;
     @FXML private TableColumn<LivestockZONE, String>  lsColName;
@@ -76,18 +82,34 @@ public class ZonesController {
     @FXML private TableColumn<AquacultureZONE, Integer> aqColSpecies;
     @FXML private TableColumn<AquacultureZONE, String>  aqColStatus;
 
+    // ── Detail panel (preserved fx:id — now lives in Details tab) ─────
     @FXML private VBox      detailPanel;
     @FXML private TextField searchField;
 
+    // ── Stat labels (preserved) ───────────────────────────────────────
     @FXML private Label statTotalZones;
     @FXML private Label statActiveZones;
     @FXML private Label statLivestockCount;
     @FXML private Label statCropCount;
     @FXML private Label statAquaCount;
 
-    // injected for distress banner — visibility wired separately
+    // ── Stat sub-labels (new) ─────────────────────────────────────────
+    @FXML private Label statTotalSub;
+    @FXML private Label statActiveSub;
+    @FXML private Label statLivestockSub;
+    @FXML private Label statCropSub;
+    @FXML private Label statAquaSub;
+
+    // ── Distress banner (preserved) ────────────────────────────────────
     @FXML private HBox  distressBanner;
     @FXML private Label distressBannerText;
+
+    // ── New right-panel structure ──────────────────────────────────────
+    @FXML private VBox     zoneDetailHeader;
+    @FXML private Label    zoneDetailName;
+    @FXML private TabPane  zoneDetailTabs;
+    @FXML private VBox     actionsPanel;
+    @FXML private VBox     zoneDetailPlaceholder;
 
     private final ZoneService zoneService = ZoneService.getInstance();
 
@@ -108,11 +130,57 @@ public class ZonesController {
     }
 
     private void refreshStats() {
-        statTotalZones.setText(String.valueOf(zoneService.getAllZones().size()));
-        statActiveZones.setText(String.valueOf(zoneService.getActiveZoneCount()));
-        statLivestockCount.setText(String.valueOf(zoneService.getLivestockZones().size()));
-        statCropCount.setText(String.valueOf(zoneService.getCropZones().size()));
-        statAquaCount.setText(String.valueOf(zoneService.getAquacultureZones().size()));
+        List<LivestockZONE> lstZones  = zoneService.getLivestockZones();
+        List<CropZONE>      crpZones  = zoneService.getCropZones();
+        List<AquacultureZONE> aqZones = zoneService.getAquacultureZones();
+        List<ZONE> allZones           = zoneService.getAllZones();
+
+        int total     = allZones.size();
+        int active    = (int) allZones.stream().filter(z -> z.getStatus() == ZoneStatus.ACTIVE).count();
+        int suspended = total - active;
+
+        statTotalZones.setText(String.valueOf(total));
+        statActiveZones.setText(String.valueOf(active));
+        statLivestockCount.setText(String.valueOf(lstZones.size()));
+        statCropCount.setText(String.valueOf(crpZones.size()));
+        statAquaCount.setText(String.valueOf(aqZones.size()));
+
+        if (statTotalSub != null) statTotalSub.setText("all types");
+
+        if (statActiveSub != null)
+            statActiveSub.setText(suspended > 0 ? suspended + " suspended" : "all running");
+
+        // Livestock: count quarantined animals across all livestock zones
+        long quarantined = lstZones.stream()
+            .flatMap(z -> z.getAnimals().stream())
+            .filter(a -> a.getHealthStatus() == AnimalHealthStatus.Quarantined)
+            .count();
+        if (statLivestockSub != null) {
+            if (quarantined > 0) {
+                statLivestockSub.setText("⚠ " + quarantined + " quarantined");
+                statLivestockSub.getStyleClass().setAll("zones-stat-card-sub-warn");
+            } else {
+                statLivestockSub.setText("no alerts");
+                statLivestockSub.getStyleClass().setAll("zones-stat-card-sub");
+            }
+        }
+
+        // Crop / Aqua: basic alert count from sensor distress
+        long crpAlerts = crpZones.stream()
+            .flatMap(z -> z.getEnvSensors().stream())
+            .filter(s -> s.isOutOfRange(s.getLastValue())).count()
+            + crpZones.stream().flatMap(z -> z.getSoilSensors().stream())
+            .filter(s -> s.isOutOfRange(s.getLastValue())).count();
+
+        if (statCropSub != null)
+            statCropSub.setText(crpAlerts > 0 ? crpAlerts + " alerts" : "no alerts");
+
+        long aqAlerts = aqZones.stream()
+            .flatMap(z -> z.getWaterSensors().stream())
+            .filter(s -> s.isOutOfRange(s.getLastValue())).count();
+
+        if (statAquaSub != null)
+            statAquaSub.setText(aqAlerts > 0 ? aqAlerts + " alerts" : "no alerts");
     }
 
     // ── Table setup ───────────────────────────────────────────────────
@@ -122,7 +190,23 @@ public class ZonesController {
         lsColName.setCellValueFactory(d    -> new SimpleStringProperty(d.getValue().getName()));
         lsColType.setCellValueFactory(d    -> new SimpleStringProperty(d.getValue().getType().toString()));
         lsColAnimals.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().getAnimals().size()).asObject());
+
+        // Animals column — styled link with arrow
+        lsColAnimals.setCellFactory(col -> new TableCell<>() {
+            private final Label link = new Label();
+            { link.getStyleClass().add("zones-animals-link"); }
+            @Override protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setGraphic(null); return; }
+                link.setText(item + " →");
+                link.setOnMouseClicked(e -> SceneManager.getInstance().navigateTo("animals"));
+                setGraphic(link);
+            }
+        });
+
         setupStatusColumn(lsColStatus, z -> z.getStatus());
+        addChevronColumn(livestockTable);
+
         livestockTable.setItems(data);
         livestockTable.getSelectionModel().selectedItemProperty()
             .addListener((obs, o, n) -> { if (n != null) showLivestockDetail(n); });
@@ -134,6 +218,8 @@ public class ZonesController {
         crColFields.setCellValueFactory(d  -> new SimpleIntegerProperty(d.getValue().getFields().size()).asObject());
         crColSurface.setCellValueFactory(d -> new SimpleDoubleProperty(d.getValue().getSurfacePlanted()).asObject());
         setupStatusColumn(crColStatus, z -> z.getStatus());
+        addChevronColumn(cropTable);
+
         cropTable.setItems(data);
         cropTable.getSelectionModel().selectedItemProperty()
             .addListener((obs, o, n) -> { if (n != null) showCropDetail(n); });
@@ -144,9 +230,28 @@ public class ZonesController {
         aqColName.setCellValueFactory(d    -> new SimpleStringProperty(d.getValue().getName()));
         aqColSpecies.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().getSpeciesList().size()).asObject());
         setupStatusColumn(aqColStatus, z -> z.getStatus());
+        addChevronColumn(aquaTable);
+
         aquaTable.setItems(data);
         aquaTable.getSelectionModel().selectedItemProperty()
             .addListener((obs, o, n) -> { if (n != null) showAquaDetail(n); });
+    }
+
+    private <T> void addChevronColumn(TableView<T> table) {
+        TableColumn<T, String> col = new TableColumn<>("");
+        col.setPrefWidth(28); col.setMinWidth(28); col.setMaxWidth(28);
+        col.setSortable(false); col.setReorderable(false);
+        col.setCellFactory(c -> new TableCell<>() {
+            @Override protected void updateItem(String v, boolean empty) {
+                super.updateItem(v, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setText(null); return;
+                }
+                setText("›");
+                setStyle("-fx-text-fill: #888780; -fx-font-size: 18px; -fx-alignment: CENTER;");
+            }
+        });
+        table.getColumns().add(col);
     }
 
     private <T> void setupStatusColumn(TableColumn<T, String> col, Function<T, ZoneStatus> statusFn) {
@@ -167,6 +272,35 @@ public class ZonesController {
                 setGraphic(badge);
             }
         });
+    }
+
+    // ── Detail panel — open/close ──────────────────────────────────────
+
+    private void openDetailPanel(String zoneName) {
+        zoneDetailName.setText(zoneName);
+        zoneDetailHeader.setVisible(true);
+        zoneDetailHeader.setManaged(true);
+        zoneDetailTabs.setVisible(true);
+        zoneDetailTabs.setManaged(true);
+        zoneDetailPlaceholder.setVisible(false);
+        zoneDetailPlaceholder.setManaged(false);
+        detailPanel.getChildren().clear();
+        actionsPanel.getChildren().clear();
+    }
+
+    @FXML
+    private void closeDetail() {
+        zoneDetailHeader.setVisible(false);
+        zoneDetailHeader.setManaged(false);
+        zoneDetailTabs.setVisible(false);
+        zoneDetailTabs.setManaged(false);
+        zoneDetailPlaceholder.setVisible(true);
+        zoneDetailPlaceholder.setManaged(true);
+        livestockTable.getSelectionModel().clearSelection();
+        cropTable.getSelectionModel().clearSelection();
+        aquaTable.getSelectionModel().clearSelection();
+        detailPanel.getChildren().clear();
+        actionsPanel.getChildren().clear();
     }
 
     // ── Add Zone dialog ───────────────────────────────────────────────
@@ -368,8 +502,7 @@ public class ZonesController {
                 return new FeedingProgram(food, qty, sched, wake, sleep);
             } catch (Exception e) {
                 Alert err = new Alert(Alert.AlertType.ERROR);
-                err.setTitle("Invalid Input");
-                err.setHeaderText(null);
+                err.setTitle("Invalid Input"); err.setHeaderText(null);
                 err.setContentText("Check your times (HH:mm) and that wake < sleep.\n" + e.getMessage());
                 err.showAndWait();
                 return null;
@@ -385,7 +518,9 @@ public class ZonesController {
     // ── Detail panels ─────────────────────────────────────────────────
 
     private void showLivestockDetail(LivestockZONE z) {
-        detailPanel.getChildren().clear();
+        openDetailPanel(z.getName());
+
+        // ── DETAILS TAB ──────────────────────────────────────────────
         addRow("Code",        z.getCode());
         addRow("Name",        z.getName());
         addRow("Type",        z.getType().toString());
@@ -397,40 +532,75 @@ public class ZonesController {
         if (z.hasBoundaries())
             addRow("Boundaries", z.getBoundaries().size() + " points");
 
-        // Bio sensors — individual rows with remove
+        // Animal chips (visual summary)
+        if (!z.getAnimals().isEmpty()) {
+            addSectionTitle("Animals in zone");
+            FlowPane chips = new FlowPane(6, 6);
+            for (Animal a : z.getAnimals()) {
+                Label chip = new Label(a.getName() + " · " + a.getSpecies());
+                chip.getStyleClass().add("zones-animal-chip");
+                chip.getStyleClass().add(switch (a.getHealthStatus()) {
+                    case Healthy     -> "zones-animal-chip-healthy";
+                    case Sick        -> "zones-animal-chip-sick";
+                    case Quarantined -> "zones-animal-chip-quarantined";
+                });
+                chips.getChildren().add(chip);
+            }
+            detailPanel.getChildren().add(chips);
+
+            // Per-animal rows with map + remove buttons
+            addSectionTitle("Animal management");
+            for (Animal a : z.getAnimals()) {
+                Label lbl = new Label(a.getName() + "  (" + a.getSpecies() + " · " + a.getHealthStatus() + ")");
+                lbl.getStyleClass().add("detail-row");
+                lbl.setWrapText(true);
+                Button mapAnimalBtn = new Button("📍");
+                mapAnimalBtn.getStyleClass().add("btn-ghost");
+                mapAnimalBtn.setOnAction(e -> {
+                    ZoneMapDialog mapDlg = new ZoneMapDialog(z,
+                        detailPanel.getScene().getStylesheets(), ZoneMapDialog.key(a));
+                    mapDlg.showAndWait();
+                });
+                Button removeAnimalBtn = new Button("✕");
+                removeAnimalBtn.getStyleClass().add("btn-danger");
+                removeAnimalBtn.setOnAction(e -> {
+                    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirm.setTitle("Remove Animal"); confirm.setHeaderText(null);
+                    confirm.setContentText("Remove " + a.getName() + " from " + z.getName() + "?");
+                    confirm.showAndWait().ifPresent(bt -> {
+                        if (bt == ButtonType.OK) {
+                            z.removeAnimal(a);
+                            FarmService.getInstance().autoSave();
+                            lsData.setAll(zoneService.getLivestockZones());
+                            showLivestockDetail(z);
+                        }
+                    });
+                });
+                HBox row = new HBox(8, lbl, mapAnimalBtn, removeAnimalBtn);
+                row.setAlignment(Pos.CENTER_LEFT);
+                HBox.setHgrow(lbl, Priority.ALWAYS);
+                detailPanel.getChildren().add(row);
+            }
+        }
+
+        // Bio sensors — styled rows with distress highlighting
         if (!z.getBioSensors().isEmpty()) {
             addSectionTitle("Bio Sensors (" + z.getBioSensors().size() + ")");
             for (BioSensor sensor : new java.util.ArrayList<>(z.getBioSensors())) {
-                String info = sensor.getCode() + "  " + sensor.getMeasureType()
-                    + " on " + sensor.getAnimal().getName()
-                    + (sensor.isAnimalInDistress() ? "  ⚠ DISTRESS" : "");
-                Label lbl = new Label(info);
-                lbl.getStyleClass().add("detail-value");
-                lbl.setWrapText(true);
-                Button removeBtn = new Button("✕");
-                removeBtn.getStyleClass().add("btn-danger");
-                removeBtn.setOnAction(e -> {
-                    z.removeBioSensor(sensor);
-                    FarmService.getInstance().autoSave();
-                    showLivestockDetail(z);
-                });
-                HBox row = new HBox(8, lbl, removeBtn);
-                row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-                HBox.setHgrow(lbl, Priority.ALWAYS);
-                detailPanel.getChildren().add(row);
+                detailPanel.getChildren().add(buildSensorRow(sensor, z));
             }
         } else {
             addRow("Bio Sensors", "0");
         }
 
-        // GPS collar sensors — individual rows with remove
+        // GPS collar sensors
         if (!z.getGpsCollarSensors().isEmpty()) {
             addSectionTitle("GPS Collar Sensors (" + z.getGpsCollarSensors().size() + ")");
             for (GPSCollarSensor sensor : new java.util.ArrayList<>(z.getGpsCollarSensors())) {
                 String info = sensor.getCode() + "  on " + sensor.getAnimal().getName()
                     + (sensor.hasEscaped() ? "  ⚠ OUTSIDE ZONE" : "");
                 Label lbl = new Label(info);
-                lbl.getStyleClass().add("detail-value");
+                lbl.getStyleClass().add(sensor.hasEscaped() ? "zones-sensor-name-alert" : "detail-value");
                 lbl.setWrapText(true);
                 Button removeBtn = new Button("✕");
                 removeBtn.getStyleClass().add("btn-danger");
@@ -441,7 +611,7 @@ public class ZonesController {
                     showLivestockDetail(z);
                 });
                 HBox row = new HBox(8, lbl, removeBtn);
-                row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                row.setAlignment(Pos.CENTER_LEFT);
                 HBox.setHgrow(lbl, Priority.ALWAYS);
                 detailPanel.getChildren().add(row);
             }
@@ -449,7 +619,7 @@ public class ZonesController {
             addRow("GPS Sensors", "0");
         }
 
-        // Feeding Program section
+        // Feeding program details (read-only; actions go to Actions tab)
         FeedingProgram fp = z.getFeedingProgram();
         if (fp != null) {
             addSectionTitle("Feeding Program");
@@ -469,93 +639,44 @@ public class ZonesController {
             else
                 addRow("Next Feeding", fp.getNextFeedingTime() != null
                     ? fp.getNextFeedingTime().toString().substring(0, 16) : "—");
-
-            Button recordFeedBtn = new Button("🍽 Record Feeding Now");
-            recordFeedBtn.getStyleClass().add("btn-primary");
-            recordFeedBtn.setMaxWidth(Double.MAX_VALUE);
-            recordFeedBtn.setOnAction(e -> { zoneService.recordFeeding(z); showLivestockDetail(z); });
-            detailPanel.getChildren().add(recordFeedBtn);
         }
 
-        // Animals list with Map + Remove buttons
-        if (!z.getAnimals().isEmpty()) {
-            addSectionTitle("Animals");
-            for (Animal a : z.getAnimals()) {
-                Label lbl = new Label(a.getName() + "  (" + a.getSpecies() + " · " + a.getHealthStatus() + ")");
-                lbl.getStyleClass().add("detail-row");
-                lbl.setWrapText(true);
-                Button mapAnimalBtn = new Button("📍");
-                mapAnimalBtn.getStyleClass().add("btn-secondary");
-                mapAnimalBtn.setOnAction(e -> {
-                    ZoneMapDialog mapDlg = new ZoneMapDialog(z,
-                        detailPanel.getScene().getStylesheets(), ZoneMapDialog.key(a));
-                    mapDlg.showAndWait();
-                });
-                Button removeAnimalBtn = new Button("✕");
-                removeAnimalBtn.getStyleClass().add("btn-danger");
-                removeAnimalBtn.setOnAction(e -> {
-                    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirm.setTitle("Remove Animal");
-                    confirm.setHeaderText(null);
-                    confirm.setContentText("Remove " + a.getName() + " from " + z.getName() + "?");
-                    confirm.showAndWait().ifPresent(bt -> {
-                        if (bt == ButtonType.OK) {
-                            z.removeAnimal(a);
-                            FarmService.getInstance().autoSave();
-                            lsData.setAll(zoneService.getLivestockZones());
-                            showLivestockDetail(z);
-                        }
-                    });
-                });
-                HBox row = new HBox(8, lbl, mapAnimalBtn, removeAnimalBtn);
-                row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-                javafx.scene.layout.HBox.setHgrow(lbl, javafx.scene.layout.Priority.ALWAYS);
-                detailPanel.getChildren().add(row);
-            }
-        }
-
-        // Zone management actions
-        addSectionTitle("Zone Actions");
+        // ── ACTIONS TAB ──────────────────────────────────────────────
+        addActionGroupTitle("Manage");
 
         if (z.getStatus() == ZoneStatus.ACTIVE) {
-            Button suspBtn = new Button("⏸ Suspend Zone");
-            suspBtn.getStyleClass().add("btn-secondary");
-            suspBtn.setMaxWidth(Double.MAX_VALUE);
+            Button suspBtn = actionBtn("⏸ Suspend Zone", "btn-secondary");
             suspBtn.setOnAction(e -> { zoneService.suspendZone(z); lsData.setAll(zoneService.getLivestockZones()); showLivestockDetail(z); refreshStats(); });
-            detailPanel.getChildren().add(suspBtn);
+            actionsPanel.getChildren().add(suspBtn);
         } else {
-            Button actBtn = new Button("▶ Activate Zone");
-            actBtn.getStyleClass().add("btn-primary");
-            actBtn.setMaxWidth(Double.MAX_VALUE);
+            Button actBtn = actionBtn("▶ Activate Zone", "btn-primary");
             actBtn.setOnAction(e -> { zoneService.activateZone(z); lsData.setAll(zoneService.getLivestockZones()); showLivestockDetail(z); refreshStats(); });
-            detailPanel.getChildren().add(actBtn);
+            actionsPanel.getChildren().add(actBtn);
         }
 
-        if (fp == null) {
-            Button fpBtn = new Button("🗓 Create Feeding Program");
-            fpBtn.getStyleClass().add("btn-secondary");
-            fpBtn.setMaxWidth(Double.MAX_VALUE);
-            fpBtn.setOnAction(e -> showCreateFeedingProgramDialog(z));
-            detailPanel.getChildren().add(fpBtn);
-        } else {
-            Button editFpBtn = new Button("✏ Edit Feeding Program");
-            editFpBtn.getStyleClass().add("btn-secondary");
-            editFpBtn.setMaxWidth(Double.MAX_VALUE);
+        if (fp != null) {
+            Button recordFeedBtn = actionBtn("🍽 Record Feeding Now", "btn-primary");
+            recordFeedBtn.setOnAction(e -> { zoneService.recordFeeding(z); showLivestockDetail(z); });
+            actionsPanel.getChildren().add(recordFeedBtn);
+
+            Button editFpBtn = actionBtn("✏ Edit Feeding Program", "btn-secondary");
             editFpBtn.setOnAction(e -> showEditFeedingProgramDialog(z, fp));
-            detailPanel.getChildren().add(editFpBtn);
+            actionsPanel.getChildren().add(editFpBtn);
+        } else {
+            Button fpBtn = actionBtn("🗓 Create Feeding Program", "btn-secondary");
+            fpBtn.setOnAction(e -> showCreateFeedingProgramDialog(z));
+            actionsPanel.getChildren().add(fpBtn);
         }
 
-        Button addBioBtn = new Button("📡 Add Bio Sensor");
-        addBioBtn.getStyleClass().add("btn-secondary");
-        addBioBtn.setMaxWidth(Double.MAX_VALUE);
-        addBioBtn.setOnAction(e -> showAddBioSensorDialog(z));
-        detailPanel.getChildren().add(addBioBtn);
+        addActionGroupTitle("Sensors & Map");
 
-        Button lsBoundaryBtn = new Button(z.hasBoundaries()
+        Button addBioBtn = actionBtn("📡 Add Bio Sensor", "btn-secondary");
+        addBioBtn.setOnAction(e -> showAddBioSensorDialog(z));
+        actionsPanel.getChildren().add(addBioBtn);
+
+        Button lsBoundaryBtn = actionBtn(z.hasBoundaries()
             ? "🗺 Edit Boundary (" + z.getBoundaries().size() + " pts)"
-            : "🗺 Set Zone Boundary");
-        lsBoundaryBtn.getStyleClass().add("btn-secondary");
-        lsBoundaryBtn.setMaxWidth(Double.MAX_VALUE);
+            : "🗺 Set Zone Boundary", "btn-secondary");
         lsBoundaryBtn.setOnAction(e -> {
             BoundaryEditorDialog dlg = new BoundaryEditorDialog(z.getName(),
                 z.hasBoundaries() ? z.getBoundaries() : null,
@@ -566,51 +687,45 @@ public class ZonesController {
                 showLivestockDetail(z);
             });
         });
-        detailPanel.getChildren().add(lsBoundaryBtn);
+        actionsPanel.getChildren().add(lsBoundaryBtn);
 
-        Button lsMapBtn = new Button("📍 View Zone Map");
-        lsMapBtn.getStyleClass().add("btn-secondary");
-        lsMapBtn.setMaxWidth(Double.MAX_VALUE);
+        Button lsMapBtn = actionBtn("📍 View Zone Map", "btn-secondary");
         lsMapBtn.setOnAction(e -> new ZoneMapDialog(z, detailPanel.getScene().getStylesheets()).showAndWait());
-        detailPanel.getChildren().add(lsMapBtn);
+        actionsPanel.getChildren().add(lsMapBtn);
 
-        Button lsSensorHistBtn = new Button("📊 Sensor History");
-        lsSensorHistBtn.getStyleClass().add("btn-secondary");
-        lsSensorHistBtn.setMaxWidth(Double.MAX_VALUE);
+        addActionGroupTitle("History");
+
+        Button lsSensorHistBtn = actionBtn("📊 Sensor History", "btn-secondary");
         lsSensorHistBtn.setOnAction(e ->
             new SensorHistoryDialog(z, detailPanel.getScene().getStylesheets()).showAndWait());
-        detailPanel.getChildren().add(lsSensorHistBtn);
+        actionsPanel.getChildren().add(lsSensorHistBtn);
 
-        Button lsAlertHistBtn = new Button("🔔 Alert History");
-        lsAlertHistBtn.getStyleClass().add("btn-secondary");
-        lsAlertHistBtn.setMaxWidth(Double.MAX_VALUE);
+        Button lsAlertHistBtn = actionBtn("🔔 Alert History", "btn-secondary");
         lsAlertHistBtn.setOnAction(e ->
             new ZoneAlertHistoryDialog(z, detailPanel.getScene().getStylesheets()).showAndWait());
-        detailPanel.getChildren().add(lsAlertHistBtn);
+        actionsPanel.getChildren().add(lsAlertHistBtn);
 
-        Button renameBtn = new Button("✏ Rename Zone");
-        renameBtn.getStyleClass().add("btn-secondary");
-        renameBtn.setMaxWidth(Double.MAX_VALUE);
+        addActionGroupTitle("Settings");
+
+        Button renameBtn = actionBtn("✏ Rename Zone", "btn-secondary");
         renameBtn.setOnAction(e -> showRenameZoneDialog(z, () -> {
             lsData.setAll(zoneService.getLivestockZones());
             showLivestockDetail(z);
             refreshStats();
         }));
-        detailPanel.getChildren().add(renameBtn);
+        actionsPanel.getChildren().add(renameBtn);
 
-        Button deleteBtn = new Button("🗑 Delete Zone");
-        deleteBtn.getStyleClass().add("btn-danger");
-        deleteBtn.setMaxWidth(Double.MAX_VALUE);
-        deleteBtn.setOnAction(e -> confirmDeleteZone(z, () -> {
+        addDangerZoneAction("🗑 Delete Zone", e -> confirmDeleteZone(z, () -> {
             lsData.setAll(zoneService.getLivestockZones());
-            detailPanel.getChildren().clear();
+            closeDetail();
             refreshStats();
         }));
-        detailPanel.getChildren().add(deleteBtn);
     }
 
     private void showCropDetail(CropZONE z) {
-        detailPanel.getChildren().clear();
+        openDetailPanel(z.getName());
+
+        // ── DETAILS TAB ──────────────────────────────────────────────
         addRow("Code",         z.getCode());
         addRow("Name",         z.getName());
         addRow("Status",       z.getStatus().toString());
@@ -620,7 +735,6 @@ public class ZonesController {
         addRow("Env Sensors",  String.valueOf(z.getEnvSensors().size()));
         addRow("Soil Sensors", String.valueOf(z.getSoilSensors().size()));
 
-        // Per-crop management
         if (!z.getFields().isEmpty()) {
             addSectionTitle("Crops");
             for (Crop c : z.getFields()) {
@@ -630,7 +744,6 @@ public class ZonesController {
                 lbl.setWrapText(true);
                 detailPanel.getChildren().add(lbl);
 
-                // crop metadata
                 addRow("  ID",         c.getId().substring(0, 8));
                 addRow("  Planted",    c.getPlantingDate().toString().substring(0, 10));
                 addRow("  Harvest By", c.getExpectedHarvestDate().toString().substring(0, 10));
@@ -639,14 +752,12 @@ public class ZonesController {
                 addRow("  pH range",  c.getOptimalPHRange().getMin() + " – " + c.getOptimalPHRange().getMax());
                 addRow("  Moisture",  c.getOptimalMoistureRange().getMin() + "% – " + c.getOptimalMoistureRange().getMax() + "%");
 
-                // ready-to-harvest indicator
                 if (c.isReadyForHarvest()) {
                     Label readyLbl = new Label("✅ READY TO HARVEST");
                     readyLbl.getStyleClass().addAll("badge", "badge-active");
                     detailPanel.getChildren().add(readyLbl);
                 }
 
-                // per-crop action buttons
                 Button harvestBtn = new Button("🌾 Record Harvest");
                 harvestBtn.getStyleClass().add("btn-secondary");
                 harvestBtn.setOnAction(e -> showRecordCropHarvestDialog(c, z));
@@ -662,17 +773,14 @@ public class ZonesController {
                 fieldBoundaryBtn.setOnAction(e -> {
                     if (!z.hasBoundaries()) {
                         Alert warn = new Alert(Alert.AlertType.WARNING);
-                        warn.setTitle("Zone Boundary Required");
-                        warn.setHeaderText(null);
+                        warn.setTitle("Zone Boundary Required"); warn.setHeaderText(null);
                         warn.setContentText("Set the zone boundary first — the field sub-zone must fit inside it.");
-                        warn.showAndWait();
-                        return;
+                        warn.showAndWait(); return;
                     }
                     BoundaryEditorDialog dlg = new BoundaryEditorDialog(
                         c.getVariety() + " field",
                         c.hasBoundary() ? c.getBoundary() : null,
-                        z.getBoundaries(),
-                        detailPanel.getScene().getStylesheets());
+                        z.getBoundaries(), detailPanel.getScene().getStylesheets());
                     dlg.showAndWait().ifPresent(bounds -> {
                         c.setBoundary(bounds);
                         FarmService.getInstance().autoSave();
@@ -684,8 +792,7 @@ public class ZonesController {
                 removeCropBtn.getStyleClass().add("btn-danger");
                 removeCropBtn.setOnAction(e -> {
                     Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirm.setTitle("Remove Crop");
-                    confirm.setHeaderText(null);
+                    confirm.setTitle("Remove Crop"); confirm.setHeaderText(null);
                     confirm.setContentText("Remove " + c.getVariety() + " from " + z.getName() + "?");
                     confirm.showAndWait().ifPresent(bt -> {
                         if (bt == ButtonType.OK) {
@@ -703,44 +810,24 @@ public class ZonesController {
             }
         }
 
-        // Zone management actions
-        addSectionTitle("Zone Actions");
+        // ── ACTIONS TAB ──────────────────────────────────────────────
+        addActionGroupTitle("Manage");
 
         if (z.getStatus() == ZoneStatus.ACTIVE) {
-            Button suspBtn = new Button("⏸ Suspend Zone");
-            suspBtn.getStyleClass().add("btn-secondary");
-            suspBtn.setMaxWidth(Double.MAX_VALUE);
+            Button suspBtn = actionBtn("⏸ Suspend Zone", "btn-secondary");
             suspBtn.setOnAction(e -> { zoneService.suspendZone(z); crData.setAll(zoneService.getCropZones()); showCropDetail(z); refreshStats(); });
-            detailPanel.getChildren().add(suspBtn);
+            actionsPanel.getChildren().add(suspBtn);
         } else {
-            Button actBtn = new Button("▶ Activate Zone");
-            actBtn.getStyleClass().add("btn-primary");
-            actBtn.setMaxWidth(Double.MAX_VALUE);
+            Button actBtn = actionBtn("▶ Activate Zone", "btn-primary");
             actBtn.setOnAction(e -> { zoneService.activateZone(z); crData.setAll(zoneService.getCropZones()); showCropDetail(z); refreshStats(); });
-            detailPanel.getChildren().add(actBtn);
+            actionsPanel.getChildren().add(actBtn);
         }
 
-        Button addCropBtn = new Button("➕ Add Crop");
-        addCropBtn.getStyleClass().add("btn-primary");
-        addCropBtn.setMaxWidth(Double.MAX_VALUE);
+        Button addCropBtn = actionBtn("➕ Add Crop", "btn-primary");
         addCropBtn.setOnAction(e -> showAddCropDialog(z));
-        detailPanel.getChildren().add(addCropBtn);
+        actionsPanel.getChildren().add(addCropBtn);
 
-        Button addEnvBtn = new Button("🌡 Add Environment Sensor");
-        addEnvBtn.getStyleClass().add("btn-secondary");
-        addEnvBtn.setMaxWidth(Double.MAX_VALUE);
-        addEnvBtn.setOnAction(e -> showAddEnvSensorDialog(z));
-        detailPanel.getChildren().add(addEnvBtn);
-
-        Button addSoilBtn = new Button("🌱 Add Soil Sensor");
-        addSoilBtn.getStyleClass().add("btn-secondary");
-        addSoilBtn.setMaxWidth(Double.MAX_VALUE);
-        addSoilBtn.setOnAction(e -> showAddSoilSensorDialog(z));
-        detailPanel.getChildren().add(addSoilBtn);
-
-        Button setSurfaceBtn = new Button("📐 Set Surface Area");
-        setSurfaceBtn.getStyleClass().add("btn-secondary");
-        setSurfaceBtn.setMaxWidth(Double.MAX_VALUE);
+        Button setSurfaceBtn = actionBtn("📐 Set Surface Area", "btn-secondary");
         setSurfaceBtn.setOnAction(e -> {
             TextField surfField = new TextField(String.valueOf(z.getSurfacePlanted()));
             VBox form = new VBox(14, formGroup("Surface (hectares)", surfField));
@@ -762,13 +849,21 @@ public class ZonesController {
                 if (ha >= 0) { z.setSurfacePlanted(ha); FarmService.getInstance().autoSave(); showCropDetail(z); crData.setAll(zoneService.getCropZones()); }
             });
         });
-        detailPanel.getChildren().add(setSurfaceBtn);
+        actionsPanel.getChildren().add(setSurfaceBtn);
 
-        Button crBoundaryBtn = new Button(z.hasBoundaries()
+        addActionGroupTitle("Sensors & Map");
+
+        Button addEnvBtn = actionBtn("🌡 Add Environment Sensor", "btn-secondary");
+        addEnvBtn.setOnAction(e -> showAddEnvSensorDialog(z));
+        actionsPanel.getChildren().add(addEnvBtn);
+
+        Button addSoilBtn = actionBtn("🌱 Add Soil Sensor", "btn-secondary");
+        addSoilBtn.setOnAction(e -> showAddSoilSensorDialog(z));
+        actionsPanel.getChildren().add(addSoilBtn);
+
+        Button crBoundaryBtn = actionBtn(z.hasBoundaries()
             ? "🗺 Edit Boundary (" + z.getBoundaries().size() + " pts)"
-            : "🗺 Set Zone Boundary");
-        crBoundaryBtn.getStyleClass().add("btn-secondary");
-        crBoundaryBtn.setMaxWidth(Double.MAX_VALUE);
+            : "🗺 Set Zone Boundary", "btn-secondary");
         crBoundaryBtn.setOnAction(e -> {
             BoundaryEditorDialog dlg = new BoundaryEditorDialog(z.getName(),
                 z.hasBoundaries() ? z.getBoundaries() : null,
@@ -779,51 +874,45 @@ public class ZonesController {
                 showCropDetail(z);
             });
         });
-        detailPanel.getChildren().add(crBoundaryBtn);
+        actionsPanel.getChildren().add(crBoundaryBtn);
 
-        Button crMapBtn = new Button("📍 View Zone Map");
-        crMapBtn.getStyleClass().add("btn-secondary");
-        crMapBtn.setMaxWidth(Double.MAX_VALUE);
+        Button crMapBtn = actionBtn("📍 View Zone Map", "btn-secondary");
         crMapBtn.setOnAction(e -> new ZoneMapDialog(z, detailPanel.getScene().getStylesheets()).showAndWait());
-        detailPanel.getChildren().add(crMapBtn);
+        actionsPanel.getChildren().add(crMapBtn);
 
-        Button crSensorHistBtn = new Button("📊 Sensor History");
-        crSensorHistBtn.getStyleClass().add("btn-secondary");
-        crSensorHistBtn.setMaxWidth(Double.MAX_VALUE);
+        addActionGroupTitle("History");
+
+        Button crSensorHistBtn = actionBtn("📊 Sensor History", "btn-secondary");
         crSensorHistBtn.setOnAction(e ->
             new SensorHistoryDialog(z, detailPanel.getScene().getStylesheets()).showAndWait());
-        detailPanel.getChildren().add(crSensorHistBtn);
+        actionsPanel.getChildren().add(crSensorHistBtn);
 
-        Button crAlertHistBtn = new Button("🔔 Alert History");
-        crAlertHistBtn.getStyleClass().add("btn-secondary");
-        crAlertHistBtn.setMaxWidth(Double.MAX_VALUE);
+        Button crAlertHistBtn = actionBtn("🔔 Alert History", "btn-secondary");
         crAlertHistBtn.setOnAction(e ->
             new ZoneAlertHistoryDialog(z, detailPanel.getScene().getStylesheets()).showAndWait());
-        detailPanel.getChildren().add(crAlertHistBtn);
+        actionsPanel.getChildren().add(crAlertHistBtn);
 
-        Button renameBtn = new Button("✏ Rename Zone");
-        renameBtn.getStyleClass().add("btn-secondary");
-        renameBtn.setMaxWidth(Double.MAX_VALUE);
+        addActionGroupTitle("Settings");
+
+        Button renameBtn = actionBtn("✏ Rename Zone", "btn-secondary");
         renameBtn.setOnAction(e -> showRenameZoneDialog(z, () -> {
             crData.setAll(zoneService.getCropZones());
             showCropDetail(z);
             refreshStats();
         }));
-        detailPanel.getChildren().add(renameBtn);
+        actionsPanel.getChildren().add(renameBtn);
 
-        Button deleteBtn = new Button("🗑 Delete Zone");
-        deleteBtn.getStyleClass().add("btn-danger");
-        deleteBtn.setMaxWidth(Double.MAX_VALUE);
-        deleteBtn.setOnAction(e -> confirmDeleteZone(z, () -> {
+        addDangerZoneAction("🗑 Delete Zone", e -> confirmDeleteZone(z, () -> {
             crData.setAll(zoneService.getCropZones());
-            detailPanel.getChildren().clear();
+            closeDetail();
             refreshStats();
         }));
-        detailPanel.getChildren().add(deleteBtn);
     }
 
     private void showAquaDetail(AquacultureZONE z) {
-        detailPanel.getChildren().clear();
+        openDetailPanel(z.getName());
+
+        // ── DETAILS TAB ──────────────────────────────────────────────
         addRow("Code",           z.getCode());
         addRow("Name",           z.getName());
         addRow("Status",         z.getStatus().toString());
@@ -832,7 +921,6 @@ public class ZonesController {
         addRow("Total Harvest",  String.format("%.2f kg", z.getTotalHarvestWeight()));
         addRow("Water Sensors",  String.valueOf(z.getWaterSensors().size()));
 
-        // Per-species management
         if (!z.getSpeciesList().isEmpty()) {
             addSectionTitle("Species");
             for (AquacultureSpecies s : z.getSpeciesList()) {
@@ -882,17 +970,14 @@ public class ZonesController {
                 tubBoundaryBtn.setOnAction(e -> {
                     if (!z.hasBoundaries()) {
                         Alert warn = new Alert(Alert.AlertType.WARNING);
-                        warn.setTitle("Zone Boundary Required");
-                        warn.setHeaderText(null);
+                        warn.setTitle("Zone Boundary Required"); warn.setHeaderText(null);
                         warn.setContentText("Set the zone boundary first — the tub sub-zone must fit inside it.");
-                        warn.showAndWait();
-                        return;
+                        warn.showAndWait(); return;
                     }
                     BoundaryEditorDialog dlg = new BoundaryEditorDialog(
                         s.getName() + " tub",
                         s.hasBoundary() ? s.getBoundary() : null,
-                        z.getBoundaries(),
-                        detailPanel.getScene().getStylesheets());
+                        z.getBoundaries(), detailPanel.getScene().getStylesheets());
                     dlg.showAndWait().ifPresent(bounds -> {
                         s.setBoundary(bounds);
                         FarmService.getInstance().autoSave();
@@ -904,8 +989,7 @@ public class ZonesController {
                 removeSpeciesBtn.getStyleClass().add("btn-danger");
                 removeSpeciesBtn.setOnAction(e -> {
                     Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirm.setTitle("Remove Species");
-                    confirm.setHeaderText(null);
+                    confirm.setTitle("Remove Species"); confirm.setHeaderText(null);
                     confirm.setContentText("Remove " + s.getName() + " from " + z.getName() + "?");
                     confirm.showAndWait().ifPresent(bt -> {
                         if (bt == ButtonType.OK) {
@@ -923,40 +1007,32 @@ public class ZonesController {
             }
         }
 
-        // Zone management actions
-        addSectionTitle("Zone Actions");
+        // ── ACTIONS TAB ──────────────────────────────────────────────
+        addActionGroupTitle("Manage");
 
         if (z.getStatus() == ZoneStatus.ACTIVE) {
-            Button suspBtn = new Button("⏸ Suspend Zone");
-            suspBtn.getStyleClass().add("btn-secondary");
-            suspBtn.setMaxWidth(Double.MAX_VALUE);
+            Button suspBtn = actionBtn("⏸ Suspend Zone", "btn-secondary");
             suspBtn.setOnAction(e -> { zoneService.suspendZone(z); aquaData.setAll(zoneService.getAquacultureZones()); showAquaDetail(z); refreshStats(); });
-            detailPanel.getChildren().add(suspBtn);
+            actionsPanel.getChildren().add(suspBtn);
         } else {
-            Button actBtn = new Button("▶ Activate Zone");
-            actBtn.getStyleClass().add("btn-primary");
-            actBtn.setMaxWidth(Double.MAX_VALUE);
+            Button actBtn = actionBtn("▶ Activate Zone", "btn-primary");
             actBtn.setOnAction(e -> { zoneService.activateZone(z); aquaData.setAll(zoneService.getAquacultureZones()); showAquaDetail(z); refreshStats(); });
-            detailPanel.getChildren().add(actBtn);
+            actionsPanel.getChildren().add(actBtn);
         }
 
-        Button addSpeciesBtn = new Button("➕ Add Species");
-        addSpeciesBtn.getStyleClass().add("btn-primary");
-        addSpeciesBtn.setMaxWidth(Double.MAX_VALUE);
+        Button addSpeciesBtn = actionBtn("➕ Add Species", "btn-primary");
         addSpeciesBtn.setOnAction(e -> showAddSpeciesDialog(z));
-        detailPanel.getChildren().add(addSpeciesBtn);
+        actionsPanel.getChildren().add(addSpeciesBtn);
 
-        Button addWaterBtn = new Button("💧 Add Water Sensor");
-        addWaterBtn.getStyleClass().add("btn-secondary");
-        addWaterBtn.setMaxWidth(Double.MAX_VALUE);
+        addActionGroupTitle("Sensors & Map");
+
+        Button addWaterBtn = actionBtn("💧 Add Water Sensor", "btn-secondary");
         addWaterBtn.setOnAction(e -> showAddWaterSensorDialog(z));
-        detailPanel.getChildren().add(addWaterBtn);
+        actionsPanel.getChildren().add(addWaterBtn);
 
-        Button aqBoundaryBtn = new Button(z.hasBoundaries()
+        Button aqBoundaryBtn = actionBtn(z.hasBoundaries()
             ? "🗺 Edit Boundary (" + z.getBoundaries().size() + " pts)"
-            : "🗺 Set Zone Boundary");
-        aqBoundaryBtn.getStyleClass().add("btn-secondary");
-        aqBoundaryBtn.setMaxWidth(Double.MAX_VALUE);
+            : "🗺 Set Zone Boundary", "btn-secondary");
         aqBoundaryBtn.setOnAction(e -> {
             BoundaryEditorDialog dlg = new BoundaryEditorDialog(z.getName(),
                 z.hasBoundaries() ? z.getBoundaries() : null,
@@ -967,47 +1043,116 @@ public class ZonesController {
                 showAquaDetail(z);
             });
         });
-        detailPanel.getChildren().add(aqBoundaryBtn);
+        actionsPanel.getChildren().add(aqBoundaryBtn);
 
-        Button aqMapBtn = new Button("📍 View Zone Map");
-        aqMapBtn.getStyleClass().add("btn-secondary");
-        aqMapBtn.setMaxWidth(Double.MAX_VALUE);
+        Button aqMapBtn = actionBtn("📍 View Zone Map", "btn-secondary");
         aqMapBtn.setOnAction(e -> new ZoneMapDialog(z, detailPanel.getScene().getStylesheets()).showAndWait());
-        detailPanel.getChildren().add(aqMapBtn);
+        actionsPanel.getChildren().add(aqMapBtn);
 
-        Button aqSensorHistBtn = new Button("📊 Sensor History");
-        aqSensorHistBtn.getStyleClass().add("btn-secondary");
-        aqSensorHistBtn.setMaxWidth(Double.MAX_VALUE);
+        addActionGroupTitle("History");
+
+        Button aqSensorHistBtn = actionBtn("📊 Sensor History", "btn-secondary");
         aqSensorHistBtn.setOnAction(e ->
             new SensorHistoryDialog(z, detailPanel.getScene().getStylesheets()).showAndWait());
-        detailPanel.getChildren().add(aqSensorHistBtn);
+        actionsPanel.getChildren().add(aqSensorHistBtn);
 
-        Button aqAlertHistBtn = new Button("🔔 Alert History");
-        aqAlertHistBtn.getStyleClass().add("btn-secondary");
-        aqAlertHistBtn.setMaxWidth(Double.MAX_VALUE);
+        Button aqAlertHistBtn = actionBtn("🔔 Alert History", "btn-secondary");
         aqAlertHistBtn.setOnAction(e ->
             new ZoneAlertHistoryDialog(z, detailPanel.getScene().getStylesheets()).showAndWait());
-        detailPanel.getChildren().add(aqAlertHistBtn);
+        actionsPanel.getChildren().add(aqAlertHistBtn);
 
-        Button renameBtn = new Button("✏ Rename Zone");
-        renameBtn.getStyleClass().add("btn-secondary");
-        renameBtn.setMaxWidth(Double.MAX_VALUE);
+        addActionGroupTitle("Settings");
+
+        Button renameBtn = actionBtn("✏ Rename Zone", "btn-secondary");
         renameBtn.setOnAction(e -> showRenameZoneDialog(z, () -> {
             aquaData.setAll(zoneService.getAquacultureZones());
             showAquaDetail(z);
             refreshStats();
         }));
-        detailPanel.getChildren().add(renameBtn);
+        actionsPanel.getChildren().add(renameBtn);
 
-        Button deleteBtn = new Button("🗑 Delete Zone");
-        deleteBtn.getStyleClass().add("btn-danger");
-        deleteBtn.setMaxWidth(Double.MAX_VALUE);
-        deleteBtn.setOnAction(e -> confirmDeleteZone(z, () -> {
+        addDangerZoneAction("🗑 Delete Zone", e -> confirmDeleteZone(z, () -> {
             aquaData.setAll(zoneService.getAquacultureZones());
-            detailPanel.getChildren().clear();
+            closeDetail();
             refreshStats();
         }));
-        detailPanel.getChildren().add(deleteBtn);
+    }
+
+    // ── Bio sensor row builder (with distress styling) ────────────────
+
+    private HBox buildSensorRow(BioSensor sensor, LivestockZONE z) {
+        boolean distress = sensor.isAnimalInDistress();
+
+        Label typeLbl = new Label(sensor.getMeasureType() + " — " + sensor.getAnimal().getName());
+        typeLbl.getStyleClass().add(distress ? "zones-sensor-name-alert" : "detail-value");
+        typeLbl.setWrapText(true);
+
+        Label codeLbl = new Label(sensor.getCode());
+        codeLbl.getStyleClass().add(distress ? "zones-sensor-code-alert" : "text-muted");
+
+        VBox infoCol = new VBox(2, typeLbl, codeLbl);
+        HBox.setHgrow(infoCol, Priority.ALWAYS);
+
+        Button removeBtn = new Button("✕");
+        removeBtn.getStyleClass().add("btn-danger");
+        removeBtn.setOnAction(e -> {
+            z.removeBioSensor(sensor);
+            FarmService.getInstance().autoSave();
+            showLivestockDetail(z);
+        });
+
+        HBox row = new HBox(8, infoCol);
+
+        if (distress) {
+            Label badge = new Label("⚠ DISTRESS");
+            badge.getStyleClass().addAll("badge", "badge-distress");
+            row.getChildren().add(badge);
+        }
+
+        row.getChildren().add(removeBtn);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add(distress ? "zones-sensor-row-distress" : "zones-sensor-row");
+        row.setPadding(new Insets(distress ? 8 : 4, 8, distress ? 8 : 4, 8));
+        return row;
+    }
+
+    // ── Action tab helpers ────────────────────────────────────────────
+
+    private Button actionBtn(String text, String styleClass) {
+        Button btn = new Button(text);
+        btn.getStyleClass().add(styleClass);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setAlignment(Pos.CENTER_LEFT);
+        return btn;
+    }
+
+    private void addActionGroupTitle(String title) {
+        if (!actionsPanel.getChildren().isEmpty()) {
+            Separator sep = new Separator();
+            sep.setPrefHeight(1);
+            actionsPanel.getChildren().add(sep);
+        }
+        Label lbl = new Label(title.toUpperCase());
+        lbl.getStyleClass().add("zones-action-group-label");
+        lbl.setMaxWidth(Double.MAX_VALUE);
+        actionsPanel.getChildren().add(lbl);
+    }
+
+    private void addDangerZoneAction(String text, javafx.event.EventHandler<javafx.event.ActionEvent> handler) {
+        Separator sep = new Separator();
+        sep.setPrefHeight(1);
+        actionsPanel.getChildren().add(sep);
+
+        Label dangerLbl = new Label("DANGER ZONE");
+        dangerLbl.getStyleClass().add("animals-danger-section-label");
+        actionsPanel.getChildren().add(dangerLbl);
+
+        Button btn = new Button(text);
+        btn.getStyleClass().add("btn-danger");
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setAlignment(Pos.CENTER_LEFT);
+        btn.setOnAction(handler);
+        actionsPanel.getChildren().add(btn);
     }
 
     // ── Crop action dialogs ───────────────────────────────────────────
@@ -1083,18 +1228,15 @@ public class ZonesController {
         });
         dialog.showAndWait().ifPresent(arr -> {
             try {
-                double kg = arr[0] / 100.0;
-                int cnt   = arr[1];
+                double kg = arr[0] / 100.0; int cnt = arr[1];
                 s.harvest(kg, cnt);
                 FarmService.getInstance().autoSave();
                 aquaData.setAll(zoneService.getAquacultureZones());
                 showAquaDetail(zone);
             } catch (IllegalArgumentException ex) {
                 Alert err = new Alert(Alert.AlertType.ERROR);
-                err.setTitle("Invalid Harvest");
-                err.setHeaderText(null);
-                err.setContentText(ex.getMessage());
-                err.showAndWait();
+                err.setTitle("Invalid Harvest"); err.setHeaderText(null);
+                err.setContentText(ex.getMessage()); err.showAndWait();
             }
         });
     }
@@ -1125,10 +1267,8 @@ public class ZonesController {
                 showAquaDetail(zone);
             } catch (IllegalArgumentException ex) {
                 Alert err = new Alert(Alert.AlertType.ERROR);
-                err.setTitle("Invalid Input");
-                err.setHeaderText(null);
-                err.setContentText(ex.getMessage());
-                err.showAndWait();
+                err.setTitle("Invalid Input"); err.setHeaderText(null);
+                err.setContentText(ex.getMessage()); err.showAndWait();
             }
         });
     }
@@ -1160,7 +1300,7 @@ public class ZonesController {
         });
     }
 
-    // ── Edit Feeding Program (uses setters — preserves lastFedTime) ───
+    // ── Edit Feeding Program ──────────────────────────────────────────
 
     private void showEditFeedingProgramDialog(LivestockZONE zone, FeedingProgram fp) {
         TextField foodField     = new TextField(fp.getFoodType());
@@ -1188,17 +1328,13 @@ public class ZonesController {
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
             try {
-                String food = foodField.getText().trim();
-                double qty  = Double.parseDouble(quantityField.getText().trim());
-                List<String> sched = Arrays.asList(scheduleField.getText().trim().split("\\s*,\\s*"));
-                fp.setFoodType(food);
-                fp.setQuantity(qty);
-                fp.setSchedule(sched);
+                fp.setFoodType(foodField.getText().trim());
+                fp.setQuantity(Double.parseDouble(quantityField.getText().trim()));
+                fp.setSchedule(Arrays.asList(scheduleField.getText().trim().split("\\s*,\\s*")));
                 return Boolean.TRUE;
             } catch (Exception e) {
                 Alert err = new Alert(Alert.AlertType.ERROR);
-                err.setTitle("Invalid Input");
-                err.setHeaderText(null);
+                err.setTitle("Invalid Input"); err.setHeaderText(null);
                 err.setContentText("Check quantity (number) and schedule (HH:mm).\n" + e.getMessage());
                 err.showAndWait();
                 return null;
@@ -1438,7 +1574,7 @@ public class ZonesController {
     private void addSectionTitle(String title) {
         if (!detailPanel.getChildren().isEmpty()) {
             Separator sep = new Separator();
-            sep.setPrefHeight(2);
+            sep.setPrefHeight(1);
             detailPanel.getChildren().add(sep);
         }
         Label lbl = new Label(title.toUpperCase());
@@ -1447,7 +1583,7 @@ public class ZonesController {
         detailPanel.getChildren().add(lbl);
     }
 
-    // ── Toolbar actions ───────────────────────────────────────────────
+    // ── Toolbar actions (preserved @FXML handlers) ────────────────────
 
     @FXML private void activateZone() {
         ZONE z = getSelectedZone();

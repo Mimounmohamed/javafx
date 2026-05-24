@@ -17,7 +17,10 @@
     <left>
         <VBox fx:id="sidebar" styleClass="sidebar" prefWidth="240" minWidth="64" maxWidth="240">
 
-            <Label fx:id="logoLabel" text="🌾  FarmManager" styleClass="sidebar-logo" maxWidth="Infinity" />
+            <VBox styleClass="sidebar-logo-box" maxWidth="Infinity">
+                <Label fx:id="logoLabel" text="🌾  FarmManager" styleClass="sidebar-logo" maxWidth="Infinity" />
+                <Label fx:id="sidebarFarmName" text="" styleClass="sidebar-farm-subtitle" maxWidth="Infinity" />
+            </VBox>
             <Separator styleClass="sidebar-sep" />
 
             <Button fx:id="toggleBtn" onAction="#toggleSidebar" text="☰"
@@ -32,8 +35,13 @@
                     text="🐄   Animals"   styleClass="nav-btn" maxWidth="Infinity" />
             <Button fx:id="btnSensors"   onAction="#navSensors"
                     text="📡   Sensors"   styleClass="nav-btn" maxWidth="Infinity" />
-            <Button fx:id="btnAlerts"    onAction="#navAlerts"
-                    text="🔔   Alerts"    styleClass="nav-btn" maxWidth="Infinity" />
+            <HBox maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="sidebar-nav-row">
+                <Button fx:id="btnAlerts" onAction="#navAlerts"
+                        text="🔔   Alerts" styleClass="nav-btn" HBox.hgrow="ALWAYS" />
+                <Label fx:id="sidebarAlertBadge" styleClass="sidebar-nav-badge"
+                       text="0" visible="false" managed="false" />
+                <HBox.margin><Insets right="10" /></HBox.margin>
+            </HBox>
             <Button fx:id="btnReports"    onAction="#navReports"
                     text="📋   Reports"    styleClass="nav-btn" maxWidth="Infinity" />
             <Button fx:id="btnSimulation" onAction="#navSimulation"

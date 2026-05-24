@@ -22,6 +22,8 @@ public class MainController {
     @FXML private Label  farmNameLabel;
     @FXML private Label  clockLabel;
     @FXML private Label  alertBadge;
+    @FXML private Label  sidebarFarmName;
+    @FXML private Label  sidebarAlertBadge;
 
     @FXML private Button btnDashboard;
     @FXML private Button btnZones;
@@ -44,7 +46,9 @@ public class MainController {
 
     @FXML
     public void initialize() {
-        farmNameLabel.setText(FarmService.getInstance().getFarmName());
+        String farmName = FarmService.getInstance().getFarmName();
+        farmNameLabel.setText(farmName);
+        if (sidebarFarmName != null) sidebarFarmName.setText(farmName);
         startClock();
         updateAlertBadge();
         setActive(btnDashboard);
@@ -68,6 +72,11 @@ public class MainController {
         alertBadge.setText(String.valueOf(count));
         alertBadge.setVisible(count > 0);
         alertBadge.setManaged(count > 0);
+        if (sidebarAlertBadge != null) {
+            sidebarAlertBadge.setText(String.valueOf(count));
+            sidebarAlertBadge.setVisible(count > 0);
+            sidebarAlertBadge.setManaged(count > 0);
+        }
     }
 
     // ── Sidebar toggle ───────────────────────────────────────────────
@@ -80,6 +89,7 @@ public class MainController {
 
         logoLabel.setVisible(expanded);
         logoLabel.setManaged(expanded);
+        if (sidebarFarmName != null) { sidebarFarmName.setVisible(expanded); sidebarFarmName.setManaged(expanded); }
 
         Button[] buttons = {btnDashboard, btnZones, btnAnimals,
                             btnSensors,  btnAlerts, btnReports, btnSimulation, btnSettings};

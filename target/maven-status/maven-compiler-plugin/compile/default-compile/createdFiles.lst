@@ -2,6 +2,7 @@ Reports\LivestockProductionReport.class
 ZONES\LivestockZONE.class
 com\example\utils\FarmRepository$SavedZone.class
 Menu\DemoData.class
+com\example\services\SimulationService.class
 Entities\AquacultureSpecies$HarvestRecord.class
 com\example\controllers\DashboardController$1.class
 com\example\controllers\ReportsController.class
@@ -17,6 +18,7 @@ com\example\controllers\AlertsController$2.class
 com\example\controllers\StartupController.class
 com\example\controllers\ZoneAlertHistoryDialog$1.class
 Sensors\WaterSensor.class
+com\example\controllers\AnimalsController$6.class
 com\example\services\AnimalService.class
 Animals\Animal.class
 Reports\Report.class
@@ -47,6 +49,8 @@ com\example\controllers\AnimalsController$1.class
 com\example\services\ReportService$1.class
 com\example\controllers\SensorHistoryDialog.class
 com\example\controllers\ZoneMapDialog.class
+com\example\controllers\ZonesController$5.class
+com\example\controllers\SimulationController.class
 com\example\controllers\ZoneAlertHistoryDialog.class
 com\example\controllers\AnimalsController.class
 com\example\MainController.class
@@ -61,8 +65,10 @@ com\example\controllers\BoundaryEditorDialog.class
 com\example\controllers\SensorChartDialog$3.class
 com\example\controllers\SensorHistoryDialog$1.class
 Farm\Farm.class
+com\example\controllers\AnimalsController$5.class
 com\example\controllers\ZoneAlertHistoryDialog$3.class
 Sensors\WaterMeasureType.class
+com\example\controllers\ZonesController$4.class
 Alerts\AlertSeverity.class
 Reports\AquacultureProductionReport.class
 Entities\SoilRequirements.class
@@ -77,7 +83,6 @@ Reports\ReportAquacultureZone.class
 Entities\CropType.class
 Reports\CropProductionReport.class
 Sensors\EnvSensor.class
-com\example\controllers\ZonesController.class
 Alerts\AlertResolution.class
 com\example\services\DataRandomizerService.class
 Alerts\HealthAlert.class
@@ -111,6 +116,8 @@ Sensors\BioSensor$1.class
 Reports\ReportLiveStockZone.class
 com\example\controllers\ZoneAlertHistoryDialog$2.class
 Alerts\AlertManager.class
+com\example\services\SimulationService$SimulationResult.class
 Alerts\SensorAlert.class
 com\example\controllers\AlertsController$3.class
+com\example\controllers\AnimalsController$4.class
 com\example\utils\FarmRepository$SavedAnimal.class

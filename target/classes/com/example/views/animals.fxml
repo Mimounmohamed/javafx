@@ -6,6 +6,8 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -22,57 +24,65 @@
     <HBox styleClass="zones-page-header" alignment="CENTER_LEFT" spacing="12">
         <padding><Insets top="14" right="24" bottom="14" left="24" /></padding>
         <VBox spacing="1">
-            <Label text="Smart Farm"  styleClass="zones-farm-name" />
-            <Label text="Animals"     styleClass="zones-page-title" />
+            <Label text="Smart Farm" styleClass="zones-farm-name" />
+            <Label text="Animals"    styleClass="zones-page-title" />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
         <Button text="➕ Add Animal" onAction="#showAddAnimalDialog" styleClass="btn-primary" />
     </HBox>
-    <Separator />
 
-    <!-- ── Stat cards ────────────────────────────────────────────────── -->
-    <HBox styleClass="zones-stats-row" spacing="12" fillHeight="true">
-        <padding><Insets top="14" right="24" bottom="14" left="24" /></padding>
+    <!-- ── Stat strip (flat, no card gaps, color-coded cells) ────────── -->
+    <HBox styleClass="animals-stat-strip" fillHeight="true">
 
-        <VBox styleClass="zones-stat-card" spacing="3" alignment="TOP_LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="TOTAL ANIMALS"                styleClass="zones-stat-card-title" />
-            <Label fx:id="statTotalAnimals" text="—"   styleClass="zones-stat-card-number" />
-            <Label text="across all zones"             styleClass="zones-stat-card-sub" />
+        <VBox styleClass="animals-stat-cell" spacing="3" alignment="CENTER"
+              HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="TOTAL ANIMALS" styleClass="animals-stat-cell-title" />
+            <Label fx:id="statTotalAnimals" text="—" styleClass="animals-stat-number-green" />
+            <Label text="registered"    styleClass="animals-stat-cell-sub" />
         </VBox>
 
-        <VBox styleClass="zones-stat-card zones-stat-card-green" spacing="3" alignment="TOP_LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="HEALTHY"                styleClass="zones-stat-card-title" />
-            <Label fx:id="statHealthy" text="—"  styleClass="zones-stat-card-number" />
-            <Label text="no issues"             styleClass="zones-stat-card-sub" />
+        <Separator orientation="VERTICAL" />
+
+        <VBox styleClass="animals-stat-cell" spacing="3" alignment="CENTER"
+              HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="HEALTHY" styleClass="animals-stat-cell-title" />
+            <Label fx:id="statHealthy" text="—" styleClass="animals-stat-number-green" />
+            <Label text="no issues" styleClass="animals-stat-cell-sub" />
         </VBox>
 
-        <VBox styleClass="zones-stat-card animals-stat-card-amber" spacing="3" alignment="TOP_LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="SICK"                styleClass="zones-stat-card-title" />
-            <Label fx:id="statSick" text="—"  styleClass="zones-stat-card-number" />
-            <Label text="need attention"     styleClass="zones-stat-card-sub" />
+        <Separator orientation="VERTICAL" />
+
+        <VBox styleClass="animals-stat-cell animals-stat-cell-danger" spacing="3" alignment="CENTER"
+              HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="SICK" styleClass="animals-stat-cell-title" />
+            <Label fx:id="statSick" text="—" styleClass="animals-stat-number-danger" />
+            <Label text="need attention" styleClass="animals-stat-cell-sub" />
         </VBox>
 
-        <VBox styleClass="zones-stat-card animals-stat-card-red" spacing="3" alignment="TOP_LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="QUARANTINED"                styleClass="zones-stat-card-title" />
-            <Label fx:id="statQuarantined" text="—"  styleClass="zones-stat-card-number" />
-            <Label text="isolated from herd"        styleClass="zones-stat-card-sub" />
+        <Separator orientation="VERTICAL" />
+
+        <VBox styleClass="animals-stat-cell animals-stat-cell-warn" spacing="3" alignment="CENTER"
+              HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="QUARANTINED" styleClass="animals-stat-cell-title" />
+            <Label fx:id="statQuarantined" text="—" styleClass="animals-stat-number-warn" />
+            <Label text="isolated" styleClass="animals-stat-cell-sub" />
         </VBox>
+
     </HBox>
 
-    <!-- ── Main split: animal list ‖ detail panel ────────────────────── -->
-    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.58" styleClass="zones-split">
+    <!-- ── Main split: list ‖ detail ─────────────────────────────────── -->
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.55" styleClass="zones-split">
 
         <!-- LEFT: filter row + table ─────────────────────────────────── -->
         <VBox styleClass="zones-list-panel">
 
-            <!-- Combined search + filter row -->
             <HBox styleClass="animals-filter-row" alignment="CENTER_LEFT" spacing="8">
                 <padding><Insets top="0" right="12" bottom="0" left="12" /></padding>
                 <Label text="🔍" styleClass="zones-search-icon" />
                 <TextField fx:id="searchField" promptText="Search name / species…"
                            styleClass="zones-search-field" HBox.hgrow="ALWAYS" />
-                <ComboBox fx:id="filterZone"   promptText="Zone"   styleClass="animals-filter-combo" prefWidth="140" />
-                <ComboBox fx:id="filterHealth" promptText="Health" styleClass="animals-filter-combo" prefWidth="120" />
+                <ComboBox fx:id="filterZone"   promptText="Zone"   styleClass="animals-filter-combo" prefWidth="130" />
+                <ComboBox fx:id="filterHealth" promptText="Health" styleClass="animals-filter-combo" prefWidth="110" />
             </HBox>
 
             <TableView fx:id="animalTable" VBox.vgrow="ALWAYS" maxHeight="Infinity"
@@ -92,13 +102,46 @@
 
         </VBox>
 
-        <!-- RIGHT: detail panel ─────────────────────────────────────── -->
-        <ScrollPane fitToWidth="true" styleClass="detail-scroll zones-detail-scroll">
-            <VBox fx:id="detailPanel" styleClass="detail-panel zones-detail-panel" spacing="8">
-                <padding><Insets top="16" right="16" bottom="16" left="16" /></padding>
-                <Label text="Select an animal to view details" styleClass="text-muted" />
+        <!-- RIGHT: detail outer (header + 3-tab panel) ──────────────── -->
+        <VBox styleClass="animals-detail-outer">
+
+            <!-- Dynamic header (avatar · name · health pill · ghost btns) -->
+            <VBox fx:id="detailHeaderPanel" styleClass="animals-detail-header-area">
+                <padding><Insets top="0" right="0" bottom="0" left="0" /></padding>
             </VBox>
-        </ScrollPane>
+
+            <!-- 3-tab detail panel -->
+            <TabPane tabClosingPolicy="UNAVAILABLE"
+                     styleClass="animals-detail-tabs" VBox.vgrow="ALWAYS">
+
+                <Tab text="Info">
+                    <ScrollPane fitToWidth="true" styleClass="animals-tab-scroll">
+                        <VBox fx:id="detailPanel" styleClass="animals-tab-vbox" spacing="0">
+                            <padding><Insets top="14" right="16" bottom="16" left="16" /></padding>
+                            <Label text="Select an animal to view details" styleClass="text-muted" />
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+
+                <Tab text="Sensors">
+                    <ScrollPane fitToWidth="true" styleClass="animals-tab-scroll">
+                        <VBox fx:id="sensorsPanel" styleClass="animals-tab-vbox" spacing="10">
+                            <padding><Insets top="14" right="16" bottom="16" left="16" /></padding>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+
+                <Tab text="Actions">
+                    <ScrollPane fitToWidth="true" styleClass="animals-tab-scroll">
+                        <VBox fx:id="actionsPanel" styleClass="animals-tab-vbox" spacing="8">
+                            <padding><Insets top="14" right="16" bottom="16" left="16" /></padding>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+
+            </TabPane>
+
+        </VBox>
 
     </SplitPane>
 </VBox>

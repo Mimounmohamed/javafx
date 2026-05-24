@@ -1199,6 +1199,15 @@
 }
 
 .badge-sick {
+    -fx-background-color: #FCEBEB;
+    -fx-text-fill: #A32D2D;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 99;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.badge-quarantined {
     -fx-background-color: #FAEEDA;
     -fx-text-fill: #854F0B;
     -fx-padding: 3 10 3 10;
@@ -1207,11 +1216,190 @@
     -fx-font-weight: bold;
 }
 
-.badge-quarantined {
-    -fx-background-color: #FCEBEB;
-    -fx-text-fill: #A32D2D;
-    -fx-padding: 3 10 3 10;
+/* ═══════════════════════════════════════════════════════════════════
+   Animals screen — full redesign styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+.animals-root { -fx-background-color: #F5F5F3; }
+
+/* ── Stat strip ───────────────────────────────────────────────────── */
+.animals-stat-strip {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent rgba(0,0,0,0.10) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.animals-stat-cell         { -fx-padding: 12 16; -fx-background-color: transparent; }
+.animals-stat-cell-danger  { -fx-background-color: #FCEBEB; }
+.animals-stat-cell-warn    { -fx-background-color: #FAEEDA; }
+.animals-stat-cell-title   { -fx-text-fill: #888780; -fx-font-size: 10px; -fx-font-weight: bold; }
+.animals-stat-cell-sub     { -fx-text-fill: #888780; -fx-font-size: 10px; }
+.animals-stat-number-green  { -fx-text-fill: #1D9E75; -fx-font-size: 22px; -fx-font-weight: bold; }
+.animals-stat-number-danger { -fx-text-fill: #E24B4A; -fx-font-size: 22px; -fx-font-weight: bold; }
+.animals-stat-number-warn   { -fx-text-fill: #EF9F27; -fx-font-size: 22px; -fx-font-weight: bold; }
+
+/* ── Filter row ───────────────────────────────────────────────────── */
+.animals-filter-row {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent rgba(0,0,0,0.10) transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-min-height: 46px;
+    -fx-max-height: 46px;
+}
+.animals-filter-combo {
+    -fx-background-color: #F5F5F3;
+    -fx-border-color: rgba(0,0,0,0.12);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+.animals-filter-combo .list-cell    { -fx-background-color: transparent; -fx-text-fill: #2C2C2A; -fx-font-size: 12px; }
+.animals-filter-combo .arrow-button { -fx-background-color: transparent; }
+.animals-filter-combo .arrow        { -fx-background-color: #888780; }
+.animals-filter-combo:focused       { -fx-border-color: #1D9E75; }
+
+/* ── Type pill ────────────────────────────────────────────────────── */
+.animals-pill-type {
+    -fx-background-color: #E6F1FB;
+    -fx-text-fill: #185FA5;
+    -fx-padding: 2 8;
     -fx-background-radius: 99;
-    -fx-font-size: 11px;
+    -fx-font-size: 10px;
     -fx-font-weight: bold;
 }
+
+/* ── Detail outer ─────────────────────────────────────────────────── */
+.animals-detail-outer { -fx-background-color: #ffffff; }
+
+.animals-detail-header-area {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent rgba(0,0,0,0.10) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* ── Avatar circle ────────────────────────────────────────────────── */
+.animals-avatar {
+    -fx-min-width: 40; -fx-min-height: 40;
+    -fx-max-width: 40; -fx-max-height: 40;
+    -fx-background-radius: 99;
+    -fx-alignment: CENTER;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+.animals-avatar-healthy     { -fx-background-color: #EAF3DE; -fx-text-fill: #3B6D11; }
+.animals-avatar-sick        { -fx-background-color: #FCEBEB; -fx-text-fill: #A32D2D; }
+.animals-avatar-quarantined { -fx-background-color: #FAEEDA; -fx-text-fill: #854F0B; }
+
+.animals-detail-name     { -fx-text-fill: #2C2C2A; -fx-font-size: 15px; -fx-font-weight: bold; }
+.animals-detail-subtitle { -fx-text-fill: #888780; -fx-font-size: 11px; }
+
+/* ── Ghost danger button ──────────────────────────────────────────── */
+.btn-ghost-danger {
+    -fx-background-color: transparent;
+    -fx-border-color: #F09595;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #A32D2D;
+    -fx-font-size: 11px;
+    -fx-padding: 4 10;
+    -fx-cursor: hand;
+}
+.btn-ghost-danger:hover { -fx-background-color: #FCEBEB; }
+
+/* ── Detail TabPane ───────────────────────────────────────────────── */
+.animals-detail-tabs { -fx-background-color: #ffffff; }
+.animals-detail-tabs > .tab-header-area > .tab-header-background {
+    -fx-background-color: #F5F5F3;
+    -fx-border-color: transparent transparent rgba(0,0,0,0.10) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.animals-detail-tabs > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 8 13;
+}
+.animals-detail-tabs > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+    -fx-text-fill: #888780;
+    -fx-font-size: 12px;
+}
+.animals-detail-tabs > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #1D9E75 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+.animals-detail-tabs > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-label {
+    -fx-text-fill: #3B6D11;
+    -fx-font-weight: bold;
+}
+.animals-detail-tabs > .tab-header-area > .headers-region > .tab:hover > .tab-container > .tab-label {
+    -fx-text-fill: #2C2C2A;
+}
+.animals-tab-scroll                     { -fx-background: #ffffff; -fx-background-color: #ffffff; }
+.animals-tab-scroll > .viewport         { -fx-background-color: #ffffff; }
+.animals-tab-vbox                       { -fx-background-color: #ffffff; }
+
+/* ── Sensor cards ─────────────────────────────────────────────────── */
+.animals-sensor-card {
+    -fx-background-color: #F5F5F3;
+    -fx-background-radius: 8;
+}
+.animals-sensor-card-alert {
+    -fx-background-color: #FCEBEB;
+    -fx-background-radius: 8;
+    -fx-border-color: #F09595;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+.animals-sensor-name          { -fx-text-fill: #2C2C2A; -fx-font-size: 12px; -fx-font-weight: bold; }
+.animals-sensor-reading-ok    { -fx-text-fill: #1D9E75; -fx-font-size: 12px; -fx-font-weight: bold; }
+.animals-sensor-reading-alert { -fx-text-fill: #E24B4A; -fx-font-size: 12px; -fx-font-weight: bold; }
+.animals-sensor-range-lbl     { -fx-text-fill: #888780; -fx-font-size: 10px; }
+.animals-sensor-status-ok     { -fx-text-fill: #3B6D11; -fx-font-size: 10px; }
+.animals-sensor-status-alert  { -fx-text-fill: #A32D2D; -fx-font-size: 10px; }
+
+/* ── Range bar ────────────────────────────────────────────────────── */
+.animals-range-bar,
+.animals-range-bar-alert {
+    -fx-background-color: transparent;
+    -fx-background-radius: 99;
+    -fx-border-width: 0;
+}
+.animals-range-bar .track,
+.animals-range-bar-alert .track { -fx-background-color: #e0e0e0; -fx-background-radius: 99; -fx-border-width: 0; }
+.animals-range-bar .bar          { -fx-background-color: #1D9E75; -fx-background-radius: 99; -fx-border-width: 0; }
+.animals-range-bar-alert .bar    { -fx-background-color: #E24B4A; -fx-background-radius: 99; -fx-border-width: 0; }
+
+/* ── GPS labels ───────────────────────────────────────────────────── */
+.animals-gps-active { -fx-text-fill: #1D9E75; -fx-font-size: 11px; -fx-font-weight: bold; }
+.animals-gps-code   { -fx-font-family: monospace; -fx-font-size: 11px; -fx-text-fill: #2C2C2A; }
+
+/* ── Action tiles ─────────────────────────────────────────────────── */
+.animals-action-tile {
+    -fx-background-color: #F5F5F3;
+    -fx-border-color: rgba(0,0,0,0.10);
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #2C2C2A;
+    -fx-font-size: 12px;
+    -fx-padding: 9 11;
+    -fx-cursor: hand;
+}
+.animals-action-tile:hover {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(0,0,0,0.20);
+}
+.animals-action-tile-danger {
+    -fx-background-color: transparent;
+    -fx-border-color: #F09595;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #A32D2D;
+    -fx-font-size: 12px;
+    -fx-padding: 9 11;
+    -fx-cursor: hand;
+}
+.animals-action-tile-danger:hover  { -fx-background-color: #FCEBEB; }
+.animals-danger-section-label      { -fx-text-fill: #888780; -fx-font-size: 10px; -fx-font-weight: bold; }
