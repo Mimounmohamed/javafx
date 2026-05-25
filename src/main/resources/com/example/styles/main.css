@@ -2432,3 +2432,37 @@
     -fx-text-fill: #DC2626;
     -fx-font-weight: 600;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Fix 5 — Alert table rows: visible colored left stripe via bg-insets
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Use two-layer background: stripe layer (full row) + white layer (inset 3px left) */
+.dash-alerts-table .table-row-cell.alert-row-critical {
+    -fx-background-color: #DC2626, #ffffff;
+    -fx-background-insets: 0, 0 0 0 3;
+    -fx-background-radius: 0;
+}
+.dash-alerts-table .table-row-cell.alert-row-warning {
+    -fx-background-color: #F59E0B, #ffffff;
+    -fx-background-insets: 0, 0 0 0 3;
+    -fx-background-radius: 0;
+}
+.dash-alerts-table .table-row-cell.alert-row-critical:hover {
+    -fx-background-color: #DC2626, #F9FAFB;
+    -fx-background-insets: 0, 0 0 0 3;
+}
+.dash-alerts-table .table-row-cell.alert-row-warning:hover {
+    -fx-background-color: #F59E0B, #F9FAFB;
+    -fx-background-insets: 0, 0 0 0 3;
+}
+.dash-alerts-table .table-row-cell.alert-row-critical:selected,
+.dash-alerts-table .table-row-cell.alert-row-critical:selected:hover {
+    -fx-background-color: #DC2626, #EAF3DE;
+    -fx-background-insets: 0, 0 0 0 3;
+}
+.dash-alerts-table .table-row-cell.alert-row-warning:selected,
+.dash-alerts-table .table-row-cell.alert-row-warning:selected:hover {
+    -fx-background-color: #F59E0B, #EAF3DE;
+    -fx-background-insets: 0, 0 0 0 3;
+}
