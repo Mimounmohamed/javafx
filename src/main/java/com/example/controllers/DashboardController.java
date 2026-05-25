@@ -18,7 +18,10 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
@@ -33,8 +36,9 @@ public class DashboardController {
     @FXML private Label kpiAlerts;
     @FXML private Label kpiFields;
     @FXML private Label kpiSpecies;
-    @FXML private Label lblFarmSummary;
-    @FXML private VBox  chartContainer;
+    @FXML private Label     lblFarmSummary;
+    @FXML private FlowPane  summaryChipsPane;
+    @FXML private VBox      chartContainer;
 
     @FXML private TableView<Alert>          recentAlertsTable;
     @FXML private TableColumn<Alert, String> colAlertTime;
@@ -44,6 +48,7 @@ public class DashboardController {
     @FXML
     public void initialize() {
         loadKpis();
+        buildSummaryChips();
         buildProductionChart();
         buildRecentAlertsTable();
     }
@@ -64,6 +69,22 @@ public class DashboardController {
         lblFarmSummary.setText(farm.getSummary());
     }
 
+    // ── Farm summary chips ───────────────────────────────────────────
+
+    private void buildSummaryChips() {
+        summaryChipsPane.getChildren().clear();
+        String summary = FarmService.getInstance().getFarm().getSummary();
+        // summary is pipe-separated: "Owner: X | Location: Y | ..."
+        String[] parts = summary.split("\\s*\\|\\s*");
+        String[] emojis = {"👤", "📍", "🐾", "🗺", "📡", "⚠"};
+        for (int i = 0; i < parts.length; i++) {
+            String prefix = i < emojis.length ? emojis[i] + "  " : "";
+            Label chip = new Label(prefix + parts[i].trim());
+            chip.getStyleClass().add("summary-chip");
+            summaryChipsPane.getChildren().add(chip);
+        }
+    }
+
     // ── Production bar chart ─────────────────────────────────────────
 
     private void buildProductionChart() {
@@ -73,13 +94,11 @@ public class DashboardController {
         yAxis.setLabel("Output");
 
         BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
-        chart.setTitle("Production Overview");
-        chart.setLegendVisible(false);
+        chart.setLegendVisible(true);
         chart.setAnimated(false);
         chart.getStyleClass().add("farm-chart");
         chart.setPrefHeight(260);
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
         Farm farm = FarmService.getInstance().getFarm();
 
         double milk = farm.getLivestockZones().stream()
@@ -89,11 +108,19 @@ public class DashboardController {
         double aqua = farm.getAquacultureZones().stream()
             .mapToDouble(z -> z.getTotalHarvestWeight()).sum();
 
-        series.getData().add(new XYChart.Data<>("Livestock (L)",     milk));
-        series.getData().add(new XYChart.Data<>("Crops (kg)",        crop));
-        series.getData().add(new XYChart.Data<>("Aquaculture (kg)",  aqua));
-        chart.getData().add(series);
+        XYChart.Series<String, Number> milkSeries = new XYChart.Series<>();
+        milkSeries.setName("Livestock");
+        milkSeries.getData().add(new XYChart.Data<>("Livestock (L)", milk));
 
+        XYChart.Series<String, Number> cropSeries = new XYChart.Series<>();
+        cropSeries.setName("Crops");
+        cropSeries.getData().add(new XYChart.Data<>("Crops (kg)", crop));
+
+        XYChart.Series<String, Number> aquaSeries = new XYChart.Series<>();
+        aquaSeries.setName("Aquaculture");
+        aquaSeries.getData().add(new XYChart.Data<>("Aquaculture (kg)", aqua));
+
+        chart.getData().addAll(milkSeries, cropSeries, aquaSeries);
         chartContainer.getChildren().add(chart);
     }
 
@@ -107,7 +134,16 @@ public class DashboardController {
         colAlertMsg.setCellValueFactory(d ->
             new SimpleStringProperty(d.getValue().getMessage()));
 
-        // Severity badge cell — no value factory needed, uses row item directly
+        colAlertMsg.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String msg, boolean empty) {
+                super.updateItem(msg, empty);
+                if (empty || msg == null) { setText(null); setTooltip(null); return; }
+                setText(msg);
+                setTooltip(new Tooltip(msg));
+            }
+        });
+
         colAlertSeverity.setCellFactory(col -> new TableCell<>() {
             private final Label badge = new Label();
             { badge.getStyleClass().add("badge"); }
@@ -126,6 +162,20 @@ public class DashboardController {
             }
         });
 
+        recentAlertsTable.setRowFactory(tv -> new TableRow<Alert>() {
+            @Override
+            protected void updateItem(Alert alert, boolean empty) {
+                super.updateItem(alert, empty);
+                getStyleClass().removeIf(c -> c.startsWith("alert-row-"));
+                if (!empty && alert != null) {
+                    getStyleClass().add(
+                        alert.getSeverity() == AlertSeverity.Critical
+                            ? "alert-row-critical"
+                            : "alert-row-warning");
+                }
+            }
+        });
+
         List<Alert> allAlerts = AlertService.getInstance().getAllAlerts();
         List<Alert> top5 = allAlerts.subList(0, Math.min(5, allAlerts.size()));
         recentAlertsTable.setItems(FXCollections.observableArrayList(top5));
@@ -138,5 +188,6 @@ public class DashboardController {
     @FXML private void quickAddCrop()     { SceneManager.getInstance().navigateTo("zones"); }
     @FXML private void quickAddAqua()     { SceneManager.getInstance().navigateTo("zones"); }
     @FXML private void quickViewReports() { SceneManager.getInstance().navigateTo("reports"); }
+    @FXML private void quickViewAlerts()  { SceneManager.getInstance().navigateTo("alerts"); }
 
 }
