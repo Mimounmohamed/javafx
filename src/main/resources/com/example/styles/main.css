@@ -1997,3 +1997,394 @@
     -fx-text-fill: #ffffff;
     -fx-opacity: 1.0;
 }
+
+/* === Remaining Dialogs Redesign === */
+
+/* Section divider labels used inside dialog bodies */
+.rd-section-label {
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #9CA3AF;
+    -fx-padding: 4 0 2 0;
+}
+
+/* Info card — used in Edit Feeding Program dialog */
+.rd-info-card {
+    -fx-background-color: #F0F9F5;
+    -fx-border-color: transparent transparent transparent #1D9E75;
+    -fx-border-width: 0 0 0 3;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-padding: 10 12;
+}
+.rd-info-card-text {
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #1D5C3F;
+}
+.rd-info-card-note {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6B7280;
+}
+
+/* === Dashboard Redesign === */
+
+/* ── Page title ───────────────────────────────────────────────────── */
+.dash-page-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+.dash-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6B7280;
+}
+
+/* ── KPI cards ────────────────────────────────────────────────────── */
+.dash-content .kpi-card {
+    -fx-border-color: #E5E7EB;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 18 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 6, 0, 0, 1);
+}
+.dash-content .kpi-card:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.09), 14, 0, 0, 4);
+    -fx-border-color: #D1D5DB;
+}
+.dash-kpi-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+
+/* ── Colored icon boxes (one per KPI category) ────────────────────── */
+.kpi-icon-box {
+    -fx-background-radius: 8;
+    -fx-min-width: 38px;
+    -fx-min-height: 38px;
+    -fx-max-width: 38px;
+    -fx-max-height: 38px;
+    -fx-font-size: 18px;
+    -fx-alignment: center;
+    -fx-padding: 6;
+}
+.kpi-icon-animals { -fx-background-color: #EAF3DE; -fx-text-fill: #1D9E75; }
+.kpi-icon-sick    { -fx-background-color: #FEF2F2; -fx-text-fill: #EF4444; }
+.kpi-icon-zones   { -fx-background-color: #EFF6FF; -fx-text-fill: #3B82F6; }
+.kpi-icon-sensors { -fx-background-color: #F5F3FF; -fx-text-fill: #8B5CF6; }
+.kpi-icon-alerts  { -fx-background-color: #FFF7ED; -fx-text-fill: #F97316; }
+.kpi-icon-crops   { -fx-background-color: #F0FDF4; -fx-text-fill: #22C55E; }
+.kpi-icon-aqua    { -fx-background-color: #EFF6FF; -fx-text-fill: #0EA5E9; }
+
+/* ── Farm summary chips ───────────────────────────────────────────── */
+.summary-chip {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 4 12;
+    -fx-font-size: 12px;
+    -fx-text-fill: #374151;
+}
+
+/* ── Farm summary section title ───────────────────────────────────── */
+.dash-section-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #374151;
+    -fx-border-color: transparent transparent transparent #1D9E75;
+    -fx-border-width: 0 0 0 3;
+    -fx-padding: 0 0 0 8;
+}
+
+/* ── Chart subtitle ──────────────────────────────────────────────── */
+.dash-chart-subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: #9CA3AF;
+}
+
+/* ── "View all" link button in alerts header ──────────────────────── */
+.dash-view-all-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #1D9E75;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-padding: 2 6;
+}
+.dash-view-all-btn:hover { -fx-text-fill: #179268; }
+
+/* ── Recent alerts table ──────────────────────────────────────────── */
+.dash-alerts-table .column-header-background {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: transparent transparent #E5E7EB transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.dash-alerts-table .column-header {
+    -fx-background-color: transparent;
+}
+.dash-alerts-table .column-header .label {
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #6B7280;
+}
+.dash-alerts-table .table-row-cell {
+    -fx-border-color: transparent transparent #F3F4F6 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-color: white;
+}
+.dash-alerts-table .table-row-cell:hover {
+    -fx-background-color: #F9FAFB;
+}
+.dash-alerts-table .table-row-cell:selected {
+    -fx-background-color: #EAF3DE;
+}
+
+/* ── Improved alert severity badges ──────────────────────────────── */
+.badge-critical, .badge-sick {
+    -fx-background-color: #FEF2F2;
+    -fx-text-fill: #EF4444;
+    -fx-border-color: #FECACA;
+    -fx-border-width: 1;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-padding: 2 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: 500;
+}
+.badge-warning {
+    -fx-background-color: #FFF7ED;
+    -fx-text-fill: #F97316;
+    -fx-border-color: #FED7AA;
+    -fx-border-width: 1;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-padding: 2 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: 500;
+}
+.badge-normal, .badge-healthy {
+    -fx-background-color: #EFF6FF;
+    -fx-text-fill: #3B82F6;
+    -fx-border-color: #BFDBFE;
+    -fx-border-width: 1;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-padding: 2 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: 500;
+}
+
+/* ── Topbar improvements ──────────────────────────────────────────── */
+.topbar {
+    -fx-min-height: 52px;
+    -fx-max-height: 52px;
+    -fx-border-color: transparent transparent #E5E7EB transparent;
+}
+.topbar-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #111827;
+}
+.topbar-status-dot {
+    -fx-text-fill: #1D9E75;
+    -fx-font-size: 9px;
+}
+.topbar-alert-badge {
+    -fx-font-size: 9px;
+    -fx-min-width: 18px;
+    -fx-min-height: 18px;
+    -fx-max-width: 18px;
+    -fx-max-height: 18px;
+    -fx-background-radius: 9;
+    -fx-padding: 0;
+    -fx-alignment: center;
+}
+
+/* ── Sidebar improvements ─────────────────────────────────────────── */
+.sidebar {
+    -fx-border-color: transparent #E5E7EB transparent transparent;
+}
+.sidebar-logo {
+    -fx-text-fill: #1D9E75;
+    -fx-font-weight: 700;
+    -fx-background-color: white;
+    -fx-padding: 20 18 8 18;
+}
+.sidebar-farm-subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: #9CA3AF;
+    -fx-padding: 0 18 16 18;
+}
+.nav-btn {
+    -fx-text-fill: #4B5563;
+}
+.nav-btn:hover {
+    -fx-background-color: #F3F4F6;
+    -fx-text-fill: #111827;
+}
+.nav-active {
+    -fx-background-color: #EAF3DE;
+    -fx-border-color: transparent transparent transparent #1D9E75;
+    -fx-border-width: 0 0 0 3;
+    -fx-text-fill: #1D9E75;
+    -fx-font-weight: 500;
+    -fx-background-radius: 0 6 6 0;
+}
+.nav-active:hover {
+    -fx-background-color: #D8EDD0;
+    -fx-text-fill: #1D9E75;
+}
+
+/* ── Chart improvements ───────────────────────────────────────────── */
+.farm-chart .chart-plot-background { -fx-background-color: #ffffff; }
+.farm-chart .chart-horizontal-grid-lines { -fx-stroke: #F3F4F6; }
+.farm-chart .axis-label, .farm-chart .axis, .farm-chart .tick-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #9CA3AF;
+    -fx-tick-label-fill: #9CA3AF;
+}
+.farm-chart .chart-title { -fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #111827; }
+.farm-chart .default-color0.chart-bar { -fx-bar-fill: #1D9E75; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Dashboard v2 — Ikonli icons · chart colors · alert rows · avatar
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* FontIcon color per KPI category (FontIcon uses -fx-icon-color / -fx-fill) */
+.kpi-icon-animals { -fx-icon-color: #1D9E75; -fx-fill: #1D9E75; }
+.kpi-icon-sick    { -fx-icon-color: #EF4444; -fx-fill: #EF4444; }
+.kpi-icon-zones   { -fx-icon-color: #3B82F6; -fx-fill: #3B82F6; }
+.kpi-icon-sensors { -fx-icon-color: #8B5CF6; -fx-fill: #8B5CF6; }
+.kpi-icon-alerts  { -fx-icon-color: #F97316; -fx-fill: #F97316; }
+.kpi-icon-crops   { -fx-icon-color: #22C55E; -fx-fill: #22C55E; }
+.kpi-icon-aqua    { -fx-icon-color: #0EA5E9; -fx-fill: #0EA5E9; }
+
+/* Icon box sizing/alignment (StackPane host for FontIcon) */
+.kpi-icon-box {
+    -fx-background-radius: 9;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-alignment: center;
+}
+
+/* 3-series bar chart — Livestock=blue, Crops=green, Aqua=cyan */
+.farm-chart .default-color0.chart-bar { -fx-bar-fill: #3B82F6; }
+.farm-chart .default-color1.chart-bar { -fx-bar-fill: #22C55E; }
+.farm-chart .default-color2.chart-bar { -fx-bar-fill: #06B6D4; }
+.farm-chart .default-color0.chart-bar-legend-symbol { -fx-background-color: #3B82F6; }
+.farm-chart .default-color1.chart-bar-legend-symbol { -fx-background-color: #22C55E; }
+.farm-chart .default-color2.chart-bar-legend-symbol { -fx-background-color: #06B6D4; }
+
+/* Alert row severity left-border stripes */
+.alert-row-critical {
+    -fx-border-color: transparent transparent transparent #EF4444;
+    -fx-border-width: 0 0 0 3;
+}
+.alert-row-warning {
+    -fx-border-color: transparent transparent transparent #F59E0B;
+    -fx-border-width: 0 0 0 3;
+}
+
+/* Topbar avatar circle */
+.topbar-avatar {
+    -fx-background-color: #1D9E75;
+    -fx-background-radius: 17;
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-max-width: 34;
+    -fx-max-height: 34;
+    -fx-alignment: center;
+}
+.topbar-avatar-text {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+/* Clock — pill background */
+.topbar-clock {
+    -fx-background-color: #F3F4F6;
+    -fx-background-radius: 20;
+    -fx-padding: 4 12;
+    -fx-text-fill: #4B5563;
+    -fx-font-size: 12px;
+}
+
+/* Sidebar active: solid green + white text */
+.nav-active {
+    -fx-background-color: #1D9E75;
+    -fx-border-width: 0;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 600;
+    -fx-background-radius: 0 6 6 0;
+}
+.nav-active:hover {
+    -fx-background-color: #18896a;
+    -fx-text-fill: #ffffff;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Fix 1 — KPI Stat Cards: icon right, colored left border stripe
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Shared stripe geometry — applied to each category card class */
+.kpi-card.kpi-card-animals,
+.kpi-card.kpi-card-sick,
+.kpi-card.kpi-card-zones,
+.kpi-card.kpi-card-sensors,
+.kpi-card.kpi-card-alerts,
+.kpi-card.kpi-card-crops,
+.kpi-card.kpi-card-aqua {
+    -fx-background-insets: 0, 0 0 0 4;
+    -fx-background-radius: 12, 0 12 12 0;
+    -fx-border-width: 0;
+    -fx-padding: 18 20 18 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 8, 0, 0, 2);
+}
+
+/* Per-category stripe color (first layer = stripe, second = white card) */
+.kpi-card.kpi-card-animals { -fx-background-color: #1D9E75, #ffffff; }
+.kpi-card.kpi-card-sick    { -fx-background-color: #EF4444, #ffffff; }
+.kpi-card.kpi-card-zones   { -fx-background-color: #3B82F6, #ffffff; }
+.kpi-card.kpi-card-sensors { -fx-background-color: #8B5CF6, #ffffff; }
+.kpi-card.kpi-card-alerts  { -fx-background-color: #F97316, #ffffff; }
+.kpi-card.kpi-card-crops   { -fx-background-color: #22C55E, #ffffff; }
+.kpi-card.kpi-card-aqua    { -fx-background-color: #0EA5E9, #ffffff; }
+
+/* Hover: stronger shadow (translateY effect simulated with Y offset) */
+.kpi-card.kpi-card-animals:hover { -fx-effect: dropshadow(three-pass-box, rgba(29,158,117,0.18), 22, 0, 0, 7); }
+.kpi-card.kpi-card-sick:hover    { -fx-effect: dropshadow(three-pass-box, rgba(239,68,68,0.18), 22, 0, 0, 7); }
+.kpi-card.kpi-card-zones:hover   { -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.18), 22, 0, 0, 7); }
+.kpi-card.kpi-card-sensors:hover { -fx-effect: dropshadow(three-pass-box, rgba(139,92,246,0.18), 22, 0, 0, 7); }
+.kpi-card.kpi-card-alerts:hover  { -fx-effect: dropshadow(three-pass-box, rgba(249,115,22,0.18), 22, 0, 0, 7); }
+.kpi-card.kpi-card-crops:hover   { -fx-effect: dropshadow(three-pass-box, rgba(34,197,94,0.18), 22, 0, 0, 7); }
+.kpi-card.kpi-card-aqua:hover    { -fx-effect: dropshadow(three-pass-box, rgba(14,165,233,0.18), 22, 0, 0, 7); }
+
+/* KPI number: 2rem bold dark */
+.dash-kpi-value {
+    -fx-font-size: 32px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+
+/* KPI label: small, uppercase, muted */
+.kpi-label {
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+}
+
+/* Icon box: larger, well-centered */
+.kpi-icon-box {
+    -fx-background-radius: 10;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-max-width: 44;
+    -fx-max-height: 44;
+    -fx-alignment: center;
+}
