@@ -99,7 +99,9 @@ public class DashboardController {
         chart.setLegendVisible(true);
         chart.setAnimated(false);
         chart.getStyleClass().add("farm-chart");
-        chart.setPrefHeight(260);
+        chart.setPrefHeight(320);
+        chart.setBarGap(4);
+        chart.setCategoryGap(40);
 
         Farm farm = FarmService.getInstance().getFarm();
 

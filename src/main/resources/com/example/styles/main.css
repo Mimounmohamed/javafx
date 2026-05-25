@@ -2466,3 +2466,53 @@
     -fx-background-color: #F59E0B, #EAF3DE;
     -fx-background-insets: 0, 0 0 0 3;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Chart redesign — gradient bars, rounded tops, indigo/green/cyan
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Distinct bar colors with top-to-bottom gradient + rounded tops */
+.farm-chart .default-color0.chart-bar {
+    -fx-bar-fill: #6366F1;
+    -fx-background-color: linear-gradient(to bottom, #818CF8, #6366F1);
+    -fx-background-radius: 6 6 0 0;
+    -fx-background-insets: 0;
+}
+.farm-chart .default-color1.chart-bar {
+    -fx-bar-fill: #22C55E;
+    -fx-background-color: linear-gradient(to bottom, #4ADE80, #22C55E);
+    -fx-background-radius: 6 6 0 0;
+    -fx-background-insets: 0;
+}
+.farm-chart .default-color2.chart-bar {
+    -fx-bar-fill: #06B6D4;
+    -fx-background-color: linear-gradient(to bottom, #22D3EE, #06B6D4);
+    -fx-background-radius: 6 6 0 0;
+    -fx-background-insets: 0;
+}
+
+/* Legend symbols matching bar colors */
+.farm-chart .default-color0.chart-bar-legend-symbol { -fx-background-color: #6366F1; -fx-background-radius: 3; }
+.farm-chart .default-color1.chart-bar-legend-symbol { -fx-background-color: #22C55E; -fx-background-radius: 3; }
+.farm-chart .default-color2.chart-bar-legend-symbol { -fx-background-color: #06B6D4; -fx-background-radius: 3; }
+
+/* Chart plot area: clean white background, subtle horizontal grid */
+.farm-chart .chart-plot-background { -fx-background-color: #FAFAFA; -fx-background-radius: 8; }
+.farm-chart .chart-horizontal-grid-lines { -fx-stroke: #E5E7EB; -fx-stroke-dash-array: 3 4; }
+.farm-chart .chart-vertical-grid-lines   { -fx-stroke: transparent; }
+
+/* Axis labels */
+.farm-chart .axis-label {
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 11px;
+}
+.farm-chart .tick-label {
+    -fx-text-fill: #374151;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+.farm-chart .axis { -fx-tick-label-fill: #9CA3AF; }
+
+/* Legend text */
+.farm-chart .chart-legend { -fx-background-color: transparent; }
+.farm-chart .chart-legend-item { -fx-text-fill: #374151; -fx-font-size: 12px; }
