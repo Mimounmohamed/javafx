@@ -2416,3 +2416,19 @@
     -fx-background-radius: 8, 5 8 8 5;
     -fx-text-fill: #ffffff;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Fix 4 — Farm summary alerts pill: red/bold when alert-related
+   ═══════════════════════════════════════════════════════════════════ */
+
+.summary-chip-alert {
+    -fx-background-color: #FEE2E2;
+    -fx-border-color: #FCA5A5;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 4 12;
+    -fx-font-size: 12px;
+    -fx-text-fill: #DC2626;
+    -fx-font-weight: 600;
+}

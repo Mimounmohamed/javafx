@@ -79,8 +79,10 @@ public class DashboardController {
         String[] emojis = {"👤", "📍", "🐾", "🗺", "📡", "⚠"};
         for (int i = 0; i < parts.length; i++) {
             String prefix = i < emojis.length ? emojis[i] + "  " : "";
-            Label chip = new Label(prefix + parts[i].trim());
-            chip.getStyleClass().add("summary-chip");
+            String text = prefix + parts[i].trim();
+            Label chip = new Label(text);
+            boolean isAlertChip = parts[i].toLowerCase().contains("alert");
+            chip.getStyleClass().add(isAlertChip ? "summary-chip-alert" : "summary-chip");
             summaryChipsPane.getChildren().add(chip);
         }
     }
