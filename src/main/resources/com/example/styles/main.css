@@ -2388,3 +2388,31 @@
     -fx-max-height: 44;
     -fx-alignment: center;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Fix 2 — Active nav item: solid green, white text, left accent
+   ═══════════════════════════════════════════════════════════════════ */
+
+.nav-btn {
+    -fx-text-fill: #374151;
+    -fx-background-color: transparent;
+}
+.nav-btn:hover {
+    -fx-background-color: #f0fdf4;
+    -fx-text-fill: #374151;
+}
+/* Solid green bg + left accent stripe (3px dark-green / bright-green) */
+.nav-active {
+    -fx-background-color: #15803d, #16a34a;
+    -fx-background-insets: 0, 0 0 0 3;
+    -fx-background-radius: 8, 5 8 8 5;
+    -fx-border-width: 0;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 600;
+}
+.nav-active:hover {
+    -fx-background-color: #15803d, #15803d;
+    -fx-background-insets: 0, 0 0 0 3;
+    -fx-background-radius: 8, 5 8 8 5;
+    -fx-text-fill: #ffffff;
+}
