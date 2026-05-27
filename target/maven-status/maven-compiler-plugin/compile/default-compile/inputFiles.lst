@@ -2,6 +2,7 @@ C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\ZONES\AquacultureZ
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\NumericSensorReading.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\DashboardController.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Reports\ReportAquacultureZone.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\RecordMilkDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\GPSSensorReading.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\SensorReading.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\AnimalsController.java
@@ -39,8 +40,10 @@ C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\AlertSever
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Entities\LIvestockType.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Reports\ProductionReport.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Reports\ReportType.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\RenameZoneDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\WaterSensor.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\SimulationController.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\AddBioSensorDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\SensorStatus.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Alerts\SensorAlert.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Alerts\HealthAlert.java
@@ -65,6 +68,7 @@ C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\contro
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\services\FarmService.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Entities\GrowthStage.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Farm\Farm.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\EditFeedingProgramDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\services\SensorService.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Menu\DemoData.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\BioSensor.java
@@ -80,5 +84,6 @@ C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Alerts\AlertSeveri
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\StartupController.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Reports\ReportCropZone.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\SensorChartDialog.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\AddAnimalDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Alerts\Alert.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\utils\FarmRepository.java

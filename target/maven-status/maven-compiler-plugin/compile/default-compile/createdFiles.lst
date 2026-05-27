@@ -1,6 +1,7 @@
 Reports\LivestockProductionReport.class
 ZONES\LivestockZONE.class
 com\example\utils\FarmRepository$SavedZone.class
+com\example\controllers\AddAnimalDialog$1.class
 Menu\DemoData.class
 com\example\services\SimulationService.class
 Entities\AquacultureSpecies$HarvestRecord.class
@@ -9,6 +10,7 @@ com\example\controllers\ReportsController.class
 Animals\AnimalHealthStatus.class
 com\example\controllers\StartupController$FarmCell.class
 com\example\controllers\AlertsController.class
+com\example\controllers\RecordMilkDialog.class
 com\example\controllers\SensorsController$1.class
 Sensors\ReadingLevel.class
 Additional_classes\Range.class
@@ -18,7 +20,6 @@ com\example\controllers\AlertsController$2.class
 com\example\controllers\StartupController.class
 com\example\controllers\ZoneAlertHistoryDialog$1.class
 Sensors\WaterSensor.class
-com\example\controllers\AnimalsController$6.class
 com\example\services\AnimalService.class
 Animals\Animal.class
 Reports\Report.class
@@ -27,6 +28,7 @@ Entities\AquacultureSpecies.class
 Sensors\AlertSeverity.class
 ZONES\AquacultureZONE.class
 com\example\controllers\ZonesController$3.class
+com\example\controllers\AddZoneDialog.class
 com\example\controllers\SensorHistoryDialog$2.class
 Entities\Crop.class
 Reports\ReportCropZone.class
@@ -38,6 +40,7 @@ Alerts\Alert.class
 module-info.class
 Alerts\AlertType.class
 com\example\App.class
+com\example\controllers\DashboardController$2.class
 Reports\ReportLiveStockZone$1.class
 Reports\ReportType.class
 com\example\controllers\SensorChartDialog$1.class
@@ -49,7 +52,6 @@ com\example\controllers\AnimalsController$1.class
 com\example\services\ReportService$1.class
 com\example\controllers\SensorHistoryDialog.class
 com\example\controllers\ZoneMapDialog.class
-com\example\controllers\ZonesController$5.class
 com\example\controllers\SimulationController.class
 com\example\controllers\ZoneAlertHistoryDialog.class
 com\example\controllers\AnimalsController.class
@@ -58,6 +60,7 @@ com\example\services\SensorService.class
 Sensors\NumericSensorReading.class
 com\example\controllers\AnimalsController$2.class
 com\example\services\ReportService.class
+com\example\controllers\AddBioSensorDialog$1.class
 com\example\services\FarmService.class
 Animals\Animal$WeightRecord.class
 com\example\controllers\AlertsController$1.class
@@ -80,6 +83,8 @@ Entities\GrowthStage.class
 Reports\FarmReport.class
 Sensors\SoilMeasureType.class
 Reports\ReportAquacultureZone.class
+com\example\controllers\AddAnimalDialog.class
+com\example\controllers\DashboardController$3.class
 Entities\CropType.class
 Reports\CropProductionReport.class
 Sensors\EnvSensor.class
@@ -97,12 +102,14 @@ Sensors\BioMeasureType.class
 Animals\Animal$MilkRecord.class
 Reports\FarmProductionReport.class
 Sensors\BioSensor.class
+com\example\controllers\EditFeedingProgramDialog.class
 com\example\utils\RandomFarmGenerator.class
 com\example\utils\FarmRepository$SavedFarm.class
 Entities\LIvestockType.class
 com\example\controllers\DashboardController.class
 Sensors\SoilSensor.class
 Sensors\EnvMeasureType.class
+com\example\controllers\RenameZoneDialog.class
 com\example\services\AlertService.class
 ZONES\ZONE.class
 ZONES\GoegraphicBoundries.class
@@ -118,6 +125,7 @@ Reports\ReportLiveStockZone.class
 com\example\controllers\ZoneAlertHistoryDialog$2.class
 Alerts\AlertManager.class
 com\example\services\SimulationService$SimulationResult.class
+com\example\controllers\AddBioSensorDialog.class
 Alerts\SensorAlert.class
 com\example\controllers\AlertsController$3.class
 com\example\controllers\AnimalsController$4.class

@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1"
@@ -58,13 +59,25 @@
     <!-- ══ Top Bar ═══════════════════════════════════════════════════ -->
     <top>
         <HBox styleClass="topbar" alignment="CENTER_LEFT" spacing="16">
-            <padding><Insets top="0" right="20" bottom="0" left="20" /></padding>
-            <Label fx:id="farmNameLabel" styleClass="topbar-title" />
+            <padding><Insets top="0" right="24" bottom="0" left="24" /></padding>
+            <!-- Farm name with online status dot -->
+            <HBox alignment="CENTER_LEFT" spacing="6">
+                <Label text="●" styleClass="topbar-status-dot" />
+                <Label fx:id="farmNameLabel" styleClass="topbar-title" />
+            </HBox>
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="clockLabel" styleClass="topbar-clock" text="..." />
-            <Button onAction="#navAlerts" styleClass="topbar-bell-btn" text="🔔" />
-            <Label fx:id="alertBadge" styleClass="topbar-alert-badge"
-                   text="0" visible="false" managed="false" />
+            <!-- Bell with overlaid badge -->
+            <StackPane alignment="TOP_RIGHT">
+                <Button onAction="#navAlerts" styleClass="topbar-bell-btn" text="🔔" />
+                <Label fx:id="alertBadge" styleClass="topbar-alert-badge"
+                       text="0" visible="false" managed="false">
+                    <StackPane.margin><Insets top="-2" right="-2" /></StackPane.margin>
+                </Label>
+            </StackPane>
+            <StackPane styleClass="topbar-avatar" minWidth="34" minHeight="34" maxWidth="34" maxHeight="34">
+                <Label fx:id="avatarLabel" styleClass="topbar-avatar-text" text="F" />
+            </StackPane>
         </HBox>
     </top>
 

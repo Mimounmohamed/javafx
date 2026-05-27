@@ -211,65 +211,9 @@ public class AnimalsController {
             alert.showAndWait();
             return;
         }
-
-        TextField nameField    = new TextField();  nameField.setPromptText("e.g. Bessie");
-        TextField speciesField = new TextField();  speciesField.setPromptText("e.g. Cow, Sheep");
-        TextField ageField     = new TextField("1");
-        TextField weightField  = new TextField("100.0");
-
-        ComboBox<String> typeCombo = new ComboBox<>();
-        typeCombo.getItems().addAll("RUMINANT", "POULTRY");
-        typeCombo.setValue("RUMINANT");
-
-        ComboBox<LivestockZONE> zoneCombo = new ComboBox<>();
-        zoneCombo.getItems().addAll(zones);
-        zoneCombo.setValue(zones.get(0));
-        zoneCombo.setConverter(new StringConverter<>() {
-            @Override public String toString(LivestockZONE z) { return z == null ? "" : z.getName(); }
-            @Override public LivestockZONE fromString(String s) { return null; }
-        });
-
-        VBox form = new VBox(14,
-            formGroup("Name",         nameField),
-            formGroup("Species",      speciesField),
-            formGroup("Type",         typeCombo),
-            formGroup("Age (years)",  ageField),
-            formGroup("Weight (kg)",  weightField),
-            formGroup("Zone",         zoneCombo)
-        );
-        form.setPadding(new Insets(20, 24, 8, 24));
-
-        Dialog<Animal> dialog = new Dialog<>();
-        dialog.setTitle("Add Animal");
-        dialog.setHeaderText("Add a new animal to the farm");
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(420);
-        applyDialogStyle(dialog);
-
-        Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okBtn.setText("Add Animal");
-        okBtn.setDisable(true);
-        Runnable validate = () -> okBtn.setDisable(
-            nameField.getText().trim().isEmpty() || speciesField.getText().trim().isEmpty());
-        nameField.textProperty().addListener((obs, o, n) -> validate.run());
-        speciesField.textProperty().addListener((obs, o, n) -> validate.run());
-
-        dialog.setResultConverter(bt -> {
-            if (bt != ButtonType.OK) return null;
-            try {
-                String name    = nameField.getText().trim();
-                String species = speciesField.getText().trim();
-                LIvestockType type   = LIvestockType.valueOf(typeCombo.getValue());
-                int    age    = Integer.parseInt(ageField.getText().trim());
-                double weight = Double.parseDouble(weightField.getText().trim());
-                LivestockZONE zone = zoneCombo.getValue();
-                return animalService.addAnimal(name, species, type, age, weight, zone);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        });
-
+        String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        AddAnimalDialog dialog = new AddAnimalDialog(css, animalService, zones,
+            "Register a new animal on this farm");
         dialog.showAndWait().ifPresent(animal -> {
             allAnimals.add(animal);
             if (!filterZone.getItems().contains(animal.getZone().getName()))
@@ -672,22 +616,8 @@ public class AnimalsController {
     }
 
     private void showRecordMilkDialog(Animal a) {
-        TextField field = new TextField("0.0");
-        VBox form = new VBox(14, formGroup("Liters to add", field));
-        form.setPadding(new Insets(20, 24, 8, 24));
-        Dialog<Double> dialog = new Dialog<>();
-        dialog.setTitle("Record Milk Yield");
-        dialog.setHeaderText("Record milk yield for " + a.getName());
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(360);
-        applyDialogStyle(dialog);
-        ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Record");
-        dialog.setResultConverter(bt -> {
-            if (bt != ButtonType.OK) return null;
-            try { return Double.parseDouble(field.getText().trim()); }
-            catch (NumberFormatException e) { return null; }
-        });
+        String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        RecordMilkDialog dialog = new RecordMilkDialog(css, a);
         dialog.showAndWait().ifPresent(liters -> {
             if (liters >= 0) { animalService.recordMilkYield(a, liters); showDetail(a); }
         });

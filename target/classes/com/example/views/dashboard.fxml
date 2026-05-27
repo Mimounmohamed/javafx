@@ -4,92 +4,162 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ScrollPane?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <ScrollPane fitToWidth="true" styleClass="content-scroll"
             xmlns:fx="http://javafx.com/fxml/1"
             xmlns="http://javafx.com/javafx/21"
             fx:controller="com.example.controllers.DashboardController">
 
-    <VBox spacing="20" styleClass="content-root">
+    <VBox spacing="24" styleClass="content-root dash-content">
         <padding><Insets top="24" right="24" bottom="32" left="24" /></padding>
 
         <!-- Page title -->
-        <Label text="Dashboard" styleClass="page-title" />
+        <VBox spacing="4">
+            <Label text="Dashboard" styleClass="page-title dash-page-title" />
+            <Label text="Welcome back — here's your farm at a glance" styleClass="dash-subtitle" />
+        </VBox>
 
         <!-- ── KPI Cards row 1 ────────────────────────────────────── -->
         <HBox spacing="16">
-            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6" alignment="TOP_LEFT">
-                <Label text="🐄" styleClass="kpi-icon" />
-                <Label fx:id="kpiAnimals" text="—" styleClass="kpi-value" />
-                <Label text="Total Animals"  styleClass="kpi-label" />
+            <VBox styleClass="kpi-card kpi-card-animals" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #1D9E75, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="kpiAnimals" text="—" styleClass="kpi-value dash-kpi-value" />
+                        <Label text="TOTAL ANIMALS" styleClass="kpi-label" />
+                    </VBox>
+                    <StackPane styleClass="kpi-icon-box kpi-icon-animals">
+                        <FontIcon iconLiteral="fas-paw" iconSize="22" styleClass="kpi-icon-animals" />
+                    </StackPane>
+                </HBox>
             </VBox>
-            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6" alignment="TOP_LEFT">
-                <Label text="🤒" styleClass="kpi-icon" />
-                <Label fx:id="kpiSickAnimals" text="—" styleClass="kpi-value" />
-                <Label text="Sick Animals"   styleClass="kpi-label" />
+            <VBox styleClass="kpi-card kpi-card-sick" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #EF4444, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="kpiSickAnimals" text="—" styleClass="kpi-value dash-kpi-value" />
+                        <Label text="SICK ANIMALS" styleClass="kpi-label" />
+                    </VBox>
+                    <StackPane styleClass="kpi-icon-box kpi-icon-sick">
+                        <FontIcon iconLiteral="fas-heartbeat" iconSize="22" styleClass="kpi-icon-sick" />
+                    </StackPane>
+                </HBox>
             </VBox>
-            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6" alignment="TOP_LEFT">
-                <Label text="🗺" styleClass="kpi-icon" />
-                <Label fx:id="kpiZones" text="—" styleClass="kpi-value" />
-                <Label text="Active Zones"   styleClass="kpi-label" />
+            <VBox styleClass="kpi-card kpi-card-zones" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #3B82F6, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="kpiZones" text="—" styleClass="kpi-value dash-kpi-value" />
+                        <Label text="ACTIVE ZONES" styleClass="kpi-label" />
+                    </VBox>
+                    <StackPane styleClass="kpi-icon-box kpi-icon-zones">
+                        <FontIcon iconLiteral="fas-map-marker-alt" iconSize="22" styleClass="kpi-icon-zones" />
+                    </StackPane>
+                </HBox>
             </VBox>
-            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6" alignment="TOP_LEFT">
-                <Label text="📊" styleClass="kpi-icon" />
-                <Label fx:id="kpiTotalZones" text="—" styleClass="kpi-value" />
-                <Label text="Total Zones"    styleClass="kpi-label" />
+            <VBox styleClass="kpi-card kpi-card-zones" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #3B82F6, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="kpiTotalZones" text="—" styleClass="kpi-value dash-kpi-value" />
+                        <Label text="TOTAL ZONES" styleClass="kpi-label" />
+                    </VBox>
+                    <StackPane styleClass="kpi-icon-box kpi-icon-zones">
+                        <FontIcon iconLiteral="fas-th-large" iconSize="22" styleClass="kpi-icon-zones" />
+                    </StackPane>
+                </HBox>
             </VBox>
         </HBox>
 
         <!-- ── KPI Cards row 2 ────────────────────────────────────── -->
         <HBox spacing="16">
-            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6" alignment="TOP_LEFT">
-                <Label text="📡" styleClass="kpi-icon" />
-                <Label fx:id="kpiSensors" text="—" styleClass="kpi-value" />
-                <Label text="Active Sensors" styleClass="kpi-label" />
+            <VBox styleClass="kpi-card kpi-card-sensors" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #8B5CF6, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="kpiSensors" text="—" styleClass="kpi-value dash-kpi-value" />
+                        <Label text="ACTIVE SENSORS" styleClass="kpi-label" />
+                    </VBox>
+                    <StackPane styleClass="kpi-icon-box kpi-icon-sensors">
+                        <FontIcon iconLiteral="fas-satellite-dish" iconSize="22" styleClass="kpi-icon-sensors" />
+                    </StackPane>
+                </HBox>
             </VBox>
-            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6" alignment="TOP_LEFT">
-                <Label text="🔔" styleClass="kpi-icon" />
-                <Label fx:id="kpiAlerts" text="—" styleClass="kpi-value" />
-                <Label text="Open Alerts"    styleClass="kpi-label" />
+            <VBox styleClass="kpi-card kpi-card-alerts" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #F97316, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="kpiAlerts" text="—" styleClass="kpi-value dash-kpi-value" />
+                        <Label text="OPEN ALERTS" styleClass="kpi-label" />
+                    </VBox>
+                    <StackPane styleClass="kpi-icon-box kpi-icon-alerts">
+                        <FontIcon iconLiteral="fas-bell" iconSize="22" styleClass="kpi-icon-alerts" />
+                    </StackPane>
+                </HBox>
             </VBox>
-            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6" alignment="TOP_LEFT">
-                <Label text="🌾" styleClass="kpi-icon" />
-                <Label fx:id="kpiFields" text="—" styleClass="kpi-value" />
-                <Label text="Crop Fields"    styleClass="kpi-label" />
+            <VBox styleClass="kpi-card kpi-card-crops" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #22C55E, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="kpiFields" text="—" styleClass="kpi-value dash-kpi-value" />
+                        <Label text="CROP FIELDS" styleClass="kpi-label" />
+                    </VBox>
+                    <StackPane styleClass="kpi-icon-box kpi-icon-crops">
+                        <FontIcon iconLiteral="fas-seedling" iconSize="22" styleClass="kpi-icon-crops" />
+                    </StackPane>
+                </HBox>
             </VBox>
-            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6" alignment="TOP_LEFT">
-                <Label text="🐟" styleClass="kpi-icon" />
-                <Label fx:id="kpiSpecies" text="—" styleClass="kpi-value" />
-                <Label text="Aqua Species"   styleClass="kpi-label" />
+            <VBox styleClass="kpi-card kpi-card-aqua" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #0EA5E9, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="kpiSpecies" text="—" styleClass="kpi-value dash-kpi-value" />
+                        <Label text="AQUA SPECIES" styleClass="kpi-label" />
+                    </VBox>
+                    <StackPane styleClass="kpi-icon-box kpi-icon-aqua">
+                        <FontIcon iconLiteral="fas-fish" iconSize="22" styleClass="kpi-icon-aqua" />
+                    </StackPane>
+                </HBox>
             </VBox>
         </HBox>
 
         <!-- ── Farm Summary ───────────────────────────────────────── -->
-        <VBox styleClass="kpi-card" spacing="6">
-            <Label text="Farm Summary" styleClass="card-title" />
-            <Label fx:id="lblFarmSummary" text="—" styleClass="text-muted" wrapText="true" />
+        <VBox styleClass="kpi-card" spacing="12">
+            <Label text="Farm Summary" styleClass="dash-section-title" />
+            <Label fx:id="lblFarmSummary" text="—" visible="false" managed="false" />
+            <FlowPane fx:id="summaryChipsPane" hgap="8" vgap="8" />
         </VBox>
 
         <!-- ── Chart + Recent Alerts ──────────────────────────────── -->
         <HBox spacing="16">
-            <!-- Production chart (built in controller) -->
             <VBox fx:id="chartContainer" styleClass="kpi-card" HBox.hgrow="ALWAYS"
-                  spacing="12" minHeight="300">
-                <Label text="Production Overview" styleClass="card-title" />
+                  spacing="8" minHeight="320">
+                <VBox spacing="2">
+                    <Label text="Production Overview" styleClass="card-title" />
+                    <Label text="Total output across all zones" styleClass="dash-chart-subtitle" />
+                </VBox>
             </VBox>
 
-            <!-- Recent alerts table -->
-            <VBox styleClass="kpi-card" prefWidth="400" spacing="12">
-                <Label text="Recent Alerts" styleClass="card-title" />
-                <TableView fx:id="recentAlertsTable" VBox.vgrow="ALWAYS" maxHeight="280">
+            <VBox styleClass="kpi-card" prefWidth="440" spacing="12">
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Recent Alerts" styleClass="card-title" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button text="View all →" onAction="#quickViewAlerts"
+                            styleClass="dash-view-all-btn" />
+                </HBox>
+                <TableView fx:id="recentAlertsTable" VBox.vgrow="ALWAYS" maxHeight="290"
+                           styleClass="dash-alerts-table">
                     <columns>
-                        <TableColumn fx:id="colAlertTime"     text="Date"     prefWidth="90"  />
-                        <TableColumn fx:id="colAlertSeverity" text="Severity" prefWidth="80"  />
-                        <TableColumn fx:id="colAlertMsg"      text="Message"  prefWidth="200" />
+                        <TableColumn fx:id="colAlertTime"     text="DATE"     prefWidth="90"  />
+                        <TableColumn fx:id="colAlertSeverity" text="SEVERITY" prefWidth="90"  />
+                        <TableColumn fx:id="colAlertMsg"      text="MESSAGE"  prefWidth="230" />
                     </columns>
                     <placeholder>
                         <Label text="No alerts" styleClass="text-muted" />
@@ -102,11 +172,11 @@
         <VBox styleClass="kpi-card" spacing="12">
             <Label text="Quick Actions" styleClass="card-title" />
             <HBox spacing="12">
-                <Button text="+ Add Animal"          onAction="#quickAddAnimal"   styleClass="btn-primary" />
-                <Button text="+ Add Zone"            onAction="#quickAddZone"     styleClass="btn-primary" />
-                <Button text="&#127806; Add Crop"    onAction="#quickAddCrop"     styleClass="btn-secondary" />
-                <Button text="&#128031; Add Aqua Species" onAction="#quickAddAqua" styleClass="btn-secondary" />
-                <Button text="&#128203; View Reports" onAction="#quickViewReports" styleClass="btn-secondary" />
+                <Button text="+ Add Animal"               onAction="#quickAddAnimal"    styleClass="btn-primary" />
+                <Button text="+ Add Zone"                 onAction="#quickAddZone"      styleClass="btn-primary" />
+                <Button text="&#127806; Add Crop"         onAction="#quickAddCrop"      styleClass="btn-secondary" />
+                <Button text="&#128031; Add Aqua Species" onAction="#quickAddAqua"      styleClass="btn-secondary" />
+                <Button text="&#128203; View Reports"     onAction="#quickViewReports"  styleClass="btn-secondary" />
             </HBox>
         </VBox>
 
