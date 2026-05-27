@@ -2518,6 +2518,22 @@
 .farm-chart .chart-legend-item { -fx-text-fill: #374151; -fx-font-size: 12px; }
 
 /* ═══════════════════════════════════════════════════════════════════
+   Sensors page — detail panel header
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sensor-detail-name {
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+    -fx-wrap-text: true;
+}
+
+.sensor-detail-zone {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6B7280;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    Zones KPI stat cards strip
    ═══════════════════════════════════════════════════════════════════ */
 

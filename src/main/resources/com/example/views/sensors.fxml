@@ -7,7 +7,6 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
@@ -17,38 +16,49 @@
       styleClass="content-root">
 
     <!-- ── Header ───────────────────────────────────────────────────── -->
-    <HBox styleClass="page-header" alignment="CENTER_LEFT" spacing="10">
-        <padding><Insets top="20" right="24" bottom="16" left="24" /></padding>
-        <Label text="Sensors" styleClass="page-title" />
+    <HBox styleClass="zones-page-header" alignment="CENTER_LEFT" spacing="10">
+        <padding><Insets top="14" right="24" bottom="14" left="24" /></padding>
+        <VBox spacing="1">
+            <Label text="Smart Farm" styleClass="zones-farm-name" />
+            <Label text="Sensor Management" styleClass="zones-page-title" />
+        </VBox>
         <Region HBox.hgrow="ALWAYS" />
-        <ComboBox fx:id="filterType"     promptText="Type"     styleClass="filter-combo" prefWidth="130" />
-        <ComboBox fx:id="filterSeverity" promptText="Severity" styleClass="filter-combo" prefWidth="120" />
-        <ComboBox fx:id="filterStatus"   promptText="Status"   styleClass="filter-combo" prefWidth="120" />
-        <ComboBox fx:id="filterZone"     promptText="Zone"     styleClass="filter-combo" prefWidth="155" />
+        <ComboBox fx:id="filterType"     promptText="Type"     styleClass="animals-filter-combo" prefWidth="130" />
+        <ComboBox fx:id="filterSeverity" promptText="Severity" styleClass="animals-filter-combo" prefWidth="120" />
+        <ComboBox fx:id="filterStatus"   promptText="Status"   styleClass="animals-filter-combo" prefWidth="120" />
+        <ComboBox fx:id="filterZone"     promptText="Zone"     styleClass="animals-filter-combo" prefWidth="155" />
     </HBox>
-    <Separator />
 
-    <!-- ── Stats bar ────────────────────────────────────────────────── -->
-    <HBox styleClass="stats-bar" spacing="12" alignment="CENTER_LEFT">
-        <padding><Insets top="12" right="24" bottom="12" left="24" /></padding>
-        <VBox styleClass="stat-card stat-accent-blue" spacing="2" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label fx:id="statTotalSensors" text="—" styleClass="stat-value" />
-            <Label text="Total Sensors" styleClass="stat-label" />
+    <!-- ── Stats cards row ───────────────────────────────────────────── -->
+    <HBox spacing="16"
+          style="-fx-background-color: #F5F5F3; -fx-border-color: transparent transparent #e0e0e0 transparent; -fx-border-width: 0 0 1 0;">
+        <padding><Insets top="16" right="24" bottom="16" left="24" /></padding>
+
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #4F46E5, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <Label fx:id="statTotalSensors" text="—" styleClass="zones-kpi-value" />
+            <Label text="TOTAL SENSORS" styleClass="zones-kpi-label" />
         </VBox>
-        <VBox styleClass="stat-card stat-accent-red" spacing="2" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label fx:id="statCriticalReadings" text="—" styleClass="stat-value" />
-            <Label text="Critical" styleClass="stat-label" />
+
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #DC2626, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(220,38,38,0.12), 8, 0, 0, 2);">
+            <Label fx:id="statCriticalReadings" text="—" styleClass="zones-kpi-value" />
+            <Label text="CRITICAL" styleClass="zones-kpi-label" />
         </VBox>
-        <VBox styleClass="stat-card stat-accent-yellow" spacing="2" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label fx:id="statWarningReadings" text="—" styleClass="stat-value" />
-            <Label text="Warning" styleClass="stat-label" />
+
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #D97706, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(217,119,6,0.12), 8, 0, 0, 2);">
+            <Label fx:id="statWarningReadings" text="—" styleClass="zones-kpi-value" />
+            <Label text="WARNING" styleClass="zones-kpi-label" />
         </VBox>
-        <VBox styleClass="stat-card stat-accent-green" spacing="2" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label fx:id="statNormalReadings" text="—" styleClass="stat-value" />
-            <Label text="Normal" styleClass="stat-label" />
+
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #16A34A, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(22,163,74,0.12), 8, 0, 0, 2);">
+            <Label fx:id="statNormalReadings" text="—" styleClass="zones-kpi-value" />
+            <Label text="NORMAL" styleClass="zones-kpi-label" />
         </VBox>
+
     </HBox>
-    <Separator />
 
     <!-- ── Cards + Detail ───────────────────────────────────────────── -->
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.60">
@@ -61,21 +71,25 @@
 
         <VBox styleClass="detail-panel" spacing="10">
             <padding><Insets top="16" right="16" bottom="16" left="16" /></padding>
-            <Label text="Sensor Detail" styleClass="card-title" />
+
+            <!-- Header: sensor name (left) + status badge (right) -->
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label fx:id="detailTitle" text="Select a sensor card"
+                       styleClass="sensor-detail-name" HBox.hgrow="ALWAYS" wrapText="true" />
+                <Label fx:id="detailStatus" text="" />
+            </HBox>
+
+            <!-- Zone below header -->
+            <Label fx:id="detailZone" text="" styleClass="sensor-detail-zone" />
+
             <Separator />
-            <Label fx:id="detailTitle" text="Select a sensor card" styleClass="text-muted" />
-            <HBox styleClass="detail-row" alignment="CENTER_LEFT">
-                <Label text="Zone" styleClass="detail-key" />
-                <Label fx:id="detailZone" text="" styleClass="detail-value" />
-            </HBox>
-            <HBox styleClass="detail-row" alignment="CENTER_LEFT">
-                <Label text="Status" styleClass="detail-key" />
-                <Label fx:id="detailStatus" text="" styleClass="detail-value" />
-            </HBox>
+
+            <!-- Last reading row -->
             <HBox styleClass="detail-row" alignment="CENTER_LEFT">
                 <Label text="Last reading" styleClass="detail-key" />
                 <Label fx:id="detailReading" text="" styleClass="detail-value" wrapText="true" />
             </HBox>
+
             <VBox fx:id="sensorActions" spacing="8" />
             <Separator />
             <Label text="Reading History" styleClass="card-title" />

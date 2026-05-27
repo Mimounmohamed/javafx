@@ -156,6 +156,40 @@ public class SensorsController {
         card.getStyleClass().add("sensor-card");
         card.setPrefWidth(215);
 
+        SensorStatus status = sensor.getStatus();
+        ReadingLevel level  = sensorService.getLastReadingLevel(sensor);
+
+        // Stripe + tinted background based on status/level (same design as zones/dashboard)
+        String stripeColor, cardBg, shadowColor;
+        if (status == SensorStatus.Suspended || status == SensorStatus.Faulty) {
+            stripeColor = "#6B7280"; cardBg = "#F9FAFB";
+            shadowColor = "rgba(107,114,128,0.10)";
+        } else {
+            stripeColor = switch (level) {
+                case CRITICAL -> "#DC2626";
+                case WARNING  -> "#D97706";
+                default       -> "#1D9E75";
+            };
+            cardBg = switch (level) {
+                case CRITICAL -> "#FFF5F5";
+                case WARNING  -> "#FFFBEB";
+                default       -> "#ffffff";
+            };
+            shadowColor = switch (level) {
+                case CRITICAL -> "rgba(220,38,38,0.12)";
+                case WARNING  -> "rgba(245,158,11,0.12)";
+                default       -> "rgba(0,0,0,0.07)";
+            };
+        }
+        card.setStyle(
+            "-fx-background-color: " + stripeColor + ", " + cardBg + ";" +
+            "-fx-background-insets: 0, 0 0 0 4;" +
+            "-fx-background-radius: 12, 0 12 12 0;" +
+            "-fx-border-width: 0;" +
+            "-fx-padding: 14 16;" +
+            "-fx-effect: dropshadow(three-pass-box, " + shadowColor + ", 10, 0, 0, 2);"
+        );
+
         Label type = new Label(sensorService.getSensorTypeLabel(sensor));
         type.getStyleClass().add("sensor-card-type");
         type.setWrapText(true);
@@ -163,10 +197,23 @@ public class SensorsController {
         Label zone = new Label("📍 " + sensor.getZone().getName());
         zone.getStyleClass().add("sensor-card-zone");
 
+        // Reading value: color reflects status, text wraps (no truncation)
+        String readingColor;
+        if (status == SensorStatus.Suspended || status == SensorStatus.Faulty) {
+            readingColor = "#6B7280";
+        } else {
+            readingColor = switch (level) {
+                case CRITICAL -> "#DC2626";
+                case WARNING  -> "#D97706";
+                default       -> "#16A34A";
+            };
+        }
         Label reading = new Label(sensorService.getLastReadingDisplay(sensor));
-        reading.getStyleClass().add("sensor-card-reading");
+        reading.setWrapText(true);
+        reading.setStyle(
+            "-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: " + readingColor + ";"
+        );
 
-        ReadingLevel level = sensorService.getLastReadingLevel(sensor);
         Label statusBadge = new Label(sensor.getStatus().toString());
         statusBadge.getStyleClass().addAll("badge", "badge-" + sensor.getStatus().toString().toLowerCase());
 
@@ -194,9 +241,8 @@ public class SensorsController {
         selectedCard = card;
         card.getStyleClass().add("sensor-card-selected");
 
-        detailTitle.setText(sensorService.getSensorTypeLabel(sensor));
-        detailZone.setText(sensor.getZone().getName());
-        detailStatus.setText(sensor.getStatus().toString());
+        updateDetailHeader(sensor);
+
         String reading = sensorService.getLastReadingDisplay(sensor);
         if (sensor instanceof BioSensor bio && bio.isAnimalInDistress()) reading += "  ⚠ DISTRESS";
         if (sensor instanceof GPSCollarSensor gps && gps.hasEscaped())   reading += "  ⚠ OUTSIDE ZONE";
@@ -206,104 +252,122 @@ public class SensorsController {
         buildChart(sensor);
     }
 
+    private void updateDetailHeader(Sensor sensor) {
+        detailTitle.setText(sensorService.getSensorTypeLabel(sensor));
+        detailZone.setText("📍  " + sensor.getZone().getName());
+
+        detailStatus.setText(sensor.getStatus().toString());
+        detailStatus.getStyleClass().removeIf(c -> c.startsWith("badge-") || c.equals("badge"));
+        detailStatus.getStyleClass().addAll("badge",
+            "badge-" + sensor.getStatus().toString().toLowerCase());
+    }
+
     private void buildActionBar(Sensor sensor) {
         sensorActions.getChildren().clear();
         SensorStatus status = sensor.getStatus();
 
-        // Context-aware status buttons
-        HBox statusBtns = new HBox(8);
         if (status == SensorStatus.Active) {
-            Button suspendBtn = new Button("⏸ Suspend");
-            suspendBtn.getStyleClass().add("btn-secondary");
+            Button suspendBtn = new Button("⏸  Suspend");
+            suspendBtn.setMaxWidth(Double.MAX_VALUE);
+            styledActionBtn(suspendBtn, "white", "#D1D5DB", "#374151");
             suspendBtn.setOnAction(e -> { sensor.suspend(); refreshAfterAction(sensor); });
+            sensorActions.getChildren().add(suspendBtn);
 
-            Button faultyBtn = new Button("⚠ Mark Faulty");
-            faultyBtn.getStyleClass().add("btn-danger");
-            faultyBtn.setOnAction(e -> {
-                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                confirm.setTitle("Mark Faulty");
-                confirm.setHeaderText(null);
-                confirm.setContentText("Mark sensor " + sensor.getCode() + " as faulty?");
-                confirm.showAndWait().ifPresent(bt -> {
-                    if (bt == ButtonType.OK) { sensor.markAsFaulty(); refreshAfterAction(sensor); }
-                });
-            });
-            statusBtns.getChildren().addAll(suspendBtn, faultyBtn);
+            Button faultyBtn = new Button("⚠  Mark Faulty");
+            faultyBtn.setMaxWidth(Double.MAX_VALUE);
+            styledActionBtn(faultyBtn, "#FEF2F2", "#FCA5A5", "#DC2626");
+            faultyBtn.setOnAction(e -> confirmMarkFaulty(sensor));
+            sensorActions.getChildren().add(faultyBtn);
 
         } else if (status == SensorStatus.Suspended) {
-            Button reactivateBtn = new Button("▶ Reactivate");
-            reactivateBtn.getStyleClass().add("btn-secondary");
+            Button reactivateBtn = new Button("▶  Reactivate");
+            reactivateBtn.setMaxWidth(Double.MAX_VALUE);
+            styledActionBtn(reactivateBtn, "#F0FDF4", "#6EE7B7", "#16A34A");
             reactivateBtn.setOnAction(e -> { sensor.reactivate(); refreshAfterAction(sensor); });
+            sensorActions.getChildren().add(reactivateBtn);
 
-            Button faultyBtn = new Button("⚠ Mark Faulty");
-            faultyBtn.getStyleClass().add("btn-danger");
-            faultyBtn.setOnAction(e -> {
-                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                confirm.setTitle("Mark Faulty");
-                confirm.setHeaderText(null);
-                confirm.setContentText("Mark sensor " + sensor.getCode() + " as faulty?");
-                confirm.showAndWait().ifPresent(bt -> {
-                    if (bt == ButtonType.OK) { sensor.markAsFaulty(); refreshAfterAction(sensor); }
-                });
-            });
-            statusBtns.getChildren().addAll(reactivateBtn, faultyBtn);
+            Button faultyBtn = new Button("⚠  Mark Faulty");
+            faultyBtn.setMaxWidth(Double.MAX_VALUE);
+            styledActionBtn(faultyBtn, "#FEF2F2", "#FCA5A5", "#DC2626");
+            faultyBtn.setOnAction(e -> confirmMarkFaulty(sensor));
+            sensorActions.getChildren().add(faultyBtn);
 
-        } else { // Faulty
-            Button unfaultBtn = new Button("✅ Unfault (Reactivate)");
-            unfaultBtn.getStyleClass().add("btn-primary");
+        } else {
+            Button unfaultBtn = new Button("✅  Reactivate Sensor");
             unfaultBtn.setMaxWidth(Double.MAX_VALUE);
+            styledActionBtn(unfaultBtn, "#F0FDF4", "#6EE7B7", "#16A34A");
             unfaultBtn.setOnAction(e -> { sensor.reactivate(); refreshAfterAction(sensor); });
-            statusBtns.getChildren().add(unfaultBtn);
+            sensorActions.getChildren().add(unfaultBtn);
         }
 
-        sensorActions.getChildren().add(statusBtns);
-
-        // Clear history
-        Button clearBtn = new Button("🗑 Clear History");
-        clearBtn.getStyleClass().add("btn-secondary");
+        Button clearBtn = new Button("🗑  Clear History");
         clearBtn.setMaxWidth(Double.MAX_VALUE);
-        clearBtn.setOnAction(e -> {
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Clear Reading History");
-            confirm.setHeaderText(null);
-            confirm.setContentText("Delete all reading history for sensor " + sensor.getCode() + "?");
-            confirm.showAndWait().ifPresent(bt -> {
-                if (bt == ButtonType.OK) {
-                    sensor.clearReadingHistory();
-                    refreshAfterAction(sensor);
-                    buildChart(sensor);
-                }
-            });
-        });
+        styledActionBtn(clearBtn, "#FEF2F2", "#FCA5A5", "#DC2626");
+        clearBtn.setOnAction(e -> confirmClearHistory(sensor));
         sensorActions.getChildren().add(clearBtn);
 
-        // Threshold editing + reading injection for numeric sensors
         if (sensor instanceof NumericSensor ns) {
-            Button threshBtn = new Button("⚙ Edit Thresholds");
-            threshBtn.getStyleClass().add("btn-secondary");
+            Button threshBtn = new Button("⚙  Edit Thresholds");
             threshBtn.setMaxWidth(Double.MAX_VALUE);
+            styledActionBtn(threshBtn, "#EFF6FF", "#93C5FD", "#2563EB");
             threshBtn.setOnAction(e -> showEditThresholdsDialog(ns, sensor));
             sensorActions.getChildren().add(threshBtn);
 
-            Button injectBtn = new Button("📥 Inject Reading");
-            injectBtn.getStyleClass().add("btn-secondary");
+            Button injectBtn = new Button("📥  Inject Reading");
             injectBtn.setMaxWidth(Double.MAX_VALUE);
+            styledActionBtn(injectBtn, "#F0FDF4", "#6EE7B7", "#16A34A");
             injectBtn.setOnAction(e -> showInjectReadingDialog(ns, sensor));
             sensorActions.getChildren().add(injectBtn);
         }
     }
 
+    private void styledActionBtn(Button btn, String bg, String border, String color) {
+        btn.setStyle(
+            "-fx-background-color: " + bg + ";" +
+            "-fx-border-color: " + border + ";" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-text-fill: " + color + ";" +
+            "-fx-font-size: 13px;" +
+            "-fx-min-height: 38px;" +
+            "-fx-cursor: hand;" +
+            "-fx-padding: 8 16;"
+        );
+    }
+
+    private void confirmMarkFaulty(Sensor sensor) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Mark Faulty");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Mark sensor " + sensor.getCode() + " as faulty?");
+        confirm.showAndWait().ifPresent(bt -> {
+            if (bt == ButtonType.OK) { sensor.markAsFaulty(); refreshAfterAction(sensor); }
+        });
+    }
+
+    private void confirmClearHistory(Sensor sensor) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Clear Reading History");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Delete all reading history for sensor " + sensor.getCode() + "?");
+        confirm.showAndWait().ifPresent(bt -> {
+            if (bt == ButtonType.OK) {
+                sensor.clearReadingHistory();
+                refreshAfterAction(sensor);
+                buildChart(sensor);
+            }
+        });
+    }
+
     private void refreshAfterAction(Sensor sensor) {
-        detailStatus.setText(sensor.getStatus().toString());
+        updateDetailHeader(sensor);
         detailReading.setText(sensorService.getLastReadingDisplay(sensor));
 
-        // Rebuild action bar with updated state
         buildActionBar(sensor);
 
-        // Rebuild card grid, then re-select card for this sensor
         applyFilters();
 
-        // Find and re-highlight the card for this sensor
         sensorGrid.getChildren().stream()
             .filter(n -> n instanceof VBox && n.getUserData() == sensor)
             .map(n -> (VBox) n)
@@ -393,7 +457,6 @@ public class SensorsController {
         chartContainer.getChildren().clear();
 
         if (sensor instanceof GPSCollarSensor gps) {
-            // GPS: text area fits fine in the narrow panel
             TextArea area = new TextArea();
             area.setEditable(false);
             area.setPrefHeight(220);
@@ -416,7 +479,6 @@ public class SensorsController {
         long count = sensor.getReadingHistory().stream()
             .filter(r -> r instanceof NumericSensorReading).count();
 
-        // Show last reading summary + open-chart button
         String summary = count == 0
             ? "No readings yet."
             : String.format("%d readings  ·  last: %.2f %s", count, ns.getLastValue(), ns.getUnit());
