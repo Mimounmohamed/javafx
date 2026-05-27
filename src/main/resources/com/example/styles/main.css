@@ -2516,3 +2516,134 @@
 /* Legend text */
 .farm-chart .chart-legend { -fx-background-color: transparent; }
 .farm-chart .chart-legend-item { -fx-text-fill: #374151; -fx-font-size: 12px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Zones KPI stat cards strip
+   ═══════════════════════════════════════════════════════════════════ */
+
+.zones-kpi-strip {
+    -fx-background-color: #F5F5F3;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.zones-kpi-label {
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+    -fx-letter-spacing: 0.08em;
+}
+
+.zones-kpi-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+
+.zones-kpi-sub {
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 11px;
+}
+
+.zones-kpi-sub-warn {
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Zones GPS sensor rows + section header
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* GPS sensor row — full-width with hover */
+.zones-gps-row {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #F3F4F6 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-radius: 8;
+}
+
+.zones-gps-row:hover {
+    -fx-background-color: #F9FAFB;
+    -fx-background-radius: 8;
+}
+
+/* 32px avatar circle for sensor code */
+.zones-gps-avatar {
+    -fx-min-width: 32; -fx-min-height: 32;
+    -fx-max-width: 32; -fx-max-height: 32;
+    -fx-background-color: #EFF6FF;
+    -fx-background-radius: 99;
+    -fx-border-color: #BFDBFE;
+    -fx-border-width: 1;
+    -fx-border-radius: 99;
+    -fx-alignment: center;
+}
+
+.zones-gps-avatar-alert {
+    -fx-background-color: #FEF2F2;
+    -fx-border-color: #FECACA;
+}
+
+/* Sensor code inside the avatar */
+.zones-gps-code {
+    -fx-text-fill: #2563EB;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-alignment: center;
+}
+
+.zones-gps-code-alert {
+    -fx-text-fill: #DC2626;
+}
+
+/* "Sensor #XXXX" primary label */
+.zones-gps-name {
+    -fx-text-fill: #111827;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+/* Animal name sub-label */
+.zones-gps-animal {
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 11px;
+}
+
+/* Outside zone warning sub-label */
+.zones-gps-warning {
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+}
+
+/* × remove button: 28×28, red tones */
+.zones-gps-remove-btn {
+    -fx-background-color: #FEF2F2;
+    -fx-border-color: #FECACA;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-min-width: 28; -fx-min-height: 28;
+    -fx-max-width: 28; -fx-max-height: 28;
+    -fx-alignment: center;
+}
+.zones-gps-remove-btn:hover {
+    -fx-background-color: #FEE2E2;
+    -fx-border-color: #FCA5A5;
+}
+
+/* GPS section header: count badge inline */
+.zones-gps-count-badge {
+    -fx-background-color: #F0FDF4;
+    -fx-text-fill: #16A34A;
+    -fx-background-radius: 9999;
+    -fx-padding: 1 7;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+}

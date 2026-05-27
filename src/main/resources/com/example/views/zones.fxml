@@ -36,50 +36,43 @@
                 visible="false" managed="false" />
     </HBox>
 
-    <!-- ── Stat strip (Animals-style flat strip with separators) ─────── -->
-    <HBox styleClass="animals-stat-strip" fillHeight="true">
+    <!-- ── Stat cards row ─────────────────────────────────────────────── -->
+    <HBox spacing="16" styleClass="zones-kpi-strip">
+        <padding><Insets top="16" right="24" bottom="16" left="24" /></padding>
 
-        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
-              HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="TOTAL ZONES" styleClass="animals-stat-cell-title" />
-            <Label fx:id="statTotalZones" text="—" styleClass="animals-stat-number-green" />
-            <Label fx:id="statTotalSub"   text="all types" styleClass="animals-stat-cell-sub" />
+        <VBox HBox.hgrow="ALWAYS"
+              style="-fx-background-color: #4F46E5, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);" spacing="4">
+            <Label text="TOTAL ZONES" styleClass="zones-kpi-label" />
+            <Label fx:id="statTotalZones" text="—" styleClass="zones-kpi-value" />
+            <Label fx:id="statTotalSub"   text="all types" styleClass="zones-kpi-sub" />
         </VBox>
 
-        <Separator orientation="VERTICAL" />
-
-        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
-              HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="ACTIVE" styleClass="animals-stat-cell-title" />
-            <Label fx:id="statActiveZones" text="—" styleClass="animals-stat-number-green" />
-            <Label fx:id="statActiveSub"   text="all running" styleClass="animals-stat-cell-sub" />
+        <VBox HBox.hgrow="ALWAYS"
+              style="-fx-background-color: #16A34A, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);" spacing="4">
+            <Label text="ACTIVE" styleClass="zones-kpi-label" />
+            <Label fx:id="statActiveZones" text="—" styleClass="zones-kpi-value" />
+            <Label fx:id="statActiveSub"   text="all running" styleClass="zones-kpi-sub" />
         </VBox>
 
-        <Separator orientation="VERTICAL" />
-
-        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
-              HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="LIVESTOCK" styleClass="animals-stat-cell-title" />
-            <Label fx:id="statLivestockCount" text="—" styleClass="animals-stat-number-green" />
-            <Label fx:id="statLivestockSub"   text="no alerts" styleClass="animals-stat-cell-sub" />
+        <VBox HBox.hgrow="ALWAYS"
+              style="-fx-background-color: #D97706, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);" spacing="4">
+            <Label text="LIVESTOCK" styleClass="zones-kpi-label" />
+            <Label fx:id="statLivestockCount" text="—" styleClass="zones-kpi-value" />
+            <Label fx:id="statLivestockSub"   text="no alerts" styleClass="zones-kpi-sub" />
         </VBox>
 
-        <Separator orientation="VERTICAL" />
-
-        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
-              HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="CROP" styleClass="animals-stat-cell-title" />
-            <Label fx:id="statCropCount" text="—" styleClass="animals-stat-number-green" />
-            <Label fx:id="statCropSub"   text="no alerts" styleClass="animals-stat-cell-sub" />
+        <VBox HBox.hgrow="ALWAYS"
+              style="-fx-background-color: #059669, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);" spacing="4">
+            <Label text="CROP" styleClass="zones-kpi-label" />
+            <Label fx:id="statCropCount" text="—" styleClass="zones-kpi-value" />
+            <Label fx:id="statCropSub"   text="no alerts" styleClass="zones-kpi-sub" />
         </VBox>
 
-        <Separator orientation="VERTICAL" />
-
-        <VBox styleClass="animals-stat-cell" spacing="2" alignment="CENTER"
-              HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="AQUACULTURE" styleClass="animals-stat-cell-title" />
-            <Label fx:id="statAquaCount" text="—" styleClass="animals-stat-number-green" />
-            <Label fx:id="statAquaSub"   text="no alerts" styleClass="animals-stat-cell-sub" />
+        <VBox HBox.hgrow="ALWAYS"
+              style="-fx-background-color: #0891B2, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);" spacing="4">
+            <Label text="AQUACULTURE" styleClass="zones-kpi-label" />
+            <Label fx:id="statAquaCount" text="—" styleClass="zones-kpi-value" />
+            <Label fx:id="statAquaSub"   text="no alerts" styleClass="zones-kpi-sub" />
         </VBox>
 
     </HBox>

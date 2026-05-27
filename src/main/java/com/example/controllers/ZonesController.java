@@ -730,24 +730,52 @@ public class ZonesController {
 
         // GPS collar sensors
         if (!z.getGpsCollarSensors().isEmpty()) {
-            addSectionTitle("GPS Collar Sensors (" + z.getGpsCollarSensors().size() + ")");
+            addGpsSectionTitle("GPS Collar Sensors", z.getGpsCollarSensors().size());
             for (GPSCollarSensor sensor : new java.util.ArrayList<>(z.getGpsCollarSensors())) {
-                String info = sensor.getCode() + "  on " + sensor.getAnimal().getName()
-                    + (sensor.hasEscaped() ? "  ⚠ OUTSIDE ZONE" : "");
-                Label lbl = new Label(info);
-                lbl.getStyleClass().add(sensor.hasEscaped() ? "zones-sensor-name-alert" : "detail-value");
-                lbl.setWrapText(true);
+                boolean escaped = sensor.hasEscaped();
+
+                // Avatar circle with sensor short code
+                String shortCode = sensor.getCode().length() > 6
+                    ? sensor.getCode().substring(sensor.getCode().length() - 4)
+                    : sensor.getCode();
+                Label avatarLbl = new Label(shortCode);
+                avatarLbl.getStyleClass().addAll("zones-gps-avatar",
+                    escaped ? "zones-gps-avatar-alert" : "");
+                avatarLbl.setStyle("-fx-min-width:32;-fx-min-height:32;-fx-max-width:32;-fx-max-height:32;" +
+                    "-fx-background-radius:99;-fx-border-radius:99;-fx-alignment:center;" +
+                    (escaped
+                        ? "-fx-background-color:#FEF2F2;-fx-border-color:#FECACA;-fx-border-width:1;"
+                        : "-fx-background-color:#EFF6FF;-fx-border-color:#BFDBFE;-fx-border-width:1;"));
+                avatarLbl.getStyleClass().add(escaped ? "zones-gps-code-alert" : "zones-gps-code");
+
+                // Center VBox: sensor label + animal name (+ warning if escaped)
+                Label nameLbl = new Label("Sensor #" + sensor.getCode());
+                nameLbl.getStyleClass().add("zones-gps-name");
+                Label animalLbl = new Label(sensor.getAnimal().getName());
+                animalLbl.getStyleClass().add("zones-gps-animal");
+                VBox centerBox = new VBox(2, nameLbl, animalLbl);
+                if (escaped) {
+                    Label warnLbl = new Label("⚠ OUTSIDE ZONE");
+                    warnLbl.getStyleClass().add("zones-gps-warning");
+                    centerBox.getChildren().add(warnLbl);
+                }
+                HBox.setHgrow(centerBox, Priority.ALWAYS);
+
+                // × remove button
                 Button removeBtn = new Button("✕");
-                removeBtn.getStyleClass().add("btn-danger");
+                removeBtn.getStyleClass().add("zones-gps-remove-btn");
                 removeBtn.setOnAction(e -> {
                     sensor.getAnimal().removeGPSCollar();
                     z.removeGpsCollarSensor(sensor);
                     FarmService.getInstance().autoSave();
                     showLivestockDetail(z);
                 });
-                HBox row = new HBox(8, lbl, removeBtn);
+
+                HBox row = new HBox(10, avatarLbl, centerBox, removeBtn);
+                row.getStyleClass().add("zones-gps-row");
                 row.setAlignment(Pos.CENTER_LEFT);
-                HBox.setHgrow(lbl, Priority.ALWAYS);
+                row.setPadding(new Insets(10, 12, 10, 12));
+                VBox.setMargin(row, new Insets(0, 0, 2, 0));
                 detailPanel.getChildren().add(row);
             }
         } else {
@@ -1334,53 +1362,9 @@ public class ZonesController {
     // ── Add animal to zone dialog (Fix 4) — same logic as AnimalsController but zone pre-filled
 
     private void showAddAnimalInZoneDialog(LivestockZONE zone) {
-        TextField nameField    = new TextField(); nameField.setPromptText("e.g. Bessie");
-        TextField speciesField = new TextField(); speciesField.setPromptText("e.g. Cow, Sheep");
-        TextField ageField     = new TextField("1");
-        TextField weightField  = new TextField("100.0");
-
-        ComboBox<String> typeCombo = new ComboBox<>();
-        typeCombo.getItems().addAll("RUMINANT", "POULTRY");
-        typeCombo.setValue(zone.getType().toString());
-
-        VBox form = new VBox(14,
-            formGroup("Name",        nameField),
-            formGroup("Species",     speciesField),
-            formGroup("Type",        typeCombo),
-            formGroup("Age (years)", ageField),
-            formGroup("Weight (kg)", weightField)
-        );
-        form.setPadding(new Insets(20, 24, 8, 24));
-
-        Dialog<Animal> dialog = new Dialog<>();
-        dialog.setTitle("Add Animal");
-        dialog.setHeaderText("Add animal to \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(420);
-        applyDialogStyle(dialog);
-
-        Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okBtn.setText("Add Animal");
-        okBtn.setDisable(true);
-        Runnable validate = () -> okBtn.setDisable(
-            nameField.getText().trim().isEmpty() || speciesField.getText().trim().isEmpty());
-        nameField.textProperty().addListener((obs, o, n) -> validate.run());
-        speciesField.textProperty().addListener((obs, o, n) -> validate.run());
-
-        dialog.setResultConverter(bt -> {
-            if (bt != ButtonType.OK) return null;
-            try {
-                return animalService.addAnimal(
-                    nameField.getText().trim(),
-                    speciesField.getText().trim(),
-                    LIvestockType.valueOf(typeCombo.getValue()),
-                    Integer.parseInt(ageField.getText().trim()),
-                    Double.parseDouble(weightField.getText().trim()),
-                    zone);
-            } catch (NumberFormatException e) { return null; }
-        });
-
+        String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        AddAnimalDialog dialog = new AddAnimalDialog(css, animalService,
+            java.util.List.of(zone), "Add animal to \"" + zone.getName() + "\"");
         dialog.showAndWait().ifPresent(animal -> {
             lsData.setAll(zoneService.getLivestockZones());
             showLivestockDetail(zone);
@@ -1580,43 +1564,8 @@ public class ZonesController {
     // ── Edit Feeding Program ──────────────────────────────────────────
 
     private void showEditFeedingProgramDialog(LivestockZONE zone, FeedingProgram fp) {
-        TextField foodField     = new TextField(fp.getFoodType());
-        TextField quantityField = new TextField(String.valueOf(fp.getQuantity()));
-        TextField scheduleField = new TextField(String.join(", ", fp.getSchedule()));
-        Label infoLbl = new Label("Wake: " + fp.getWakeUpTime() + "   Sleep: " + fp.getSleepTime()
-            + "   (to change wake/sleep, recreate the program)");
-        infoLbl.getStyleClass().add("text-muted");
-        infoLbl.setWrapText(true);
-        VBox form = new VBox(14,
-            formGroup("Food Type", foodField),
-            formGroup("Quantity per day (kg)", quantityField),
-            formGroup("Schedule (HH:mm, comma-separated)", scheduleField),
-            infoLbl
-        );
-        form.setPadding(new Insets(20, 24, 8, 24));
-        Dialog<Boolean> dialog = new Dialog<>();
-        dialog.setTitle("Edit Feeding Program");
-        dialog.setHeaderText("Edit feeding program for \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(440);
-        applyDialogStyle(dialog);
-        ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Save");
-        dialog.setResultConverter(bt -> {
-            if (bt != ButtonType.OK) return null;
-            try {
-                fp.setFoodType(foodField.getText().trim());
-                fp.setQuantity(Double.parseDouble(quantityField.getText().trim()));
-                fp.setSchedule(Arrays.asList(scheduleField.getText().trim().split("\\s*,\\s*")));
-                return Boolean.TRUE;
-            } catch (Exception e) {
-                Alert err = new Alert(Alert.AlertType.ERROR);
-                err.setTitle("Invalid Input"); err.setHeaderText(null);
-                err.setContentText("Check quantity (number) and schedule (HH:mm).\n" + e.getMessage());
-                err.showAndWait();
-                return null;
-            }
-        });
+        String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        EditFeedingProgramDialog dialog = new EditFeedingProgramDialog(css, zone, fp);
         dialog.showAndWait().ifPresent(ok -> {
             FarmService.getInstance().autoSave();
             showLivestockDetail(zone);
@@ -1632,38 +1581,8 @@ public class ZonesController {
             warn.setContentText("Add animals to this zone before attaching a bio sensor.");
             warn.showAndWait(); return;
         }
-        ComboBox<Animal> animalCombo = new ComboBox<>();
-        animalCombo.getItems().addAll(zone.getAnimals());
-        animalCombo.setValue(zone.getAnimals().get(0));
-        animalCombo.setConverter(new StringConverter<>() {
-            @Override public String toString(Animal a) { return a == null ? "" : a.getName(); }
-            @Override public Animal fromString(String s) { return null; }
-        });
-        ComboBox<BioMeasureType> typeCombo = new ComboBox<>();
-        typeCombo.getItems().addAll(BioMeasureType.values());
-        typeCombo.setValue(BioMeasureType.Temperature);
-        TextField minField = new TextField("36.0");
-        TextField maxField = new TextField("39.5");
-        VBox form = new VBox(14, formGroup("Animal", animalCombo),
-            formGroup("Measure Type", typeCombo),
-            formGroup("Min Threshold", minField), formGroup("Max Threshold", maxField));
-        form.setPadding(new Insets(20, 24, 8, 24));
-        Dialog<BioSensor> dialog = new Dialog<>();
-        dialog.setTitle("Add Bio Sensor");
-        dialog.setHeaderText("Attach bio sensor in \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(420);
-        applyDialogStyle(dialog);
-        ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Add Sensor");
-        dialog.setResultConverter(bt -> {
-            if (bt != ButtonType.OK) return null;
-            try {
-                double min = Double.parseDouble(minField.getText().trim());
-                double max = Double.parseDouble(maxField.getText().trim());
-                return new BioSensor(animalCombo.getValue(), typeCombo.getValue(), min, max);
-            } catch (NumberFormatException e) { return null; }
-        });
+        String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        AddBioSensorDialog dialog = new AddBioSensorDialog(css, zone);
         dialog.showAndWait().ifPresent(sensor -> {
             sensor.getAnimal().attachBioSensor(sensor);
             zone.addBioSensor(sensor);
@@ -1777,21 +1696,8 @@ public class ZonesController {
     // ── Shared zone action dialogs ────────────────────────────────────
 
     private void showRenameZoneDialog(ZONE zone, Runnable onSuccess) {
-        TextField nameField = new TextField(zone.getName());
-        VBox form = new VBox(14, formGroup("New name", nameField));
-        form.setPadding(new Insets(20, 24, 8, 24));
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Rename Zone");
-        dialog.setHeaderText("Rename \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(360);
-        applyDialogStyle(dialog);
-        Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okBtn.setText("Rename");
-        okBtn.setDisable(true);
-        nameField.textProperty().addListener((obs, o, n) -> okBtn.setDisable(n.trim().isEmpty()));
-        dialog.setResultConverter(bt -> bt == ButtonType.OK ? nameField.getText().trim() : null);
+        String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        RenameZoneDialog dialog = new RenameZoneDialog(css, zone);
         dialog.showAndWait().ifPresent(name -> { zoneService.renameZone(zone, name); onSuccess.run(); });
     }
 
@@ -1881,6 +1787,21 @@ public class ZonesController {
         HBox.setHgrow(lbl, Priority.ALWAYS);
         header.getChildren().add(lbl);
         if (actionBtn != null) header.getChildren().add(actionBtn);
+        detailPanel.getChildren().add(header);
+    }
+
+    private void addGpsSectionTitle(String baseName, int count) {
+        HBox header = new HBox(6);
+        header.getStyleClass().add("zones-section-header");
+        header.setMaxWidth(Double.MAX_VALUE);
+        header.setAlignment(Pos.CENTER_LEFT);
+        VBox.setMargin(header, new Insets(16, 0, 10, 0));
+        Label lbl = new Label(baseName.toUpperCase());
+        lbl.getStyleClass().add("zones-section-header-text");
+        Label badge = new Label(String.valueOf(count));
+        badge.getStyleClass().add("zones-gps-count-badge");
+        HBox.setHgrow(lbl, Priority.ALWAYS);
+        header.getChildren().addAll(lbl, badge);
         detailPanel.getChildren().add(header);
     }
 

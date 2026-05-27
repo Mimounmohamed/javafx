@@ -24,6 +24,7 @@ public class MainController {
     @FXML private Label  alertBadge;
     @FXML private Label  sidebarFarmName;
     @FXML private Label  sidebarAlertBadge;
+    @FXML private Label  avatarLabel;
 
     @FXML private Button btnDashboard;
     @FXML private Button btnZones;
@@ -49,6 +50,13 @@ public class MainController {
         String farmName = FarmService.getInstance().getFarmName();
         farmNameLabel.setText(farmName);
         if (sidebarFarmName != null) sidebarFarmName.setText(farmName);
+        if (avatarLabel != null) {
+            String[] words = farmName.trim().split("\\s+");
+            String initials = words.length >= 2
+                ? "" + words[0].charAt(0) + words[1].charAt(0)
+                : farmName.isEmpty() ? "F" : String.valueOf(farmName.charAt(0));
+            avatarLabel.setText(initials.toUpperCase());
+        }
         startClock();
         updateAlertBadge();
         setActive(btnDashboard);
@@ -100,11 +108,21 @@ public class MainController {
 
     // ── Active nav highlight ─────────────────────────────────────────
 
+    private static final String NAV_ACTIVE_STYLE =
+        "-fx-background-color: #16A34A;" +
+        "-fx-text-fill: white;" +
+        "-fx-font-weight: 600;" +
+        "-fx-background-radius: 0 8 8 0;";
+
     private void setActive(Button btn) {
-        if (activeBtn != null) activeBtn.getStyleClass().remove("nav-active");
+        if (activeBtn != null) {
+            activeBtn.getStyleClass().remove("nav-active");
+            activeBtn.setStyle("");
+        }
         activeBtn = btn;
         if (!btn.getStyleClass().contains("nav-active"))
             btn.getStyleClass().add("nav-active");
+        btn.setStyle(NAV_ACTIVE_STYLE);
         updateAlertBadge();
     }
 
