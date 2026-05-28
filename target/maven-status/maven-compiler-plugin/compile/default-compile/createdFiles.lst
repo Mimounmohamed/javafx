@@ -3,9 +3,11 @@ ZONES\LivestockZONE.class
 com\example\utils\FarmRepository$SavedZone.class
 com\example\controllers\AddAnimalDialog$1.class
 Menu\DemoData.class
+com\example\controllers\AddZoneDialog$1.class
 com\example\services\SimulationService.class
 Entities\AquacultureSpecies$HarvestRecord.class
 com\example\controllers\DashboardController$1.class
+com\example\controllers\AlertsController$5.class
 com\example\controllers\ReportsController.class
 Animals\AnimalHealthStatus.class
 com\example\controllers\StartupController$FarmCell.class
@@ -41,6 +43,7 @@ module-info.class
 Alerts\AlertType.class
 com\example\App.class
 com\example\controllers\DashboardController$2.class
+com\example\controllers\AlertsController$7.class
 Reports\ReportLiveStockZone$1.class
 Reports\ReportType.class
 com\example\controllers\SensorChartDialog$1.class
@@ -52,6 +55,7 @@ com\example\controllers\AnimalsController$1.class
 com\example\services\ReportService$1.class
 com\example\controllers\SensorHistoryDialog.class
 com\example\controllers\ZoneMapDialog.class
+com\example\controllers\AlertsController$6.class
 com\example\controllers\SimulationController.class
 com\example\controllers\ZoneAlertHistoryDialog.class
 com\example\controllers\AnimalsController.class
@@ -73,6 +77,7 @@ com\example\controllers\ZoneAlertHistoryDialog$3.class
 Sensors\WaterMeasureType.class
 com\example\controllers\ZonesController$4.class
 Alerts\AlertSeverity.class
+com\example\controllers\AlertsController$4.class
 Reports\AquacultureProductionReport.class
 Entities\SoilRequirements.class
 Sensors\GPSCollarSensor.class
@@ -87,6 +92,7 @@ com\example\controllers\AddAnimalDialog.class
 com\example\controllers\DashboardController$3.class
 Entities\CropType.class
 Reports\CropProductionReport.class
+com\example\controllers\AddZoneDialog$3.class
 Sensors\EnvSensor.class
 com\example\controllers\ZonesController.class
 Alerts\AlertResolution.class
@@ -106,6 +112,7 @@ com\example\controllers\EditFeedingProgramDialog.class
 com\example\utils\RandomFarmGenerator.class
 com\example\utils\FarmRepository$SavedFarm.class
 Entities\LIvestockType.class
+com\example\controllers\AddZoneDialog$2.class
 com\example\controllers\DashboardController.class
 Sensors\SoilSensor.class
 Sensors\EnvMeasureType.class

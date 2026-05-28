@@ -42,24 +42,31 @@ public class ReportsController {
     @FXML private Label  farmNameLabel;
     @FXML private Label  farmSubLabel;
 
-    private final ZoneService    zoneService    = ZoneService.getInstance();
-    private final AlertService   alertService   = AlertService.getInstance();
-    private final AnimalService  animalService  = AnimalService.getInstance();
-    private final SensorService  sensorService  = SensorService.getInstance();
-    private final FarmService    farmService    = FarmService.getInstance();
-    private final ReportService  reportService  = ReportService.getInstance();
+    private ZoneService    zoneService;
+    private AlertService   alertService;
+    private AnimalService  animalService;
+    private SensorService  sensorService;
+    private FarmService    farmService;
+    private ReportService  reportService;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("MM/dd");
 
     @FXML
     public void initialize() {
         try {
+            zoneService    = ZoneService.getInstance();
+            alertService   = AlertService.getInstance();
+            animalService  = AnimalService.getInstance();
+            sensorService  = SensorService.getInstance();
+            farmService    = FarmService.getInstance();
+            reportService  = ReportService.getInstance();
+
             farmNameLabel.setText(farmService.getFarmName());
             farmSubLabel.setText(farmService.getFarmLocation());
             showOverview();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Label err = new Label("Reports failed to load: " + e.getMessage());
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Label err = new Label("Reports failed to load: " + t.getMessage());
             err.setWrapText(true);
             err.getStyleClass().add("text-muted");
             err.setPadding(new Insets(24));

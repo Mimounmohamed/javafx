@@ -31,43 +31,38 @@
         <Button text="➕ Add Animal" onAction="#showAddAnimalDialog" styleClass="btn-primary" />
     </HBox>
 
-    <!-- ── Stat strip (flat, no card gaps, color-coded cells) ────────── -->
-    <HBox styleClass="animals-stat-strip" fillHeight="true">
+    <!-- ── Stats cards row ───────────────────────────────────────────── -->
+    <HBox spacing="16"
+          style="-fx-background-color: #F5F5F3; -fx-border-color: transparent transparent #e0e0e0 transparent; -fx-border-width: 0 0 1 0;">
+        <padding><Insets top="16" right="24" bottom="16" left="24" /></padding>
 
-        <VBox styleClass="animals-stat-cell" spacing="3" alignment="CENTER"
-              HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="TOTAL ANIMALS" styleClass="animals-stat-cell-title" />
-            <Label fx:id="statTotalAnimals" text="—" styleClass="animals-stat-number-green" />
-            <Label text="registered"    styleClass="animals-stat-cell-sub" />
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #6366F1, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <Label fx:id="statTotalAnimals" text="—" styleClass="zones-kpi-value" />
+            <Label text="TOTAL ANIMALS" styleClass="zones-kpi-label" />
+            <Label text="registered" styleClass="zones-kpi-sub" />
         </VBox>
 
-        <Separator orientation="VERTICAL" />
-
-        <VBox styleClass="animals-stat-cell" spacing="3" alignment="CENTER"
-              HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="HEALTHY" styleClass="animals-stat-cell-title" />
-            <Label fx:id="statHealthy" text="—" styleClass="animals-stat-number-green" />
-            <Label text="no issues" styleClass="animals-stat-cell-sub" />
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #16A34A, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(22,163,74,0.12), 8, 0, 0, 2);">
+            <Label fx:id="statHealthy" text="—" styleClass="zones-kpi-value" />
+            <Label text="HEALTHY" styleClass="zones-kpi-label" />
+            <Label text="no issues" styleClass="zones-kpi-sub" />
         </VBox>
 
-        <Separator orientation="VERTICAL" />
-
-        <VBox styleClass="animals-stat-cell animals-stat-cell-danger" spacing="3" alignment="CENTER"
-              HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="SICK" styleClass="animals-stat-cell-title" />
-            <Label fx:id="statSick" text="—" styleClass="animals-stat-number-danger" />
-            <Label text="need attention" styleClass="animals-stat-cell-sub" />
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #DC2626, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(220,38,38,0.12), 8, 0, 0, 2);">
+            <Label fx:id="statSick" text="—" styleClass="zones-kpi-value" />
+            <Label text="SICK" styleClass="zones-kpi-label" />
+            <Label text="need attention" styleClass="zones-kpi-sub" />
         </VBox>
 
-        <Separator orientation="VERTICAL" />
-
-        <VBox styleClass="animals-stat-cell animals-stat-cell-warn" spacing="3" alignment="CENTER"
-              HBox.hgrow="ALWAYS" maxWidth="Infinity">
-            <Label text="QUARANTINED" styleClass="animals-stat-cell-title" />
-            <Label fx:id="statQuarantined" text="—" styleClass="animals-stat-number-warn" />
-            <Label text="isolated" styleClass="animals-stat-cell-sub" />
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #D97706, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(217,119,6,0.12), 8, 0, 0, 2);">
+            <Label fx:id="statQuarantined" text="—" styleClass="zones-kpi-value" />
+            <Label text="QUARANTINED" styleClass="zones-kpi-label" />
+            <Label text="isolated" styleClass="zones-kpi-sub" />
         </VBox>
-
     </HBox>
 
     <!-- ── Main split: list ‖ detail ─────────────────────────────────── -->

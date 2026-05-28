@@ -71,9 +71,19 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
 
         setTitle("Boundary Editor — " + name);
         setHeaderText(null);
-        getDialogPane().setMinWidth(780);
-        getDialogPane().setMinHeight(640);
+        getDialogPane().setMinWidth(820);
+        getDialogPane().setPrefWidth(920);
+        getDialogPane().setPrefHeight(660);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Make the dialog window resizable
+        setOnShown(ev -> {
+            if (getDialogPane().getScene().getWindow() instanceof javafx.stage.Stage st) {
+                st.setResizable(true);
+                st.setMinWidth(820);
+                st.setMinHeight(560);
+            }
+        });
 
         if (!styleSheets.isEmpty())
             getDialogPane().getStylesheets().add(styleSheets.get(0));
@@ -173,7 +183,7 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
             boundsBar.setStyle("-fx-opacity: 0.5;");
         }
 
-        canvas = new Canvas(520, 360);
+        canvas = new Canvas(600, 360);
         redrawCanvas();
 
         drawnList = new ListView<>();
@@ -244,6 +254,16 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
 
         HBox canvasRow = new HBox(8, canvas, drawnList);
         canvasRow.setPadding(new Insets(0, 8, 0, 8));
+        VBox.setVgrow(canvasRow, Priority.ALWAYS);
+
+        // Resize canvas dynamically when the dialog is resized
+        canvasRow.widthProperty().addListener((obs, o, newW) -> {
+            double w = newW.doubleValue() - drawnList.getPrefWidth() - 24;
+            if (w > 300) { canvas.setWidth(w); redrawCanvas(); }
+        });
+        canvasRow.heightProperty().addListener((obs, o, newH) -> {
+            if (newH.doubleValue() > 200) { canvas.setHeight(newH.doubleValue()); redrawCanvas(); }
+        });
 
         Button undoBtn = new Button("↩ Undo Last");
         undoBtn.getStyleClass().add("btn-secondary");
@@ -282,6 +302,8 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
         actionBar.setPadding(new Insets(4, 8, 4, 8));
 
         VBox root = new VBox(boundsBar, canvasRow, drawStatusLabel, actionBar);
+        VBox.setVgrow(canvasRow, Priority.ALWAYS);
+        VBox.setVgrow(root, Priority.ALWAYS);
         VBox.setMargin(drawStatusLabel, new Insets(2, 8, 0, 8));
         return new Tab("✏ Draw", root);
     }
@@ -767,6 +789,17 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
 
         VBox textBox = new VBox(2, titleLbl, subLbl);
 
+        Button maxBtn = new Button("⛶");
+        maxBtn.getStyleClass().add("dialog-header-close-btn");
+        maxBtn.setStyle("-fx-font-size: 14px;");
+        maxBtn.setOnAction(e -> {
+            if (getDialogPane().getScene().getWindow() instanceof javafx.stage.Stage st) {
+                boolean nowMax = !st.isMaximized();
+                st.setMaximized(nowMax);
+                maxBtn.setText(nowMax ? "❐" : "⛶");
+            }
+        });
+
         Button closeBtn = new Button("✕");
         closeBtn.getStyleClass().add("dialog-header-close-btn");
         closeBtn.setOnAction(e -> {
@@ -777,7 +810,7 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox header = new HBox(12, iconLbl, textBox, spacer, closeBtn);
+        HBox header = new HBox(8, iconLbl, textBox, spacer, maxBtn, closeBtn);
         header.setAlignment(Pos.CENTER_LEFT);
         header.getStyleClass().add("dialog-custom-header");
         return header;

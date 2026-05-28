@@ -14,13 +14,22 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
+import java.time.format.DateTimeFormatter;
 
 public class AlertsController {
 
@@ -42,11 +51,8 @@ public class AlertsController {
     @FXML private Label statResolved;
 
     @FXML private VBox   detailPanel;
-    @FXML private Label  detailMessage;
-    @FXML private Label  detailZone;
-    @FXML private Label  detailTimestamp;
-    @FXML private Label  detailResolution;
-    @FXML private Label  detailTrigger;
+    @FXML private VBox   detailSeverityBanner;
+    @FXML private VBox   detailInfoCard;
     @FXML private Button btnAcknowledge;
     @FXML private Button btnResolve;
     @FXML private Button btnDismiss;
@@ -54,6 +60,10 @@ public class AlertsController {
     private ObservableList<Alert> allAlerts;
     private FilteredList<Alert>   filteredAlerts;
     private final AlertService    alertService = AlertService.getInstance();
+
+    private static final DateTimeFormatter DATE_FMT   = DateTimeFormatter.ofPattern("MMM dd, yyyy");
+    private static final DateTimeFormatter TIME_FMT   = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter DETAIL_FMT = DateTimeFormatter.ofPattern("MMM dd, yyyy  HH:mm");
 
     @FXML
     public void initialize() {
@@ -69,33 +79,101 @@ public class AlertsController {
     // ── Table ─────────────────────────────────────────────────────────
 
     private void setupTable() {
-        colTime.setCellValueFactory(d ->
-            new SimpleStringProperty(d.getValue().getTimestamp().toString().substring(0, 16)));
-        colType.setCellValueFactory(d ->
-            new SimpleStringProperty(d.getValue().getType().toString()));
-        colMessage.setCellValueFactory(d ->
-            new SimpleStringProperty(d.getValue().getMessage()));
+        // Row factory — severity left stripe
+        alertTable.setRowFactory(tv -> new TableRow<>() {
+            @Override protected void updateItem(Alert item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().removeIf(c -> c.startsWith("alert-row-"));
+                if (!empty && item != null) {
+                    if (item.getSeverity() == AlertSeverity.Critical)
+                        getStyleClass().add("alert-row-critical");
+                    else if (item.getSeverity() == AlertSeverity.Warning)
+                        getStyleClass().add("alert-row-warning");
+                }
+            }
+        });
 
+        // Time column — two-line date + time
+        colTime.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getTimestamp().toString()));
+        colTime.setCellFactory(col -> new TableCell<>() {
+            private final Label dateLbl = new Label();
+            private final Label timeLbl = new Label();
+            private final VBox  box     = new VBox(1, dateLbl, timeLbl);
+            {
+                dateLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #111827;");
+                timeLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #6B7280;");
+                box.setPadding(new Insets(2, 0, 2, 0));
+            }
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null); return;
+                }
+                Alert a = (Alert) getTableRow().getItem();
+                dateLbl.setText(a.getTimestamp().format(DATE_FMT));
+                timeLbl.setText(a.getTimestamp().format(TIME_FMT));
+                setGraphic(box);
+            }
+        });
+
+        // Type column — colored badge pill
+        colType.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getType().toString()));
+        colType.setCellFactory(col -> new TableCell<>() {
+            private final Label badge = new Label();
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null); return;
+                }
+                Alert a = (Alert) getTableRow().getItem();
+                badge.setText(alertTypeLabel(a.getType()));
+                badge.setStyle("-fx-background-radius: 9999; -fx-padding: 2 8; -fx-font-size: 10px; -fx-font-weight: 700;"
+                    + alertTypeBadgeStyle(a.getType()));
+                setGraphic(badge);
+            }
+        });
+
+        // Message column — tooltip on hover
+        colMessage.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getMessage()));
+        colMessage.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); setTooltip(null); return; }
+                setText(item);
+                setStyle("-fx-text-overrun: ellipsis;");
+                setTooltip(new Tooltip(item));
+            }
+        });
+
+        // Severity column — badge
+        colSeverity.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getSeverity().toString()));
         colSeverity.setCellFactory(col -> new TableCell<>() {
             private final Label badge = new Label();
             { badge.getStyleClass().add("badge"); }
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || getTableRow() == null || getTableRow().getItem() == null) { setGraphic(null); return; }
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null); return;
+                }
                 Alert a = (Alert) getTableRow().getItem();
                 badge.setText(a.getSeverity().toString());
                 badge.getStyleClass().removeIf(c -> c.startsWith("badge-"));
-                badge.getStyleClass().add(a.getSeverity() == AlertSeverity.Critical ? "badge-critical" : "badge-warning");
+                badge.getStyleClass().add(a.getSeverity() == AlertSeverity.Critical
+                    ? "badge-critical" : "badge-warning");
                 setGraphic(badge);
             }
         });
 
+        // Status column — badge
+        colStatus.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getResolution().toString()));
         colStatus.setCellFactory(col -> new TableCell<>() {
             private final Label badge = new Label();
             { badge.getStyleClass().add("badge"); }
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || getTableRow() == null || getTableRow().getItem() == null) { setGraphic(null); return; }
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null); return;
+                }
                 Alert a = (Alert) getTableRow().getItem();
                 badge.setText(a.getResolution().toString());
                 badge.getStyleClass().removeIf(c -> c.startsWith("badge-"));
@@ -116,6 +194,28 @@ public class AlertsController {
         };
     }
 
+    private String alertTypeLabel(AlertType t) {
+        return switch (t) {
+            case BioSensorAlert   -> "🧬 Bio Sensor";
+            case WaterSensorAlert -> "💧 Water Sensor";
+            case SoilSensorAlert  -> "🌱 Soil Sensor";
+            case EnvSensorAlert   -> "🌡 Environment";
+            case GPS_ESCAPE_ALERT -> "📍 GPS Escape";
+            case HEALTH_ALERT     -> "🐾 Health";
+        };
+    }
+
+    private String alertTypeBadgeStyle(AlertType t) {
+        return switch (t) {
+            case BioSensorAlert   -> "-fx-background-color: #DCFCE7; -fx-text-fill: #16A34A;";
+            case WaterSensorAlert -> "-fx-background-color: #DBEAFE; -fx-text-fill: #2563EB;";
+            case SoilSensorAlert  -> "-fx-background-color: #FEF3C7; -fx-text-fill: #D97706;";
+            case EnvSensorAlert   -> "-fx-background-color: #EDE9FE; -fx-text-fill: #7C3AED;";
+            case GPS_ESCAPE_ALERT -> "-fx-background-color: #FFEDD5; -fx-text-fill: #EA580C;";
+            case HEALTH_ALERT     -> "-fx-background-color: #FEE2E2; -fx-text-fill: #DC2626;";
+        };
+    }
+
     // ── Filters ───────────────────────────────────────────────────────
 
     private void setupFilters() {
@@ -131,7 +231,7 @@ public class AlertsController {
 
         filterZone.getItems().add("All Zones");
         allAlerts.stream()
-            .map(a -> a.getZoneName())
+            .map(Alert::getZoneName)
             .filter(n -> !"N/A".equals(n))
             .distinct().sorted()
             .forEach(filterZone.getItems()::add);
@@ -160,29 +260,89 @@ public class AlertsController {
     // ── Detail panel ─────────────────────────────────────────────────
 
     private void showDetail(Alert alert) {
-        detailMessage.setText(alert.getMessage());
-        ZONE zone = alert.getZone();
-        detailZone.setText(zone != null ? zone.getName() : "N/A");
-        detailTimestamp.setText(alert.getTimestamp().toString().substring(0, 16));
-        detailResolution.setText(alert.getResolution().toString());
+        // Severity banner
+        detailSeverityBanner.getChildren().clear();
+        String bannerBg  = alert.getSeverity() == AlertSeverity.Critical ? "#FEF2F2" : "#FFFBEB";
+        String bannerBdr = alert.getSeverity() == AlertSeverity.Critical ? "#DC2626" : "#D97706";
+        detailSeverityBanner.setStyle(
+            "-fx-background-color: " + bannerBg + ";" +
+            "-fx-border-color: " + bannerBdr + ";" +
+            "-fx-border-width: 0 0 0 4;" +
+            "-fx-padding: 14 16;");
 
-        if (alert instanceof HealthAlert ha) {
-            String animal = ha.getTriggerReading().getAnimal().getName();
-            String event  = ha.getTriggerReading().getEventType().toString();
-            String desc   = ha.getTriggerReading().getDescription();
-            detailTrigger.setText("Animal: " + animal + " — " + event + (desc != null && !desc.isBlank() ? " (" + desc + ")" : ""));
-        } else if (alert instanceof SensorAlert sa) {
-            String code = sa.getTriggerReading().getSensor().getCode();
-            String val  = sa.getTriggerReading() instanceof NumericSensorReading nr
-                ? String.format("%.2f %s", nr.getValue(), nr.getUnit()) : "GPS reading";
-            detailTrigger.setText("Sensor: " + code + " — value: " + val);
-        } else {
-            detailTrigger.setText("—");
-        }
+        HBox headerRow = new HBox(8);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label typeBadge = new Label(alertTypeLabel(alert.getType()));
+        typeBadge.setStyle(
+            "-fx-background-radius: 9999; -fx-padding: 2 8; -fx-font-size: 10px; -fx-font-weight: 700;" +
+            alertTypeBadgeStyle(alert.getType()));
+
+        String sevBg = alert.getSeverity() == AlertSeverity.Critical ? "#DC2626" : "#D97706";
+        Label sevBadge = new Label(alert.getSeverity().toString().toUpperCase());
+        sevBadge.setStyle(
+            "-fx-background-color: " + sevBg + "; -fx-text-fill: white;" +
+            "-fx-background-radius: 9999; -fx-padding: 2 8; -fx-font-size: 10px; -fx-font-weight: 700;");
+
+        Label statusBadge = new Label(alert.getResolution().toString());
+        statusBadge.getStyleClass().addAll("badge", resolutionCss(alert.getResolution()));
+
+        headerRow.getChildren().addAll(typeBadge, sevBadge, statusBadge);
+
+        Label msgLbl = new Label(alert.getMessage());
+        msgLbl.setWrapText(true);
+        msgLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #111827; -fx-padding: 8 0 0 0;");
+
+        detailSeverityBanner.getChildren().addAll(headerRow, msgLbl);
+
+        // Info card
+        detailInfoCard.getChildren().clear();
+        detailInfoCard.setStyle(
+            "-fx-background-color: #F9FAFB; -fx-border-color: #E5E7EB;" +
+            "-fx-border-radius: 8; -fx-background-radius: 8; -fx-border-width: 1; -fx-padding: 0;");
+
+        addDetailRow(detailInfoCard, "Zone",    alert.getZone() != null ? alert.getZone().getName() : "N/A", false);
+        addDetailRow(detailInfoCard, "Time",    alert.getTimestamp().format(DETAIL_FMT), true);
+        addDetailRow(detailInfoCard, "Status",  alert.getResolution().toString(), true);
+        addDetailRow(detailInfoCard, "Trigger", buildTriggerText(alert), true);
 
         btnAcknowledge.setDisable(!alert.isActive());
         btnResolve.setDisable(alert.isResolved() || alert.isDismissed());
         btnDismiss.setDisable(alert.isDismissed());
+    }
+
+    private void addDetailRow(VBox container, String key, String value, boolean withDivider) {
+        if (withDivider) container.getChildren().add(new Separator());
+        HBox row = new HBox(8);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(8, 12, 8, 12));
+
+        Label keyLbl = new Label(key);
+        keyLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #6B7280; -fx-min-width: 56;");
+
+        Label valLbl = new Label(value);
+        valLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #111827;");
+        valLbl.setWrapText(true);
+        HBox.setHgrow(valLbl, Priority.ALWAYS);
+
+        row.getChildren().addAll(keyLbl, valLbl);
+        container.getChildren().add(row);
+    }
+
+    private String buildTriggerText(Alert alert) {
+        if (alert instanceof HealthAlert ha) {
+            String animal = ha.getTriggerReading().getAnimal().getName();
+            String event  = ha.getTriggerReading().getEventType().toString();
+            String desc   = ha.getTriggerReading().getDescription();
+            return "Animal: " + animal + " — " + event +
+                (desc != null && !desc.isBlank() ? " (" + desc + ")" : "");
+        } else if (alert instanceof SensorAlert sa) {
+            String code = sa.getTriggerReading().getSensor().getCode();
+            String val  = sa.getTriggerReading() instanceof NumericSensorReading nr
+                ? String.format("%.2f %s", nr.getValue(), nr.getUnit()) : "GPS reading";
+            return "Sensor: " + code + " — value: " + val;
+        }
+        return "—";
     }
 
     // ── Actions ───────────────────────────────────────────────────────

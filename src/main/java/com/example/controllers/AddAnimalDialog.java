@@ -76,10 +76,16 @@ public class AddAnimalDialog extends Dialog<Animal> {
         // ── Section: ASSIGNMENT ──────────────────────────────────────
         Label zoneHint = new Label("Animal will be placed in this zone immediately");
         zoneHint.getStyleClass().add("dialog-hint");
+
+        Label gpsBoundaryNote = new Label();
+        updateGpsBoundaryNote(gpsBoundaryNote, zoneCombo.getValue());
+        zoneCombo.setOnAction(e -> updateGpsBoundaryNote(gpsBoundaryNote, zoneCombo.getValue()));
+
         VBox assignSection = new VBox(10,
             sectionLabel("ASSIGNMENT"),
             formGroup("Zone *", zoneCombo),
-            zoneHint
+            zoneHint,
+            gpsBoundaryNote
         );
 
         // ── Body ──────────────────────────────────────────────────────
@@ -150,6 +156,17 @@ public class AddAnimalDialog extends Dialog<Animal> {
         header.setAlignment(Pos.CENTER_LEFT);
         header.getStyleClass().add("dialog-custom-header");
         return header;
+    }
+
+    private static void updateGpsBoundaryNote(Label lbl, LivestockZONE zone) {
+        if (zone == null) { lbl.setText(""); return; }
+        if (zone.hasBoundaries()) {
+            lbl.setText("✓  Zone has a boundary — GPS escape alerts will be active");
+            lbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #16A34A;");
+        } else {
+            lbl.setText("⚠  Zone has no boundary — GPS escape alerts won't fire until one is drawn");
+            lbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #D97706;");
+        }
     }
 
     private static void styleField(TextField tf) {

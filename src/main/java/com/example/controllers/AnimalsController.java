@@ -99,7 +99,7 @@ public class AnimalsController {
     // ── Table setup ───────────────────────────────────────────────────
 
     private void setupTable() {
-        colId.setCellValueFactory(d      -> new SimpleStringProperty(d.getValue().getId().substring(0, 8)));
+        colId.setCellValueFactory(d      -> new SimpleStringProperty("#" + d.getValue().getId().substring(0, 4).toUpperCase()));
         colName.setCellValueFactory(d    -> new SimpleStringProperty(d.getValue().getName()));
         colSpecies.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getSpecies()));
         colType.setCellValueFactory(d    -> new SimpleStringProperty(d.getValue().getType().toString()));

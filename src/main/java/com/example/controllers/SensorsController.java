@@ -13,8 +13,12 @@ import Sensors.SensorStatus;
 import Sensors.SoilSensor;
 import Sensors.WaterSensor;
 import com.example.services.SensorService;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -24,35 +28,51 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SensorsController {
 
-    @FXML private FlowPane         sensorGrid;
-    @FXML private ComboBox<String> filterType;
-    @FXML private ComboBox<String> filterSeverity;
-    @FXML private ComboBox<String> filterStatus;
-    @FXML private ComboBox<String> filterZone;
-    @FXML private VBox             chartContainer;
-    @FXML private VBox             sensorActions;
-    @FXML private Label            detailTitle;
-    @FXML private Label            detailZone;
-    @FXML private Label            detailStatus;
-    @FXML private Label            detailReading;
+    @FXML private TilePane          sensorGrid;
+    @FXML private VBox              noSelectionState;
+    @FXML private VBox              detailContent;
+    @FXML private VBox              gridEmptyState;
+    @FXML private ComboBox<String>  filterType;
+    @FXML private ComboBox<String>  filterSeverity;
+    @FXML private ComboBox<String>  filterStatus;
+    @FXML private ComboBox<String>  filterZone;
+    @FXML private VBox              chartContainer;
+    @FXML private VBox              sensorActions;
+    @FXML private Label             detailTitle;
+    @FXML private Label             detailZone;
+    @FXML private Label             detailStatus;
+    @FXML private Label             detailReading;
+    @FXML private Label             statTotalSensors;
+    @FXML private Label             statCriticalReadings;
+    @FXML private Label             statWarningReadings;
+    @FXML private Label             statNormalReadings;
 
-    @FXML private Label statTotalSensors;
-    @FXML private Label statCriticalReadings;
-    @FXML private Label statWarningReadings;
-    @FXML private Label statNormalReadings;
+    private static final String SEL_STYLE =
+        "-fx-background-color: #16A34A, #F0FDF4;" +
+        "-fx-background-insets: 0, 0 0 0 4;" +
+        "-fx-background-radius: 12, 0 12 12 0;" +
+        "-fx-border-width: 0;" +
+        "-fx-padding: 0;" +
+        "-fx-cursor: hand;" +
+        "-fx-effect: dropshadow(three-pass-box, rgba(134,239,172,0.7), 12, 0, 0, 0);";
 
-    private final SensorService sensorService = SensorService.getInstance();
-    private List<Sensor>        allSensors;
-    private VBox                selectedCard;
+    private final SensorService  sensorService   = SensorService.getInstance();
+    private final List<Timeline> activeTimelines = new ArrayList<>();
+    private List<Sensor>         allSensors;
+    private VBox                 selectedCard;
 
     @FXML
     public void initialize() {
@@ -140,26 +160,31 @@ public class SensorsController {
         return s.getZone().getName().equals(zone);
     }
 
-    // ── Sensor card grid ─────────────────────────────────────────────
+    // ── Card grid ─────────────────────────────────────────────────────
 
     private void loadCards(List<Sensor> sensors) {
+        stopAllTimelines();
         sensorGrid.getChildren().clear();
         for (Sensor s : sensors) {
             VBox card = createCard(s);
             card.setUserData(s);
             sensorGrid.getChildren().add(card);
         }
+        boolean empty = sensors.isEmpty();
+        gridEmptyState.setVisible(empty);
+        gridEmptyState.setManaged(empty);
+    }
+
+    private void stopAllTimelines() {
+        activeTimelines.forEach(Timeline::stop);
+        activeTimelines.clear();
     }
 
     private VBox createCard(Sensor sensor) {
-        VBox card = new VBox(8);
-        card.getStyleClass().add("sensor-card");
-        card.setPrefWidth(215);
-
         SensorStatus status = sensor.getStatus();
         ReadingLevel level  = sensorService.getLastReadingLevel(sensor);
 
-        // Stripe + tinted background based on status/level (same design as zones/dashboard)
+        // Two-layer stripe background (same pattern as zones/dashboard)
         String stripeColor, cardBg, shadowColor;
         if (status == SensorStatus.Suspended || status == SensorStatus.Faulty) {
             stripeColor = "#6B7280"; cardBg = "#F9FAFB";
@@ -181,23 +206,65 @@ public class SensorsController {
                 default       -> "rgba(0,0,0,0.07)";
             };
         }
-        card.setStyle(
+
+        String cardStyle =
             "-fx-background-color: " + stripeColor + ", " + cardBg + ";" +
             "-fx-background-insets: 0, 0 0 0 4;" +
             "-fx-background-radius: 12, 0 12 12 0;" +
             "-fx-border-width: 0;" +
-            "-fx-padding: 14 16;" +
-            "-fx-effect: dropshadow(three-pass-box, " + shadowColor + ", 10, 0, 0, 2);"
+            "-fx-padding: 0;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(three-pass-box, " + shadowColor + ", 10, 0, 0, 2);";
+
+        VBox card = new VBox(0);
+        card.getStyleClass().add("sensor-card");
+        card.setStyle(cardStyle);
+        card.getProperties().put("origStyle", cardStyle);
+        card.setPrefWidth(215);
+        card.setMinHeight(160);
+
+        // ── HEADER ────────────────────────────────────────────────────
+        Label typeBadge = new Label(sensorService.getSensorTypeLabel(sensor));
+        typeBadge.getStyleClass().addAll("sensor-type-badge", "sensor-type-" + sensorTypeKey(sensor));
+
+        // 8px status dot with pulse animation for Active/Faulty
+        Label statusDot = new Label();
+        String dotColor = switch (status) {
+            case Active    -> "#16A34A";
+            case Faulty    -> "#DC2626";
+            default        -> "#9CA3AF";
+        };
+        statusDot.setStyle(
+            "-fx-background-color: " + dotColor + ";" +
+            "-fx-background-radius: 99;" +
+            "-fx-min-width: 8; -fx-min-height: 8;" +
+            "-fx-max-width: 8; -fx-max-height: 8;"
         );
+        if (status == SensorStatus.Active || status == SensorStatus.Faulty) {
+            Timeline dotPulse = new Timeline(
+                new KeyFrame(Duration.ZERO,         new KeyValue(statusDot.opacityProperty(), 1.0)),
+                new KeyFrame(Duration.seconds(1.0), new KeyValue(statusDot.opacityProperty(), 0.2)),
+                new KeyFrame(Duration.seconds(2.0), new KeyValue(statusDot.opacityProperty(), 1.0))
+            );
+            dotPulse.setCycleCount(Timeline.INDEFINITE);
+            dotPulse.play();
+            activeTimelines.add(dotPulse);
+        }
 
-        Label type = new Label(sensorService.getSensorTypeLabel(sensor));
-        type.getStyleClass().add("sensor-card-type");
-        type.setWrapText(true);
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        HBox headerRow = new HBox(6, typeBadge, headerSpacer, statusDot);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+        headerRow.setPadding(new Insets(14, 16, 8, 16));
 
-        Label zone = new Label("📍 " + sensor.getZone().getName());
-        zone.getStyleClass().add("sensor-card-zone");
+        // ── BODY ──────────────────────────────────────────────────────
+        Label sensorName = new Label("Sensor #" + sensor.getCode());
+        sensorName.setStyle("-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #111827;");
+        sensorName.setWrapText(true);
 
-        // Reading value: color reflects status, text wraps (no truncation)
+        Label zoneLbl = new Label("📍 " + sensor.getZone().getName());
+        zoneLbl.getStyleClass().add("sensor-card-zone");
+
         String readingColor;
         if (status == SensorStatus.Suspended || status == SensorStatus.Faulty) {
             readingColor = "#6B7280";
@@ -210,20 +277,59 @@ public class SensorsController {
         }
         Label reading = new Label(sensorService.getLastReadingDisplay(sensor));
         reading.setWrapText(true);
-        reading.setStyle(
-            "-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: " + readingColor + ";"
-        );
+        reading.setStyle("-fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: " + readingColor + ";");
 
+        // Opacity pulse for CRITICAL reading value only (not WARNING)
+        if (level == ReadingLevel.CRITICAL && status == SensorStatus.Active) {
+            Timeline readingPulse = new Timeline(
+                new KeyFrame(Duration.ZERO,         new KeyValue(reading.opacityProperty(), 1.0)),
+                new KeyFrame(Duration.seconds(1.0), new KeyValue(reading.opacityProperty(), 0.3)),
+                new KeyFrame(Duration.seconds(2.0), new KeyValue(reading.opacityProperty(), 1.0))
+            );
+            readingPulse.setCycleCount(Timeline.INDEFINITE);
+            readingPulse.play();
+            activeTimelines.add(readingPulse);
+        }
+
+        VBox body = new VBox(4, sensorName, zoneLbl, reading);
+        body.setPadding(new Insets(0, 16, 8, 16));
+
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+
+        // ── FOOTER ────────────────────────────────────────────────────
         Label statusBadge = new Label(sensor.getStatus().toString());
         statusBadge.getStyleClass().addAll("badge", "badge-" + sensor.getStatus().toString().toLowerCase());
 
         Label levelBadge = new Label(level.toString());
         levelBadge.getStyleClass().addAll("badge", levelCss(level));
 
-        HBox badges = new HBox(6, statusBadge, levelBadge);
-        card.getChildren().addAll(type, zone, reading, badges);
+        HBox badgeRow = new HBox(5, statusBadge, levelBadge);
+        badgeRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label codeLabel = new Label("#" + sensor.getCode());
+        codeLabel.getStyleClass().add("sensor-card-code");
+
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+
+        HBox footer = new HBox(0, badgeRow, footerSpacer, codeLabel);
+        footer.setAlignment(Pos.CENTER_LEFT);
+        footer.getStyleClass().add("sensor-card-footer");
+        footer.setPadding(new Insets(10, 16, 10, 16));
+
+        card.getChildren().addAll(headerRow, body, spacer, footer);
         card.setOnMouseClicked(e -> showDetail(sensor, card));
         return card;
+    }
+
+    private String sensorTypeKey(Sensor s) {
+        if (s instanceof BioSensor)       return "bio";
+        if (s instanceof GPSCollarSensor) return "gps";
+        if (s instanceof EnvSensor)       return "env";
+        if (s instanceof SoilSensor)      return "soil";
+        if (s instanceof WaterSensor)     return "water";
+        return "bio";
     }
 
     private String levelCss(ReadingLevel level) {
@@ -237,9 +343,19 @@ public class SensorsController {
     // ── Detail panel ─────────────────────────────────────────────────
 
     private void showDetail(Sensor sensor, VBox card) {
-        if (selectedCard != null) selectedCard.getStyleClass().remove("sensor-card-selected");
+        // Restore previous card's original style
+        if (selectedCard != null) {
+            Object orig = selectedCard.getProperties().get("origStyle");
+            if (orig instanceof String s) selectedCard.setStyle(s);
+        }
         selectedCard = card;
-        card.getStyleClass().add("sensor-card-selected");
+        card.setStyle(SEL_STYLE);
+
+        // Toggle empty / detail views
+        noSelectionState.setVisible(false);
+        noSelectionState.setManaged(false);
+        detailContent.setVisible(true);
+        detailContent.setManaged(true);
 
         updateDetailHeader(sensor);
 
@@ -255,11 +371,9 @@ public class SensorsController {
     private void updateDetailHeader(Sensor sensor) {
         detailTitle.setText(sensorService.getSensorTypeLabel(sensor));
         detailZone.setText("📍  " + sensor.getZone().getName());
-
         detailStatus.setText(sensor.getStatus().toString());
         detailStatus.getStyleClass().removeIf(c -> c.startsWith("badge-") || c.equals("badge"));
-        detailStatus.getStyleClass().addAll("badge",
-            "badge-" + sensor.getStatus().toString().toLowerCase());
+        detailStatus.getStyleClass().addAll("badge", "badge-" + sensor.getStatus().toString().toLowerCase());
     }
 
     private void buildActionBar(Sensor sensor) {
@@ -363,20 +477,16 @@ public class SensorsController {
     private void refreshAfterAction(Sensor sensor) {
         updateDetailHeader(sensor);
         detailReading.setText(sensorService.getLastReadingDisplay(sensor));
-
         buildActionBar(sensor);
-
         applyFilters();
-
         sensorGrid.getChildren().stream()
             .filter(n -> n instanceof VBox && n.getUserData() == sensor)
             .map(n -> (VBox) n)
             .findFirst()
             .ifPresent(newCard -> {
-                newCard.getStyleClass().add("sensor-card-selected");
+                newCard.setStyle(SEL_STYLE);
                 selectedCard = newCard;
             });
-
         refreshStats();
     }
 
@@ -409,13 +519,11 @@ public class SensorsController {
     private void showEditThresholdsDialog(NumericSensor ns, Sensor sensor) {
         TextField minField = new TextField(String.format("%.2f", ns.getMinThreshold()));
         TextField maxField = new TextField(String.format("%.2f", ns.getMaxThreshold()));
-
         VBox form = new VBox(14,
             formGroup("Min Threshold (" + ns.getUnit() + ")", minField),
             formGroup("Max Threshold (" + ns.getUnit() + ")", maxField)
         );
         form.setPadding(new Insets(20, 24, 8, 24));
-
         Dialog<double[]> dialog = new Dialog<>();
         dialog.setTitle("Edit Thresholds");
         dialog.setHeaderText("Thresholds for sensor " + ns.getCode());
@@ -424,7 +532,6 @@ public class SensorsController {
         dialog.getDialogPane().setMinWidth(380);
         applyDialogStyle(dialog);
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Save");
-
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
             try {
@@ -433,7 +540,6 @@ public class SensorsController {
                 return new double[]{min, max};
             } catch (NumberFormatException e) { return null; }
         });
-
         dialog.showAndWait().ifPresent(vals -> {
             try {
                 ns.setMinThreshold(vals[0]);

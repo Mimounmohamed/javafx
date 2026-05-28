@@ -90,9 +90,14 @@ public class SceneManager {
             ft.play();
         } catch (Exception e) {
             e.printStackTrace();
-            // Show the error in the center so the user isn't left staring at the old page
-            javafx.scene.control.Label err = new javafx.scene.control.Label(
-                    "Could not load page \"" + route + "\":\n" + e.getClass().getSimpleName() + ": " + e.getMessage());
+            // Build a full cause chain so the real error is visible in the UI
+            StringBuilder msg = new StringBuilder("Could not load page \"").append(route).append("\":\n");
+            Throwable cause = e;
+            while (cause != null) {
+                msg.append(cause.getClass().getSimpleName()).append(": ").append(cause.getMessage()).append("\n");
+                cause = cause.getCause();
+            }
+            javafx.scene.control.Label err = new javafx.scene.control.Label(msg.toString().trim());
             err.setWrapText(true);
             err.setStyle("-fx-text-fill:#dc2626; -fx-font-size:13px; -fx-padding:40;");
             root.setCenter(err);

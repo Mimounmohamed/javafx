@@ -2663,3 +2663,189 @@
     -fx-font-size: 11px;
     -fx-font-weight: 700;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Sensor cards — Batch 3 redesign (type badge, status dot, footer)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sensor-card-zone {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6B7280;
+}
+
+/* Type badge pills */
+.sensor-type-badge {
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-padding: 2 8;
+    -fx-background-radius: 9999;
+}
+.sensor-type-bio   { -fx-background-color: #D1FAE5; -fx-text-fill: #065F46; }
+.sensor-type-gps   { -fx-background-color: #DBEAFE; -fx-text-fill: #1E40AF; }
+.sensor-type-env   { -fx-background-color: #EDE9FE; -fx-text-fill: #5B21B6; }
+.sensor-type-soil  { -fx-background-color: #FEF3C7; -fx-text-fill: #92400E; }
+.sensor-type-water { -fx-background-color: #CFFAFE; -fx-text-fill: #164E63; }
+
+/* Card footer: top border separator */
+.sensor-card-footer {
+    -fx-border-color: #F3F4F6 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Sensor code label: monospace gray */
+.sensor-card-code {
+    -fx-font-family: monospace;
+    -fx-font-size: 11px;
+    -fx-text-fill: #9CA3AF;
+}
+
+/* Empty states */
+.sensor-empty-title { -fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #374151; }
+.sensor-empty-sub   { -fx-font-size: 12px; -fx-text-fill: #9CA3AF; }
+.sensor-empty-tip   { -fx-font-size: 11px; -fx-text-fill: #9CA3AF; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Sidebar — alert badge pill
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sidebar-nav-badge {
+    -fx-background-color: #DC2626;
+    -fx-text-fill: white;
+    -fx-background-radius: 9999;
+    -fx-font-size: 9px;
+    -fx-font-weight: 700;
+    -fx-min-width: 18;
+    -fx-min-height: 18;
+    -fx-max-width: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+    -fx-padding: 0 4;
+}
+
+.sidebar-nav-row {
+    -fx-background-color: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Alerts page — table row stripes + selection
+   ═══════════════════════════════════════════════════════════════════ */
+
+.alerts-table { -fx-background-color: #ffffff; -fx-border-color: transparent; }
+.alerts-table .column-header-background { -fx-background-color: #F9FAFB; }
+.alerts-table .column-header { -fx-background-color: transparent; -fx-border-color: transparent transparent #E5E7EB transparent; -fx-border-width: 0 0 1 0; }
+.alerts-table .column-header .label { -fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #6B7280; }
+.alerts-table .table-row-cell { -fx-background-color: #ffffff; -fx-border-color: transparent transparent #F3F4F6 transparent; -fx-border-width: 0 0 1 0; }
+.alerts-table .table-row-cell:hover { -fx-background-color: #F9FAFB; }
+.alerts-table .table-cell { -fx-padding: 6 10; -fx-font-size: 12px; -fx-text-fill: #111827; -fx-text-overrun: ellipsis; }
+
+/* Left stripe for severity rows */
+.alerts-table .table-row-cell.alert-row-critical {
+    -fx-background-color: #DC2626, #ffffff;
+    -fx-background-insets: 0, 0 0 0 3;
+    -fx-background-radius: 0;
+}
+.alerts-table .table-row-cell.alert-row-warning {
+    -fx-background-color: #F59E0B, #ffffff;
+    -fx-background-insets: 0, 0 0 0 3;
+    -fx-background-radius: 0;
+}
+.alerts-table .table-row-cell.alert-row-critical:hover {
+    -fx-background-color: #DC2626, #F9FAFB;
+    -fx-background-insets: 0, 0 0 0 3;
+}
+.alerts-table .table-row-cell.alert-row-warning:hover {
+    -fx-background-color: #F59E0B, #F9FAFB;
+    -fx-background-insets: 0, 0 0 0 3;
+}
+
+/* Selected: green left accent, green tint */
+.alerts-table .table-row-cell:selected,
+.alerts-table .table-row-cell.alert-row-critical:selected,
+.alerts-table .table-row-cell.alert-row-warning:selected,
+.alerts-table .table-row-cell:selected:hover,
+.alerts-table .table-row-cell.alert-row-critical:selected:hover,
+.alerts-table .table-row-cell.alert-row-warning:selected:hover {
+    -fx-background-color: #16A34A, #F0FDF4;
+    -fx-background-insets: 0, 0 0 0 3;
+    -fx-background-radius: 0;
+}
+.alerts-table .table-row-cell:selected .table-cell,
+.alerts-table .table-row-cell.alert-row-critical:selected .table-cell,
+.alerts-table .table-row-cell.alert-row-warning:selected .table-cell {
+    -fx-text-fill: #111827;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Animals health badge — filled pill style (overrides earlier rules)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.badge-healthy {
+    -fx-background-color: #DCFCE7;
+    -fx-text-fill: #16A34A;
+    -fx-border-width: 0;
+    -fx-background-radius: 9999;
+    -fx-border-radius: 9999;
+    -fx-padding: 3 10;
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+}
+.badge-sick {
+    -fx-background-color: #FEE2E2;
+    -fx-text-fill: #DC2626;
+    -fx-border-width: 0;
+    -fx-background-radius: 9999;
+    -fx-border-radius: 9999;
+    -fx-padding: 3 10;
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+}
+.badge-quarantined {
+    -fx-background-color: #FEF3C7;
+    -fx-text-fill: #D97706;
+    -fx-border-width: 0;
+    -fx-background-radius: 9999;
+    -fx-border-radius: 9999;
+    -fx-padding: 3 10;
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Alert detail panel — action buttons + section title
+   ═══════════════════════════════════════════════════════════════════ */
+
+.alert-detail-actions-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+
+.alert-btn-acknowledge {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #374151;
+    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+    -fx-min-height: 38;
+    -fx-cursor: hand;
+}
+.alert-btn-acknowledge:hover { -fx-background-color: #F9FAFB; }
+.alert-btn-acknowledge:disabled { -fx-opacity: 0.5; }
+
+.alert-btn-dismiss {
+    -fx-background-color: #FEF2F2;
+    -fx-border-color: #FECACA;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #DC2626;
+    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+    -fx-min-height: 38;
+    -fx-cursor: hand;
+}
+.alert-btn-dismiss:hover { -fx-background-color: #FEE2E2; }
+.alert-btn-dismiss:disabled { -fx-opacity: 0.5; }

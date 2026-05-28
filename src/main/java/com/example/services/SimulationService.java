@@ -74,7 +74,7 @@ public class SimulationService {
                 for (BioSensor s : lz.getBioSensors())
                     simulateNumericSensor(s, dayTime, farm, result, lz.getName());
                 for (GPSCollarSensor gps : lz.getGpsCollarSensors())
-                    simulateGPS(gps, dayTime, farm, result, lz.getName());
+                    simulateGPS(gps, dayTime, farm, result, lz);
             }
 
             for (CropZONE cz : farm.getCropZones()) {
@@ -256,29 +256,74 @@ public class SimulationService {
 
     private void simulateGPS(GPSCollarSensor gps, LocalDateTime day,
                                Farm farm, SimulationResult result,
-                               String zoneName) {
+                               LivestockZONE zone) {
         double lat = gps.getCurrentLatitude();
         double lon = gps.getCurrentLongitude();
-        if (lat == 0.0 && lon == 0.0) return; // no initial position set
 
-        lat = round4(lat + (rng.nextDouble() - 0.5) * 0.0002);
-        lon = round4(lon + (rng.nextDouble() - 0.5) * 0.0002);
+        // Auto-initialise to zone centroid when sensor has no position yet
+        if (lat == 0.0 && lon == 0.0) {
+            if (!zone.hasBoundaries()) return;
+            double[] c = zoneCentroid(zone);
+            gps.updateLocation(c[0], c[1]);
+            lat = c[0];
+            lon = c[1];
+        }
+
         boolean wasInside = gps.isInsideZone();
+
+        if (wasInside && zone.hasBoundaries() && rng.nextInt(100) < 3) {
+            // 3 % chance: animal wanders outside the zone boundary
+            double[] ep = escapePos(zone, lat, lon);
+            lat = ep[0]; lon = ep[1];
+        } else if (!wasInside && zone.hasBoundaries() && rng.nextInt(100) < 25) {
+            // 25 % chance: animal returns near zone centroid (recaptured / wanders back)
+            double[] c = zoneCentroid(zone);
+            lat = round4(c[0] + (rng.nextDouble() - 0.5) * 0.0001);
+            lon = round4(c[1] + (rng.nextDouble() - 0.5) * 0.0001);
+        } else {
+            // Normal daily movement
+            lat = round4(lat + (rng.nextDouble() - 0.5) * 0.0002);
+            lon = round4(lon + (rng.nextDouble() - 0.5) * 0.0002);
+        }
+
         gps.updateLocation(lat, lon);
         gps.addReading(new GPSSensorReading(gps, lat, lon, gps.isInsideZone(), day));
 
-        // Alert only on the transition from inside → outside
+        // Fire alert only on the inside → outside transition
         if (wasInside && !gps.isInsideZone()) {
             GPSSensorReading last = gps.getLastReading();
             if (last != null) {
                 farm.registerAlert(new SensorAlert(last, AlertType.GPS_ESCAPE_ALERT,
                     AlertSeverity.Critical,
-                    gps.getAnimal().getName() + " escaped zone bounds in " + zoneName));
+                    gps.getAnimal().getName() + " escaped zone bounds in " + zone.getName()));
                 result.alertsGenerated++;
-                result.log.add("[" + day.toLocalDate() + "]  "
-                    + gps.getAnimal().getName() + " detected outside zone bounds!");
+                result.log.add("[" + day.toLocalDate() + "]  🚨 "
+                    + gps.getAnimal().getName()
+                    + " detected outside zone bounds in " + zone.getName() + "!");
             }
         }
+    }
+
+    private double[] zoneCentroid(LivestockZONE zone) {
+        List<double[]> pts = zone.getBoundaries().getPoints();
+        double lat = pts.stream().mapToDouble(p -> p[0]).average().orElse(36.0);
+        double lon = pts.stream().mapToDouble(p -> p[1]).average().orElse(3.0);
+        return new double[]{lat, lon};
+    }
+
+    private double[] escapePos(LivestockZONE zone, double curLat, double curLon) {
+        List<double[]> pts = zone.getBoundaries().getPoints();
+        double minLat = pts.stream().mapToDouble(p -> p[0]).min().orElse(curLat);
+        double maxLat = pts.stream().mapToDouble(p -> p[0]).max().orElse(curLat);
+        double minLon = pts.stream().mapToDouble(p -> p[1]).min().orElse(curLon);
+        double maxLon = pts.stream().mapToDouble(p -> p[1]).max().orElse(curLon);
+        double pad = 0.0005; // ~55 m past the boundary
+        return switch (rng.nextInt(4)) {
+            case 0 -> new double[]{round4(maxLat + pad), curLon}; // north
+            case 1 -> new double[]{round4(minLat - pad), curLon}; // south
+            case 2 -> new double[]{curLat, round4(maxLon + pad)}; // east
+            default -> new double[]{curLat, round4(minLon - pad)}; // west
+        };
     }
 
     // ── Helpers ───────────────────────────────────────────────────────

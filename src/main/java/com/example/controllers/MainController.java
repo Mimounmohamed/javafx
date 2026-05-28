@@ -84,6 +84,11 @@ public class MainController {
             sidebarAlertBadge.setText(String.valueOf(count));
             sidebarAlertBadge.setVisible(count > 0);
             sidebarAlertBadge.setManaged(count > 0);
+            // Invert badge colors when Alerts nav item is active
+            boolean alertsActive = (activeBtn == btnAlerts);
+            sidebarAlertBadge.setStyle(alertsActive
+                ? "-fx-background-color: white; -fx-text-fill: #DC2626;"
+                : "");
         }
     }
 
@@ -118,11 +123,27 @@ public class MainController {
         if (activeBtn != null) {
             activeBtn.getStyleClass().remove("nav-active");
             activeBtn.setStyle("");
+            // Clear parent HBox style if the previous active was btnAlerts
+            if (activeBtn.getParent() instanceof javafx.scene.layout.HBox hb)
+                hb.setStyle("");
         }
         activeBtn = btn;
         if (!btn.getStyleClass().contains("nav-active"))
             btn.getStyleClass().add("nav-active");
-        btn.setStyle(NAV_ACTIVE_STYLE);
+
+        if (btn.getParent() instanceof javafx.scene.layout.HBox hb) {
+            // Alerts row: green on the HBox wrapper, transparent button bg
+            hb.setStyle(
+                "-fx-background-color: #16A34A;" +
+                "-fx-background-radius: 0 8 8 0;");
+            btn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: white;" +
+                "-fx-font-weight: 600;" +
+                "-fx-background-radius: 0 8 8 0;");
+        } else {
+            btn.setStyle(NAV_ACTIVE_STYLE);
+        }
         updateAlertBadge();
     }
 
