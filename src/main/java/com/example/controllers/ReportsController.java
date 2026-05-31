@@ -16,14 +16,13 @@ import ZONES.CropZONE;
 import ZONES.LivestockZONE;
 import ZONES.ZONE;
 import com.example.services.*;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
 import com.example.services.PdfReportService;
@@ -31,6 +30,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
 import java.io.File;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -61,6 +61,17 @@ public class ReportsController {
     private ReportService  reportService;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("MM/dd");
+
+    // ── Sensor History state ──────────────────────────────────────────────
+    private LocalDateTime  sensorStart   = LocalDateTime.now().minusDays(14);
+    private LocalDateTime  sensorEnd     = LocalDateTime.now();
+    private String         sTypeFilter   = "All";       // "All","Bio","GPS","Env","Soil","Water"
+    private String         sZoneFilter   = "All Zones"; // zone name or "All Zones"
+    private static final DateTimeFormatter RANGE_LABEL_FMT =
+        DateTimeFormatter.ofPattern("MMM d, yyyy");
+    private static final DateTimeFormatter CSV_FMT =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private Label sensorRangeLabel = new Label();
 
     @FXML
     public void initialize() {
@@ -468,103 +479,613 @@ public class ReportsController {
 
     private void buildSensors() {
         contentArea.getChildren().clear();
-
-        List<BioSensor>  bioSensors  = sensorService.getAllBioSensors();
-        List<EnvSensor>  envSensors  = sensorService.getAllEnvSensors();
-        List<SoilSensor> soilSensors = sensorService.getAllSoilSensors();
-        List<WaterSensor>waterSensors= sensorService.getAllWaterSensors();
-        List<GPSCollarSensor> gpsSensors = sensorService.getAllGPSSensors();
+        var bio   = sensorService.getAllBioSensors();
+        var gps   = sensorService.getAllGPSSensors();
+        var env   = sensorService.getAllEnvSensors();
+        var soil  = sensorService.getAllSoilSensors();
+        var water = sensorService.getAllWaterSensors();
 
         contentArea.getChildren().add(sectionTitle("Sensor History"));
-        contentArea.getChildren().add(kpiRow(
-            kpi("Bio Sensors",   String.valueOf(bioSensors.size()),  "stat-accent-blue"),
-            kpi("Env Sensors",   String.valueOf(envSensors.size()),  "stat-accent-green"),
-            kpi("Soil Sensors",  String.valueOf(soilSensors.size()), "stat-accent-yellow"),
-            kpi("Water Sensors", String.valueOf(waterSensors.size()),"stat-accent-red")
-        ));
+        contentArea.getChildren().add(buildSensorToolbar());
+        contentArea.getChildren().add(buildSensorPills(bio.size(), gps.size(),
+            env.size(), soil.size(), water.size()));
+        rebuildSensorContent();
+    }
 
+    // ── Feature 1: Date range / zone / type toolbar ───────────────────────
+
+    private HBox buildSensorToolbar() {
+        HBox toolbar = new HBox(10);
+        toolbar.getStyleClass().add("kpi-card");
+        toolbar.setPadding(new Insets(10, 12, 10, 12));
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+
+        // Zone ComboBox
+        ComboBox<String> zoneCombo = new ComboBox<>();
+        zoneCombo.getItems().add("All Zones");
+        zoneService.getLivestockZones().forEach(z -> zoneCombo.getItems().add(z.getName()));
+        zoneService.getCropZones().forEach(z -> zoneCombo.getItems().add(z.getName()));
+        zoneService.getAquacultureZones().forEach(z -> zoneCombo.getItems().add(z.getName()));
+        zoneCombo.setValue(sZoneFilter);
+        zoneCombo.setOnAction(e -> {
+            sZoneFilter = zoneCombo.getValue() != null ? zoneCombo.getValue() : "All Zones";
+            rebuildSensorContent();
+        });
+
+        // Type filter ToggleButtons
+        ToggleGroup typeGroup = new ToggleGroup();
+        HBox typePills = new HBox(4);
+        for (String type : new String[]{"All", "Bio", "GPS", "Env", "Soil", "Water"}) {
+            ToggleButton tb = new ToggleButton(type);
+            tb.getStyleClass().add("animals-pill-type");
+            tb.setToggleGroup(typeGroup);
+            if (type.equals(sTypeFilter)) tb.setSelected(true);
+            tb.setOnAction(e -> {
+                sTypeFilter = type;
+                rebuildSensorContent();
+            });
+            typePills.getChildren().add(tb);
+        }
+
+        // Spacer to push date controls right
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Date range ToggleButtons
+        ToggleGroup dateGroup = new ToggleGroup();
+        HBox datePills = new HBox(4);
+        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(sensorStart.toLocalDate(), LocalDateTime.now().toLocalDate());
+        for (String[] pair : new String[][]{{"7d", "7"}, {"14d", "14"}, {"30d", "30"}}) {
+            ToggleButton tb = new ToggleButton(pair[0]);
+            tb.getStyleClass().add("animals-pill-type");
+            tb.setToggleGroup(dateGroup);
+            int days = Integer.parseInt(pair[1]);
+            if (Math.abs(daysBetween - days) <= 1) tb.setSelected(true);
+            tb.setOnAction(e -> {
+                sensorStart = LocalDateTime.now().minusDays(days);
+                sensorEnd   = LocalDateTime.now();
+                updateRangeLabel();
+                rebuildSensorContent();
+            });
+            datePills.getChildren().add(tb);
+        }
+        ToggleButton customBtn = new ToggleButton("Custom...");
+        customBtn.getStyleClass().add("animals-pill-type");
+        customBtn.setToggleGroup(dateGroup);
+        customBtn.setOnAction(e -> {
+            showCustomDateDialog();
+            updateRangeLabel();
+        });
+        datePills.getChildren().add(customBtn);
+        if (dateGroup.getSelectedToggle() == null) customBtn.setSelected(true);
+
+        // Range label
+        updateRangeLabel();
+        sensorRangeLabel.getStyleClass().add("text-muted");
+        sensorRangeLabel.setStyle("-fx-font-size: 11px;");
+
+        // Export all CSV button
+        Button exportAllBtn = new Button("↓ Export All CSV");
+        exportAllBtn.getStyleClass().add("btn-secondary");
+        exportAllBtn.setOnAction(e -> exportAllSensorsCsv());
+
+        toolbar.getChildren().addAll(zoneCombo, typePills, spacer, datePills, sensorRangeLabel, exportAllBtn);
+        return toolbar;
+    }
+
+    private void updateRangeLabel() {
+        sensorRangeLabel.setText(sensorStart.format(RANGE_LABEL_FMT)
+            + " – " + sensorEnd.format(RANGE_LABEL_FMT));
+    }
+
+    // ── Feature 3: Sensor type filter pills (clickable KPI cards) ────────
+
+    private HBox buildSensorPills(int bio, int gps, int env, int soil, int water) {
+        HBox row = new HBox(16);
+        row.setAlignment(Pos.CENTER_LEFT);
+        int total = bio + gps + env + soil + water;
+        String[][] pills = {
+            {"All",   String.valueOf(total), "stat-accent-blue"},
+            {"Bio",   String.valueOf(bio),   "stat-accent-green"},
+            {"GPS",   String.valueOf(gps),   "stat-accent-purple"},
+            {"Env",   String.valueOf(env),   "stat-accent-yellow"},
+            {"Soil",  String.valueOf(soil),  "stat-accent-red"},
+            {"Water", String.valueOf(water), "stat-accent-blue"}
+        };
+        for (String[] p : pills) {
+            String typeName = p[0];
+            VBox card = new VBox(4);
+            card.setAlignment(Pos.CENTER);
+            card.getStyleClass().addAll("stat-card", p[2]);
+            card.setPadding(new Insets(12, 12, 12, 12));
+            card.setStyle("-fx-cursor: hand;" + (typeName.equals(sTypeFilter)
+                ? "-fx-border-color: #16A34A; -fx-border-width: 0 0 3 0;" : ""));
+            HBox.setHgrow(card, Priority.ALWAYS);
+            card.setMaxWidth(Double.MAX_VALUE);
+            Label val = new Label(p[1]); val.getStyleClass().add("stat-value");
+            Label lbl = new Label(typeName + " Sensors"); lbl.getStyleClass().add("stat-label");
+            card.getChildren().addAll(val, lbl);
+            card.setOnMouseClicked(e -> {
+                sTypeFilter = typeName;
+                // refresh pills highlighting: rebuild entire sensor view
+                buildSensors();
+            });
+            row.getChildren().add(card);
+        }
+        return row;
+    }
+
+    // ── rebuildSensorContent ─────────────────────────────────────────────
+
+    private void rebuildSensorContent() {
+        while (contentArea.getChildren().size() > 3)
+            contentArea.getChildren().remove(3);
         if (sensorService.getAllSensors().isEmpty()) {
             contentArea.getChildren().add(emptyState("No sensors found."));
             return;
         }
-
-        // ── Bio sensors: grouped by livestock zone ──────────────────
+        // Livestock zones (bio + GPS)
         for (LivestockZONE z : zoneService.getLivestockZones()) {
+            if (!"All Zones".equals(sZoneFilter) && !z.getName().equals(sZoneFilter)) continue;
+            if (!shouldShowZoneForType(z)) continue;
             if (z.getBioSensors().isEmpty() && z.getGpsCollarSensors().isEmpty()) continue;
             contentArea.getChildren().add(zoneSeparator(z.getName() + " — Livestock Zone"));
-
-            // Bio sensors: pair chart + table per sensor
-            List<BioSensor> zoneBio = z.getBioSensors();
-            for (int i = 0; i < zoneBio.size(); i += 2) {
-                BioSensor s1 = zoneBio.get(i);
-                Node chartNode1 = wrappedChart(
-                    "Bio: " + s1.getMeasureType() + " [" + s1.getCode() + "] — " + s1.getAnimal().getName(),
-                    numericLineChart(s1), false);
-                Node tableNode1 = tableCard(
-                    "Readings — " + s1.getMeasureType() + " (" + s1.getUnit() + ")",
-                    numericReadingRows(s1));
-
-                if (i + 1 < zoneBio.size()) {
-                    BioSensor s2 = zoneBio.get(i + 1);
-                    contentArea.getChildren().add(chartRow(chartNode1,
-                        wrappedChart("Bio: " + s2.getMeasureType() + " [" + s2.getCode() + "] — " + s2.getAnimal().getName(),
-                            numericLineChart(s2), false)));
-                    contentArea.getChildren().add(chartRow(tableNode1,
-                        tableCard("Readings — " + s2.getMeasureType() + " (" + s2.getUnit() + ")",
-                            numericReadingRows(s2))));
-                } else {
-                    contentArea.getChildren().add(chartRow(chartNode1, new VBox()));
-                    contentArea.getChildren().add(chartRow(tableNode1, new VBox()));
-                }
-            }
-
-            // GPS sensors: chart (inside/outside) + table
-            List<GPSCollarSensor> zoneGps = z.getGpsCollarSensors();
-            for (int i = 0; i < zoneGps.size(); i += 2) {
-                GPSCollarSensor g1 = zoneGps.get(i);
-                Node gpsChart1 = wrappedChart(
-                    "GPS: " + g1.getAnimal().getName() + " [" + g1.getCode() + "]",
-                    gpsLineChart(g1), false);
-                Node gpsTable1 = tableCard(
-                    "GPS Readings — " + g1.getAnimal().getName(),
-                    gpsReadingRows(g1));
-
-                if (i + 1 < zoneGps.size()) {
-                    GPSCollarSensor g2 = zoneGps.get(i + 1);
-                    contentArea.getChildren().add(chartRow(gpsChart1,
-                        wrappedChart("GPS: " + g2.getAnimal().getName() + " [" + g2.getCode() + "]",
-                            gpsLineChart(g2), false)));
-                    contentArea.getChildren().add(chartRow(gpsTable1,
-                        tableCard("GPS Readings — " + g2.getAnimal().getName(), gpsReadingRows(g2))));
-                } else {
-                    contentArea.getChildren().add(chartRow(gpsChart1, new VBox()));
-                    contentArea.getChildren().add(chartRow(gpsTable1, new VBox()));
-                }
-            }
+            Set<String> syncDates = collectZoneDates(z);
+            if (matchesTypeFilter("Bio"))
+                buildSensorPairsNew(z.getBioSensors().stream().map(s -> (NumericSensor)s).toList(),
+                    s -> "Bio: " + ((Sensors.BioSensor)s).getMeasureType() + "  [" + s.getCode() + "] — " + ((Sensors.BioSensor)s).getAnimal().getName(),
+                    z, syncDates);
+            if (matchesTypeFilter("GPS"))
+                buildGpsPairsNew(z.getGpsCollarSensors(), z);
         }
-
-        // ── Env + Soil sensors: grouped by crop zone ────────────────
+        // Crop zones (env + soil)
         for (CropZONE z : zoneService.getCropZones()) {
-            if (z.getEnvSensors().isEmpty() && z.getSoilSensors().isEmpty()) continue;
-            contentArea.getChildren().add(zoneSeparator(z.getName() + " — Crop Zone"));
-
-            buildNumericSensorPairs("Env", z.getEnvSensors().stream()
-                    .map(s -> (NumericSensor) s).collect(Collectors.toList()),
-                    s -> "Env: " + ((EnvSensor)s).getMeasureType() + " [" + s.getCode() + "]");
-            buildNumericSensorPairs("Soil", z.getSoilSensors().stream()
-                    .map(s -> (NumericSensor) s).collect(Collectors.toList()),
-                    s -> "Soil: " + ((SoilSensor)s).getMeasureType() + " [" + s.getCode() + "]");
+            if (!"All Zones".equals(sZoneFilter) && !z.getName().equals(sZoneFilter)) continue;
+            if (!z.getEnvSensors().isEmpty() || !z.getSoilSensors().isEmpty()) {
+                if (!shouldShowZoneForType(z)) continue;
+                contentArea.getChildren().add(zoneSeparator(z.getName() + " — Crop Zone"));
+                Set<String> syncDates = collectZoneDates(z);
+                if (matchesTypeFilter("Env"))
+                    buildSensorPairsNew(z.getEnvSensors().stream().map(s -> (NumericSensor)s).toList(),
+                        s -> "Env: " + ((Sensors.EnvSensor)s).getMeasureType() + "  [" + s.getCode() + "]",
+                        z, syncDates);
+                if (matchesTypeFilter("Soil"))
+                    buildSensorPairsNew(z.getSoilSensors().stream().map(s -> (NumericSensor)s).toList(),
+                        s -> "Soil: " + ((Sensors.SoilSensor)s).getMeasureType() + "  [" + s.getCode() + "]",
+                        z, syncDates);
+            }
         }
-
-        // ── Water sensors: grouped by aquaculture zone ──────────────
+        // Aquaculture zones (water)
         for (AquacultureZONE z : zoneService.getAquacultureZones()) {
-            if (z.getWaterSensors().isEmpty()) continue;
-            contentArea.getChildren().add(zoneSeparator(z.getName() + " — Aquaculture Zone"));
-            buildNumericSensorPairs("Water", z.getWaterSensors().stream()
-                    .map(s -> (NumericSensor) s).collect(Collectors.toList()),
-                    s -> "Water: " + ((WaterSensor)s).getMeasureType() + " [" + s.getCode() + "]");
+            if (!"All Zones".equals(sZoneFilter) && !z.getName().equals(sZoneFilter)) continue;
+            if (!z.getWaterSensors().isEmpty()) {
+                if (!shouldShowZoneForType(z)) continue;
+                contentArea.getChildren().add(zoneSeparator(z.getName() + " — Aquaculture Zone"));
+                Set<String> syncDates = collectZoneDates(z);
+                if (matchesTypeFilter("Water"))
+                    buildSensorPairsNew(z.getWaterSensors().stream().map(s -> (NumericSensor)s).toList(),
+                        s -> "Water: " + ((Sensors.WaterSensor)s).getMeasureType() + "  [" + s.getCode() + "]",
+                        z, syncDates);
+            }
         }
     }
+
+    private boolean matchesTypeFilter(String type) {
+        return "All".equals(sTypeFilter) || sTypeFilter.equals(type);
+    }
+
+    private boolean shouldShowZoneForType(ZONE z) {
+        if ("All".equals(sTypeFilter)) return true;
+        if (z instanceof LivestockZONE)    return "Bio".equals(sTypeFilter) || "GPS".equals(sTypeFilter);
+        if (z instanceof CropZONE)         return "Env".equals(sTypeFilter) || "Soil".equals(sTypeFilter);
+        if (z instanceof AquacultureZONE)  return "Water".equals(sTypeFilter);
+        return true;
+    }
+
+    // ── Feature 6: Synchronized X-axis helpers ───────────────────────────
+
+    private Set<String> collectZoneDates(ZONE zone) {
+        Set<String> dates = new java.util.TreeSet<>();
+        if (zone instanceof LivestockZONE lz) {
+            for (Sensors.BioSensor s : lz.getBioSensors())
+                filteredNumericReadings(s).forEach(r -> dates.add(r.getTimestamp().format(DATE_FMT)));
+        } else if (zone instanceof CropZONE cz) {
+            for (Sensors.EnvSensor  s : cz.getEnvSensors())  filteredNumericReadings(s).forEach(r -> dates.add(r.getTimestamp().format(DATE_FMT)));
+            for (Sensors.SoilSensor s : cz.getSoilSensors()) filteredNumericReadings(s).forEach(r -> dates.add(r.getTimestamp().format(DATE_FMT)));
+        } else if (zone instanceof AquacultureZONE az) {
+            for (Sensors.WaterSensor s : az.getWaterSensors()) filteredNumericReadings(s).forEach(r -> dates.add(r.getTimestamp().format(DATE_FMT)));
+        }
+        return dates;
+    }
+
+    private List<NumericSensorReading> filteredNumericReadings(NumericSensor s) {
+        return s.getReadingHistory().stream()
+            .filter(r -> r instanceof NumericSensorReading)
+            .map(r -> (NumericSensorReading) r)
+            .filter(r -> !r.getTimestamp().isBefore(sensorStart) && !r.getTimestamp().isAfter(sensorEnd))
+            .collect(Collectors.toList());
+    }
+
+    private List<GPSSensorReading> filteredGpsReadings(GPSCollarSensor s) {
+        return s.getReadingHistory().stream()
+            .filter(r -> r instanceof GPSSensorReading)
+            .map(r -> (GPSSensorReading) r)
+            .filter(r -> !r.getTimestamp().isBefore(sensorStart) && !r.getTimestamp().isAfter(sensorEnd))
+            .collect(Collectors.toList());
+    }
+
+    // ── Pair builders (new) ───────────────────────────────────────────────
+
+    private void buildSensorPairsNew(List<NumericSensor> sensors,
+            java.util.function.Function<NumericSensor, String> labelFn,
+            ZONE zone, Set<String> syncDates) {
+        for (int i = 0; i < sensors.size(); i += 2) {
+            NumericSensor s1 = sensors.get(i);
+            Node card1 = sensorChartCard(s1, labelFn.apply(s1), zone, syncDates);
+            if (i + 1 < sensors.size()) {
+                NumericSensor s2 = sensors.get(i + 1);
+                contentArea.getChildren().add(chartRow(card1, sensorChartCard(s2, labelFn.apply(s2), zone, syncDates)));
+            } else {
+                HBox row = new HBox(16);
+                HBox.setHgrow(card1, Priority.ALWAYS);
+                if (card1 instanceof Region r) r.setMaxWidth(Double.MAX_VALUE);
+                row.getChildren().add(card1);
+                contentArea.getChildren().add(row);
+            }
+        }
+    }
+
+    private void buildGpsPairsNew(List<GPSCollarSensor> sensors, ZONE zone) {
+        for (int i = 0; i < sensors.size(); i += 2) {
+            GPSCollarSensor g1 = sensors.get(i);
+            Node card1 = gpsChartCard(g1, zone);
+            if (i + 1 < sensors.size()) {
+                contentArea.getChildren().add(chartRow(card1, gpsChartCard(sensors.get(i+1), zone)));
+            } else {
+                HBox row = new HBox(16);
+                HBox.setHgrow(card1, Priority.ALWAYS);
+                if (card1 instanceof Region r) r.setMaxWidth(Double.MAX_VALUE);
+                row.getChildren().add(card1);
+                contentArea.getChildren().add(row);
+            }
+        }
+    }
+
+    // ── Feature 7+2+5+8: sensorChartCard ─────────────────────────────────
+
+    private VBox sensorChartCard(NumericSensor sensor, String title, ZONE zone, Set<String> syncDates) {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("kpi-card");
+        card.setPadding(new Insets(14));
+
+        // Header: title left, CSV button right
+        Label titleLbl = new Label(title); titleLbl.getStyleClass().add("card-title"); titleLbl.setWrapText(true);
+        Button csvBtn = new Button("↓ CSV");
+        csvBtn.getStyleClass().add("btn-secondary");
+        csvBtn.setStyle("-fx-font-size: 10px; -fx-padding: 3 8;");
+        csvBtn.setOnAction(e -> exportSensorCsv(sensor));
+        Region hSpacer = new Region(); HBox.setHgrow(hSpacer, Priority.ALWAYS);
+        HBox header = new HBox(8, titleLbl, hSpacer, csvBtn);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        // Chart (Feature 1: date-filtered, Feature 6: synced X-axis)
+        LineChart<String, Number> chart = rangedNumericChart(sensor, syncDates);
+
+        // Feature 5: Alert markers
+        List<Alert> zoneAlerts = alertService.getAlertsByZone(zone).stream()
+            .filter(a -> !a.getTimestamp().isBefore(sensorStart)
+                      && !a.getTimestamp().isAfter(sensorEnd))
+            .collect(Collectors.toList());
+        addAlertMarkers(chart, sensor, zoneAlerts);
+
+        // Feature 8: Inline legend
+        chart.setLegendVisible(false);
+        HBox legend = buildInlineLegend(
+            new String[]{ sensor.getUnit(), "Min (" + sensor.getMinThreshold() + ")",
+                          "Max (" + sensor.getMaxThreshold() + ")" },
+            new String[]{"#2196F3", "#f59e0b", "#ef4444"}
+        );
+
+        // Summary stat row
+        List<NumericSensorReading> readings = filteredNumericReadings(sensor);
+        String statLine = readings.isEmpty() ? "No readings in range"
+            : String.format("Last: %.2f %s  ·  %d readings", sensor.getLastValue(), sensor.getUnit(), readings.size());
+        Label statLbl = new Label(statLine); statLbl.getStyleClass().add("text-muted");
+        statLbl.setStyle("-fx-font-size: 11px;");
+
+        card.getChildren().addAll(header, new Separator(), chart, legend, statLbl);
+        return card;
+    }
+
+    private VBox gpsChartCard(GPSCollarSensor sensor, ZONE zone) {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("kpi-card");
+        card.setPadding(new Insets(14));
+
+        String title = "GPS: " + sensor.getAnimal().getName() + "  [" + sensor.getCode() + "]";
+        Label titleLbl = new Label(title); titleLbl.getStyleClass().add("card-title");
+        Button csvBtn = new Button("↓ CSV");
+        csvBtn.getStyleClass().add("btn-secondary");
+        csvBtn.setStyle("-fx-font-size: 10px; -fx-padding: 3 8;");
+        csvBtn.setOnAction(e -> exportGpsCsv(sensor));
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox header = new HBox(8, titleLbl, sp, csvBtn);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        LineChart<String, Number> chart = rangedGpsChart(sensor);
+        chart.setLegendVisible(false);
+
+        List<GPSSensorReading> readings = filteredGpsReadings(sensor);
+        String statusLine = sensor.hasEscaped() ? "Status: OUTSIDE ZONE" : "Status: Inside zone";
+        Label stat = new Label(statusLine + "  ·  " + readings.size() + " readings in range");
+        stat.getStyleClass().add("text-muted");
+        stat.setStyle("-fx-font-size: 11px;");
+
+        HBox legend = buildInlineLegend(
+            new String[]{"Zone status (1=in, 0=out)", "Latitude (normalised)"},
+            new String[]{"#2196F3", "#9C27B0"});
+
+        card.getChildren().addAll(header, new Separator(), chart, legend, stat);
+        return card;
+    }
+
+    // ── Feature 1+6: rangedNumericChart / rangedGpsChart ─────────────────
+
+    private LineChart<String, Number> rangedNumericChart(NumericSensor sensor, Set<String> syncDates) {
+        CategoryAxis xAxis = new CategoryAxis(); xAxis.setLabel("Date");
+        NumberAxis   yAxis = new NumberAxis();   yAxis.setLabel(sensor.getUnit());
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        chart.getStyleClass().add("farm-chart");
+        chart.setAnimated(false);
+        chart.setCreateSymbols(true);
+        chart.setPrefHeight(260);
+
+        List<NumericSensorReading> readings = filteredNumericReadings(sensor);
+
+        if (!syncDates.isEmpty()) {
+            xAxis.setAutoRanging(false);
+            xAxis.setCategories(javafx.collections.FXCollections.observableArrayList(syncDates));
+        }
+
+        if (readings.isEmpty()) {
+            XYChart.Series<String,Number> empty = new XYChart.Series<>();
+            empty.setName("No data in range"); chart.getData().add(empty); return chart;
+        }
+
+        XYChart.Series<String,Number> dataSeries = new XYChart.Series<>(); dataSeries.setName(sensor.getUnit());
+        XYChart.Series<String,Number> minSeries  = new XYChart.Series<>(); minSeries.setName("Min (" + sensor.getMinThreshold() + ")");
+        XYChart.Series<String,Number> maxSeries  = new XYChart.Series<>(); maxSeries.setName("Max (" + sensor.getMaxThreshold() + ")");
+
+        for (NumericSensorReading r : readings) {
+            String x = r.getTimestamp().format(DATE_FMT);
+            dataSeries.getData().add(new XYChart.Data<>(x, r.getValue()));
+            minSeries.getData().add(new XYChart.Data<>(x, sensor.getMinThreshold()));
+            maxSeries.getData().add(new XYChart.Data<>(x, sensor.getMaxThreshold()));
+        }
+        chart.getData().addAll(dataSeries, minSeries, maxSeries);
+
+        // Feature 2: Tooltips on all data point symbols
+        Platform.runLater(() -> {
+            applyLineStyle(minSeries, "#f59e0b"); applyLineStyle(maxSeries, "#ef4444");
+            hideSymbolsChart(minSeries); hideSymbolsChart(maxSeries);
+            String sCode = sensor.getCode(); String sUnit = sensor.getUnit();
+            for (int i = 0; i < readings.size() && i < dataSeries.getData().size(); i++) {
+                NumericSensorReading reading = readings.get(i);
+                Node node = dataSeries.getData().get(i).getNode();
+                if (node == null) continue;
+                String color = switch (reading.getSeverity()) {
+                    case CRITICAL -> "#ef4444"; case WARNING -> "#f59e0b"; default -> "#22c55e";
+                };
+                node.setStyle("-fx-background-color: " + color + ", white; -fx-background-radius: 5px; -fx-padding: 4px;");
+                String ttText = "Sensor: " + sCode + "\nTime: " + reading.getTimestamp().format(DATE_FMT)
+                    + "\nValue: " + String.format("%.4f", reading.getValue()) + " " + sUnit
+                    + "\nStatus: " + reading.getSeverity().name();
+                Tooltip tip = new Tooltip(ttText);
+                tip.setStyle("-fx-font-size: 11px; -fx-show-delay: 100ms;");
+                Tooltip.install(node, tip);
+                node.setOnMouseEntered(e -> node.setScaleX(1.8));
+                node.setOnMouseExited(e -> node.setScaleX(1.0));
+            }
+        });
+        return chart;
+    }
+
+    private LineChart<String, Number> rangedGpsChart(GPSCollarSensor sensor) {
+        CategoryAxis xAxis = new CategoryAxis(); xAxis.setLabel("Date");
+        NumberAxis   yAxis = new NumberAxis(0, 1.2, 0.5); yAxis.setLabel("In(1)/Out(0)");
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        chart.getStyleClass().add("farm-chart"); chart.setAnimated(false); chart.setCreateSymbols(true); chart.setPrefHeight(260);
+
+        List<GPSSensorReading> readings = filteredGpsReadings(sensor);
+        if (readings.isEmpty()) {
+            XYChart.Series<String,Number> e = new XYChart.Series<>(); e.setName("No GPS data"); chart.getData().add(e); return chart;
+        }
+        double minLat = readings.stream().mapToDouble(GPSSensorReading::getLat).min().orElse(0);
+        double maxLat = readings.stream().mapToDouble(GPSSensorReading::getLat).max().orElse(1);
+        double range  = maxLat - minLat;
+
+        XYChart.Series<String,Number> inSeries  = new XYChart.Series<>(); inSeries.setName("Zone status");
+        XYChart.Series<String,Number> latSeries = new XYChart.Series<>(); latSeries.setName("Latitude");
+        for (GPSSensorReading r : readings) {
+            String x = r.getTimestamp().format(DATE_FMT);
+            inSeries.getData().add(new XYChart.Data<>(x, r.isInsideZone() ? 1.0 : 0.0));
+            latSeries.getData().add(new XYChart.Data<>(x, range > 0 ? (r.getLat() - minLat) / range : 0.5));
+        }
+        chart.getData().addAll(inSeries, latSeries);
+        Platform.runLater(() -> {
+            for (int i = 0; i < readings.size() && i < inSeries.getData().size(); i++) {
+                GPSSensorReading r = readings.get(i);
+                Node node = inSeries.getData().get(i).getNode();
+                if (node == null) continue;
+                node.setStyle("-fx-background-color: " + (r.isInsideZone() ? "#22c55e" : "#ef4444") + ", white; -fx-background-radius: 5px; -fx-padding: 4px;");
+                Tooltip tip = new Tooltip("Time: " + r.getTimestamp().format(DATE_FMT) + "\nLat: " + String.format("%.5f", r.getLat()) + "\nLon: " + String.format("%.5f", r.getLon()) + "\nZone: " + (r.isInsideZone() ? "INSIDE" : "OUTSIDE"));
+                Tooltip.install(node, tip);
+            }
+        });
+        return chart;
+    }
+
+    // ── Feature 5: Alert markers ──────────────────────────────────────────
+
+    private void addAlertMarkers(LineChart<String,Number> chart, NumericSensor sensor, List<Alert> alerts) {
+        if (alerts.isEmpty()) return;
+        XYChart.Series<String,Number> alertSeries = new XYChart.Series<>();
+        alertSeries.setName("Alerts");
+        double markerY = sensor.getMaxThreshold() * 1.08;
+        for (Alert a : alerts) {
+            String dateStr = a.getTimestamp().format(DATE_FMT);
+            alertSeries.getData().add(new XYChart.Data<>(dateStr, markerY));
+        }
+        chart.getData().add(alertSeries);
+        Platform.runLater(() -> {
+            for (int i = 0; i < alerts.size() && i < alertSeries.getData().size(); i++) {
+                Alert a = alerts.get(i);
+                javafx.scene.Node node = alertSeries.getData().get(i).getNode();
+                if (node == null) continue;
+                node.setStyle("-fx-background-color: #ef4444, white; -fx-background-radius: 0; -fx-padding: 8 3 0 3; -fx-shape: 'M 0 -3.5 L 3 3.5 L -3 3.5 Z';");
+                Tooltip tip = new Tooltip("ALERT  [" + a.getSeverity().name() + "]\n"
+                    + a.getTimestamp().format(DATE_FMT) + "\n" + a.getMessage());
+                tip.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+                Tooltip.install(node, tip);
+            }
+            if (alertSeries.getNode() != null) {
+                javafx.scene.Node line = alertSeries.getNode().lookup(".chart-series-line");
+                if (line != null) line.setStyle("-fx-stroke: transparent;");
+            }
+        });
+    }
+
+    // ── Feature 8: Inline legend ──────────────────────────────────────────
+
+    private HBox buildInlineLegend(String[] names, String[] hexColors) {
+        HBox legend = new HBox(16);
+        legend.setAlignment(Pos.CENTER_LEFT);
+        legend.setPadding(new Insets(4, 0, 0, 0));
+        for (int i = 0; i < names.length; i++) {
+            Label dot = new Label("●");
+            dot.setStyle("-fx-text-fill: " + hexColors[i] + "; -fx-font-size: 13px;");
+            Label name = new Label(names[i]);
+            name.setStyle("-fx-font-size: 10px; -fx-text-fill: #6B7280;");
+            HBox item = new HBox(4, dot, name);
+            item.setAlignment(Pos.CENTER_LEFT);
+            legend.getChildren().add(item);
+        }
+        return legend;
+    }
+
+    // ── Line style helpers ────────────────────────────────────────────────
+
+    private void applyLineStyle(XYChart.Series<String,Number> s, String hex) {
+        if (s.getNode() == null) return;
+        javafx.scene.Node line = s.getNode().lookup(".chart-series-line");
+        if (line != null) line.setStyle("-fx-stroke: " + hex + "; -fx-stroke-width: 2; -fx-stroke-dash-array: 8 4;");
+    }
+
+    private void hideSymbolsChart(XYChart.Series<String,Number> s) {
+        for (XYChart.Data<?,?> d : s.getData()) if (d.getNode() != null) d.getNode().setVisible(false);
+    }
+
+    // ── Feature 7: CSV export ─────────────────────────────────────────────
+
+    private void exportSensorCsv(NumericSensor sensor) {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Export Sensor CSV");
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV Files","*.csv"));
+        fc.setInitialFileName("sensor_" + sensor.getCode() + "_"
+            + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv");
+        if (contentArea.getScene() == null) return;
+        java.io.File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
+        if (dest == null) return;
+        try (var w = new java.io.FileWriter(dest)) {
+            w.write("Timestamp,Value,Unit,Status\n");
+            for (NumericSensorReading r : filteredNumericReadings(sensor))
+                w.write(r.getTimestamp().format(CSV_FMT) + ","
+                    + String.format("%.4f", r.getValue()) + ","
+                    + sensor.getUnit() + "," + r.getSeverity().name() + "\n");
+        } catch (Exception ex) { ex.printStackTrace(); }
+    }
+
+    private void exportGpsCsv(GPSCollarSensor sensor) {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Export GPS CSV");
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV Files","*.csv"));
+        fc.setInitialFileName("gps_" + sensor.getCode() + ".csv");
+        if (contentArea.getScene() == null) return;
+        java.io.File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
+        if (dest == null) return;
+        try (var w = new java.io.FileWriter(dest)) {
+            w.write("Timestamp,Latitude,Longitude,InsideZone\n");
+            for (GPSSensorReading r : filteredGpsReadings(sensor))
+                w.write(r.getTimestamp().format(CSV_FMT) + ","
+                    + r.getLat() + "," + r.getLon() + "," + r.isInsideZone() + "\n");
+        } catch (Exception ex) { ex.printStackTrace(); }
+    }
+
+    private void exportAllSensorsCsv() {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Export All Sensors CSV");
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV Files","*.csv"));
+        fc.setInitialFileName("all_sensors_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")) + ".csv");
+        if (contentArea.getScene() == null) return;
+        java.io.File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
+        if (dest == null) return;
+        try (var w = new java.io.FileWriter(dest)) {
+            w.write("SensorCode,Zone,Type,Timestamp,Value,Unit,Status\n");
+            for (NumericSensor s : sensorService.getAllSensors().stream()
+                    .filter(s2 -> s2 instanceof NumericSensor).map(s2 -> (NumericSensor)s2).toList()) {
+                for (NumericSensorReading r : filteredNumericReadings(s))
+                    w.write(s.getCode() + "," + s.getZone().getName() + ","
+                        + s.getClass().getSimpleName() + ","
+                        + r.getTimestamp().format(CSV_FMT) + ","
+                        + String.format("%.4f", r.getValue()) + ","
+                        + s.getUnit() + "," + r.getSeverity().name() + "\n");
+            }
+        } catch (Exception ex) { ex.printStackTrace(); }
+    }
+
+    // ── Custom date dialog ────────────────────────────────────────────────
+
+    private void showCustomDateDialog() {
+        DatePicker startPicker = new DatePicker(sensorStart.toLocalDate());
+        DatePicker endPicker   = new DatePicker(sensorEnd.toLocalDate());
+        startPicker.setMaxWidth(Double.MAX_VALUE);
+        endPicker.setMaxWidth(Double.MAX_VALUE);
+        Label startLbl = new Label("From"); startLbl.getStyleClass().add("az-form-label");
+        Label endLbl   = new Label("To");   endLbl.getStyleClass().add("az-form-label");
+        VBox form = new VBox(12, new VBox(5, startLbl, startPicker), new VBox(5, endLbl, endPicker));
+        form.setPadding(new Insets(20, 24, 8, 24));
+        Dialog<boolean[]> dlg = new Dialog<>();
+        dlg.setTitle("Custom Date Range"); dlg.setHeaderText(null);
+        dlg.getDialogPane().setContent(new VBox(0, buildDialogHeader("📅", "Custom Date Range",
+            "Select the start and end dates for sensor data"), form));
+        dlg.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dlg.getDialogPane().setMinWidth(360);
+        if (contentArea.getScene() != null) dlg.getDialogPane().getStylesheets().addAll(contentArea.getScene().getStylesheets());
+        ((Button)dlg.getDialogPane().lookupButton(ButtonType.OK)).getStyleClass().add("btn-primary");
+        ((Button)dlg.getDialogPane().lookupButton(ButtonType.CANCEL)).getStyleClass().add("btn-secondary");
+        dlg.setResultConverter(bt -> bt == ButtonType.OK ? new boolean[]{true} : null);
+        dlg.showAndWait().ifPresent(ok -> {
+            if (startPicker.getValue() != null && endPicker.getValue() != null) {
+                sensorStart = startPicker.getValue().atStartOfDay();
+                sensorEnd   = endPicker.getValue().atTime(23, 59, 59);
+                rebuildSensorContent();
+            }
+        });
+    }
+
+    private HBox buildDialogHeader(String icon, String title, String sub) {
+        Label i = new Label(icon); i.getStyleClass().add("dialog-custom-header-icon");
+        Label t = new Label(title); t.getStyleClass().add("dialog-custom-header-title");
+        Label s = new Label(sub);  s.getStyleClass().add("dialog-custom-header-sub");
+        VBox txt = new VBox(2, t, s);
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox h = new HBox(12, i, txt, sp);
+        h.setAlignment(Pos.CENTER_LEFT);
+        h.getStyleClass().add("dialog-custom-header");
+        return h;
+    }
+
+    // ── Old pair builder (kept for other callers) ─────────────────────────
 
     private void buildNumericSensorPairs(String kind, List<NumericSensor> sensors,
                                           java.util.function.Function<NumericSensor, String> label) {
