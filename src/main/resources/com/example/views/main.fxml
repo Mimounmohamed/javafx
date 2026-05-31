@@ -34,6 +34,10 @@
                     text="🗺   Zones"     styleClass="nav-btn" maxWidth="Infinity" />
             <Button fx:id="btnAnimals"   onAction="#navAnimals"
                     text="🐄   Animals"   styleClass="nav-btn" maxWidth="Infinity" />
+            <Button fx:id="btnCrops"     onAction="#navCrops"
+                    text="🌾   Crops"     styleClass="nav-btn" maxWidth="Infinity" />
+            <Button fx:id="btnAqua"      onAction="#navAqua"
+                    text="🐟   Aquaculture" styleClass="nav-btn" maxWidth="Infinity" />
             <Button fx:id="btnSensors"   onAction="#navSensors"
                     text="📡   Sensors"   styleClass="nav-btn" maxWidth="Infinity" />
             <HBox maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="sidebar-nav-row">

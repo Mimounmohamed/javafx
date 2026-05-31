@@ -51,23 +51,53 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
     // ── Parent zone boundary (constraint for sub-zone editing) ────────
     private final GoegraphicBoundries parentBoundary;
 
+    // ── Sibling zone boundaries (cannot overlap these) ────────────────
+    private final List<GoegraphicBoundries> siblingBoundaries;
+
+    // ── Reference-only mode (farm boundary editing showing zones) ─────
+    private boolean referencesOnly = false;
+
     // ═════════════════════════════════════════════════════════════════
     // Constructors
     // ═════════════════════════════════════════════════════════════════
 
-    /** Zone-level boundary — no parent constraint */
+    /** Zone-level boundary — no parent constraint, no siblings */
     public BoundaryEditorDialog(String name, GoegraphicBoundries existing, List<String> styleSheets) {
-        this(name, existing, null, styleSheets);
+        this(name, existing, null, List.of(), styleSheets);
+    }
+
+    /** With parent constraint, no sibling zones */
+    public BoundaryEditorDialog(String name, GoegraphicBoundries existing,
+                                GoegraphicBoundries parentBoundary, List<String> styleSheets) {
+        this(name, existing, parentBoundary, List.of(), styleSheets);
     }
 
     /**
-     * Sub-zone boundary editor.
-     * @param parentBoundary  the containing zone's boundary — points outside it are rejected
+     * Full 5-arg constructor — delegates to 6-arg with referencesOnly=false.
+     * @param parentBoundary    outer limit — points outside it are rejected (farm or parent zone)
+     * @param siblingBoundaries existing peer zones — new polygon cannot overlap any of them
      */
     public BoundaryEditorDialog(String name, GoegraphicBoundries existing,
-                                GoegraphicBoundries parentBoundary, List<String> styleSheets) {
-        this.boundaryTitle  = name;
-        this.parentBoundary = parentBoundary;
+                                GoegraphicBoundries parentBoundary,
+                                List<GoegraphicBoundries> siblingBoundaries,
+                                List<String> styleSheets) {
+        this(name, existing, parentBoundary, siblingBoundaries, false, styleSheets);
+    }
+
+    /**
+     * Full 6-arg constructor with referencesOnly flag.
+     * When referencesOnly=true, sibling zones are shown as blue reference outlines only —
+     * no overlap checks are performed.
+     */
+    public BoundaryEditorDialog(String name, GoegraphicBoundries existing,
+                                GoegraphicBoundries parentBoundary,
+                                List<GoegraphicBoundries> siblingBoundaries,
+                                boolean referencesOnly,
+                                List<String> styleSheets) {
+        this.referencesOnly    = referencesOnly;
+        this.boundaryTitle     = name;
+        this.parentBoundary    = parentBoundary;
+        this.siblingBoundaries = siblingBoundaries != null ? siblingBoundaries : List.of();
 
         setTitle("Boundary Editor — " + name);
         setHeaderText(null);
@@ -94,9 +124,16 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
         okBtn.getStyleClass().add("btn-primary");
         cancelBtn.getStyleClass().add("btn-secondary");
 
-        String subtitle = parentBoundary != null
-            ? "Must stay inside the zone outline · 3 points minimum"
-            : "Define the geographic boundary · 3 points minimum";
+        String subtitle;
+        if (referencesOnly && !this.siblingBoundaries.isEmpty()) {
+            subtitle = "Draw the farm boundary — existing zones shown as reference";
+        } else if (parentBoundary != null) {
+            subtitle = "Must stay inside the zone outline · 3 points minimum";
+        } else if (!this.siblingBoundaries.isEmpty()) {
+            subtitle = "Cannot overlap existing zones · 3 points minimum";
+        } else {
+            subtitle = "Define the geographic boundary · 3 points minimum";
+        }
 
         // Pre-load existing child boundary
         if (existing != null && !existing.getPoints().isEmpty()) {
@@ -108,11 +145,15 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
             rebuildLabels(jsonPoints, jsonPointLabels);
         }
 
-        // Canvas view: prefer parent extent (with tiny padding), else child extent
+        // Canvas view: prefer parent extent, else siblings + existing
         if (parentBoundary != null && parentBoundary.size() >= 2) {
             initBoundsFromPoints(parentBoundary.getPoints(), 0.0008);
-        } else if (existing != null && existing.size() >= 2) {
-            initBoundsFromPoints(existing.getPoints(), 0.005);
+        } else {
+            List<double[]> viewPts = new ArrayList<>();
+            for (GoegraphicBoundries s : this.siblingBoundaries)
+                if (s != null) viewPts.addAll(s.getPoints());
+            if (existing != null) viewPts.addAll(existing.getPoints());
+            if (!viewPts.isEmpty()) initBoundsFromPoints(viewPts, 0.005);
         }
 
         tabPane = new TabPane();
@@ -215,6 +256,10 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
                     drawStatusLabel.setText("⚠  Point is outside the zone boundary — not added");
                     return;
                 }
+                if (isInsideAnyZone(lat, lon)) {
+                    drawStatusLabel.setText("⚠  Point overlaps an existing zone — zones cannot overlap");
+                    return;
+                }
                 drawStatusLabel.setText("");
                 drawnPoints.add(new double[]{lat, lon});
                 selectedDrawnIdx = drawnPoints.size() - 1;
@@ -232,6 +277,8 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
                 // If dragging into forbidden area, clamp but warn
                 if (parentBoundary != null && !parentBoundary.contains(lat, lon)) {
                     drawStatusLabel.setText("⚠  Dragged outside zone boundary");
+                } else if (isInsideAnyZone(lat, lon)) {
+                    drawStatusLabel.setText("⚠  Cannot drag into an existing zone");
                 } else {
                     drawStatusLabel.setText("");
                     drawnPoints.get(dragIdx)[0] = lat;
@@ -378,10 +425,44 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
             gc.fillText("Zone boundary", pxs[0] + 4, pys[0] - 5);
         }
 
+        // ── Sibling zones ────────────────────────────────────────────
+        // referencesOnly=true → draw in blue (reference only, no overlap enforcement)
+        // referencesOnly=false → draw in orange (forbidden, cannot overlap)
+        for (GoegraphicBoundries sib : siblingBoundaries) {
+            if (sib == null || sib.size() < 3) continue;
+            double[] sxs = sib.getPoints().stream().mapToDouble(p -> lngToX(p[1])).toArray();
+            double[] sys = sib.getPoints().stream().mapToDouble(p -> latToY(p[0])).toArray();
+            if (referencesOnly) {
+                gc.setFill(Color.web("#1565c0", 0.18));
+                gc.fillPolygon(sxs, sys, sib.size());
+                gc.setStroke(Color.web("#1565c0"));
+                gc.setLineWidth(1.5);
+                gc.setLineDashes(5, 3);
+                gc.strokePolygon(sxs, sys, sib.size());
+                gc.setLineDashes(0);
+                // Label
+                gc.setFill(Color.web("#1565c0"));
+                gc.setFont(Font.font("System", FontWeight.BOLD, 9));
+                gc.fillText("Your zones (reference)", sxs[0] + 4, sys[0] - 5);
+            } else {
+                gc.setFill(Color.web("#ff6b35", 0.20));
+                gc.fillPolygon(sxs, sys, sib.size());
+                gc.setStroke(Color.web("#c0392b"));
+                gc.setLineWidth(1.5);
+                gc.setLineDashes(5, 3);
+                gc.strokePolygon(sxs, sys, sib.size());
+                gc.setLineDashes(0);
+            }
+        }
+
         if (drawnPoints.isEmpty()) {
             String msg = parentBoundary != null
                 ? "Click inside the zone outline to start drawing"
-                : "Click anywhere to place the first boundary point";
+                : (referencesOnly && !siblingBoundaries.isEmpty()
+                    ? "Click anywhere to start drawing — blue outlines are your existing zones (reference)"
+                    : (!siblingBoundaries.isEmpty()
+                        ? "Click in an empty area to start drawing (orange = existing zones)"
+                        : "Click anywhere to place the first boundary point"));
             gc.setFill(Color.web("#2e7d32")); gc.setFont(Font.font("System", 13));
             gc.fillText(msg, 40, h / 2);
             return;
@@ -470,6 +551,10 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
                     showError("This point is outside the zone boundary.\nAll sub-zone points must be inside the parent zone.");
                     return;
                 }
+                if (isInsideAnyZone(lat, lon)) {
+                    showError("This point overlaps an existing zone.\nZones cannot overlap.");
+                    return;
+                }
                 manualPoints.add(new double[]{lat, lon});
                 rebuildLabels(manualPoints, manualPointLabels);
                 latF.clear(); lonF.clear(); latF.requestFocus();
@@ -484,6 +569,10 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
                 if (lat < -90 || lat > 90 || lon < -180 || lon > 180) throw new NumberFormatException();
                 if (parentBoundary != null && !parentBoundary.contains(lat, lon)) {
                     showError("This point is outside the zone boundary.\nAll sub-zone points must be inside the parent zone.");
+                    return;
+                }
+                if (isInsideAnyZone(lat, lon)) {
+                    showError("This point overlaps an existing zone.\nZones cannot overlap.");
                     return;
                 }
                 manualPoints.get(editManualIdx)[0] = lat;
@@ -580,6 +669,10 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
                     showError("Some rectangle corners are outside the zone boundary.");
                     return;
                 }
+                if (!referencesOnly && siblingBoundaries.stream().anyMatch(s -> s != null && pts.stream().anyMatch(p -> s.contains(p[0], p[1])))) {
+                    showError("The rectangle overlaps an existing zone. Choose a different area.");
+                    return;
+                }
                 applyPresetToManual(pts);
             } catch (Exception ignored) { showError("Invalid rectangle coordinates."); }
         });
@@ -599,6 +692,10 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
                 ).getPoints();
                 if (parentBoundary != null && pts.stream().anyMatch(p -> !parentBoundary.contains(p[0], p[1]))) {
                     showError("Some circle points are outside the zone boundary. Reduce the radius.");
+                    return;
+                }
+                if (!referencesOnly && siblingBoundaries.stream().anyMatch(s -> s != null && pts.stream().anyMatch(p -> s.contains(p[0], p[1])))) {
+                    showError("The circle overlaps an existing zone. Reduce the radius or move the center.");
                     return;
                 }
                 applyPresetToManual(pts);
@@ -657,6 +754,17 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
                         statusLbl.setText("⚠  " + outside + " point(s) are outside the zone boundary — fix the JSON and reload.");
                         statusLbl.setStyle("-fx-text-fill:#f39c12; -fx-font-weight:bold;");
                         return;
+                    }
+                }
+                if (!referencesOnly) {
+                    for (GoegraphicBoundries sib : siblingBoundaries) {
+                        if (sib == null) continue;
+                        long overlap = parsed.stream().filter(p -> sib.contains(p[0], p[1])).count();
+                        if (overlap > 0) {
+                            statusLbl.setText("⚠  " + overlap + " point(s) overlap an existing zone — fix the JSON and reload.");
+                            statusLbl.setStyle("-fx-text-fill:#f39c12; -fx-font-weight:bold;");
+                            return;
+                        }
                     }
                 }
                 jsonPoints.clear(); jsonPoints.addAll(parsed);
@@ -751,6 +859,13 @@ public class BoundaryEditorDialog extends Dialog<GoegraphicBoundries> {
     // ══════════════════════════════════════════════════════════════════
     // Shared helpers
     // ══════════════════════════════════════════════════════════════════
+
+    private boolean isInsideAnyZone(double lat, double lon) {
+        if (referencesOnly) return false;
+        for (GoegraphicBoundries sib : siblingBoundaries)
+            if (sib != null && sib.contains(lat, lon)) return true;
+        return false;
+    }
 
     private List<double[]> getActivePoints() {
         String t = tabPane.getSelectionModel().getSelectedItem().getText();

@@ -6,6 +6,7 @@ import Alerts.AlertType;
 import Reports.*;
 import ZONES.AquacultureZONE;
 import ZONES.CropZONE;
+import ZONES.GoegraphicBoundries;
 import ZONES.LivestockZONE;
 import ZONES.ZONE;
 
@@ -21,6 +22,9 @@ public class Farm {
     private String location;
     private String ownerName;
     private final LocalDateTime createdAt;
+
+    // ─── Farm boundary (optional) ────────────────────────────────
+    private GoegraphicBoundries farmBoundary;
 
     // ─── Zone registry ────────────────────────────────────────────
     private final List<LivestockZONE>   livestockZones;
@@ -330,6 +334,10 @@ public class Farm {
     public String getLocation()         { return location; }
     public String getOwnerName()        { return ownerName; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public boolean hasFarmBoundary()              { return farmBoundary != null; }
+    public GoegraphicBoundries getFarmBoundary()  { return farmBoundary; }
+    public void setFarmBoundary(GoegraphicBoundries b) { this.farmBoundary = b; }
 
     public void setName(String name) {
         if (name == null || name.isBlank())

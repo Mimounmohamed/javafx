@@ -2,12 +2,12 @@ package com.example.controllers;
 
 import Sensors.NumericSensor;
 import Sensors.NumericSensorReading;
-import Sensors.ReadingLevel;
 import Sensors.SensorReading;
 import com.example.services.SensorService;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -31,6 +31,7 @@ import javafx.scene.layout.VBox;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class SensorChartDialog extends Dialog<Void> {
@@ -170,10 +171,11 @@ public class SensorChartDialog extends Dialog<Void> {
         chart.getData().add(minSeries);
         chart.getData().add(maxSeries);
 
-        // 65 px per point keeps every label readable
-        double chartW = Math.max(800, readings.size() * 65);
-        chart.setPrefWidth(chartW);
-        chart.setMinWidth(chartW);
+        // Minimum width: 65 px per point so labels never crowd.
+        // When the dialog is wider the chart grows to fill; smaller → scrollbar appears.
+        double minW = Math.max(800, readings.size() * 65.0);
+        chart.setPrefWidth(minW);
+        chart.setMinWidth(minW);
 
         Platform.runLater(() -> {
             applyLineStyle(minSeries, "#f59e0b");
@@ -198,40 +200,75 @@ public class SensorChartDialog extends Dialog<Void> {
         scroll.setFitToHeight(false);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setPrefHeight(362); // chart + scrollbar
-        scroll.setMaxHeight(362);
+        scroll.setPrefHeight(362);
+        scroll.setMaxHeight(Double.MAX_VALUE);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        // Expand chart when dialog is wider than minimum — shrink back when narrowed
+        scroll.viewportBoundsProperty().addListener((obs, ov, nv) -> {
+            double avail = nv.getWidth();
+            chart.setPrefWidth(avail > minW ? avail : minW);
+        });
         return scroll;
     }
 
     // ── Table ──────────────────────────────────────────────────────────────
 
+    // Sorting core: wrap items in SortedList bound to the table's comparatorProperty.
+    // Each column declares a cellValueFactory (for comparison) and, where the display
+    // format differs from sort order, an explicit Comparator.  Clicking any header then
+    // sorts ascending/descending automatically — no extra code needed.
     private TableView<NumericSensorReading> buildTable(List<NumericSensorReading> readings) {
         TableView<NumericSensorReading> table = new TableView<>();
         table.setPrefHeight(200);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_LAST_COLUMN);
 
-        TableColumn<NumericSensorReading, String> colDate = new TableColumn<>("Date / Time");
+        // ── Date column — sorted by actual timestamp, displayed as formatted string ──
+        TableColumn<NumericSensorReading, String> colDate = new TableColumn<>("Date / Time ↕");
         colDate.setCellValueFactory(d -> new SimpleStringProperty(
             d.getValue().getTimestamp().format(TABLE_FMT)));
+        // "yyyy-MM-dd HH:mm:ss" is already lexicographically correct, but use timestamp directly
+        colDate.setComparator(Comparator.comparing(
+            s -> java.time.LocalDateTime.parse(s, TABLE_FMT)));
         colDate.setMinWidth(180);
 
-        TableColumn<NumericSensorReading, String> colVal = new TableColumn<>("Value");
-        colVal.setCellValueFactory(d -> new SimpleStringProperty(
-            String.format("%.4f %s", d.getValue().getValue(), d.getValue().getUnit())));
+        // ── Value column — Double-based so numeric sort works correctly ──
+        TableColumn<NumericSensorReading, Double> colVal = new TableColumn<>("Value ↕");
+        colVal.setCellValueFactory(d ->
+            new javafx.beans.property.SimpleDoubleProperty(d.getValue().getValue()).asObject());
+        colVal.setCellFactory(c -> new TableCell<>() {
+            @Override protected void updateItem(Double v, boolean empty) {
+                super.updateItem(v, empty);
+                if (empty || v == null) { setText(null); return; }
+                NumericSensorReading r = getTableRow() != null ? getTableRow().getItem() : null;
+                setText(r != null ? String.format("%.4f %s", v, r.getUnit())
+                                  : String.format("%.4f", v));
+            }
+        });
         colVal.setMinWidth(130);
 
-        TableColumn<NumericSensorReading, String> colLevel = new TableColumn<>("Level");
+        // ── Level column — cellValueFactory enables sorting; cellFactory renders badge ──
+        TableColumn<NumericSensorReading, String> colLevel = new TableColumn<>("Level ↕");
+        colLevel.setCellValueFactory(d ->
+            new SimpleStringProperty(d.getValue().getSeverity().toString()));
+        colLevel.setComparator(Comparator.comparingInt(s -> switch (s) {
+            case "CRITICAL" -> 0;
+            case "WARNING"  -> 1;
+            default         -> 2;
+        }));
         colLevel.setCellFactory(c -> new TableCell<>() {
             private final Label badge = new Label();
             { badge.getStyleClass().add("badge"); }
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || getTableRow() == null || getTableRow().getItem() == null) { setGraphic(null); return; }
-                NumericSensorReading r = getTableRow().getItem();
-                badge.setText(r.getSeverity().toString());
+                if (empty || item == null) { setGraphic(null); return; }
+                badge.setText(item);
                 badge.getStyleClass().removeIf(s -> s.startsWith("badge-"));
-                badge.getStyleClass().add(levelCss(r.getSeverity()));
+                badge.getStyleClass().add(switch (item) {
+                    case "CRITICAL" -> "badge-critical";
+                    case "WARNING"  -> "badge-warning";
+                    default         -> "badge-normal";
+                });
                 setGraphic(badge);
             }
         });
@@ -240,7 +277,16 @@ public class SensorChartDialog extends Dialog<Void> {
         table.getColumns().add(colDate);
         table.getColumns().add(colVal);
         table.getColumns().add(colLevel);
-        table.setItems(FXCollections.observableArrayList(readings));
+
+        // Bind SortedList to table so header-click sort drives the visible order
+        SortedList<NumericSensorReading> sorted =
+            new SortedList<>(FXCollections.observableArrayList(readings));
+        sorted.comparatorProperty().bind(table.comparatorProperty());
+        table.setItems(sorted);
+
+        // Default sort: newest first
+        colDate.setSortType(TableColumn.SortType.DESCENDING);
+        table.getSortOrder().add(colDate);
 
         table.setRowFactory(tv -> new TableRow<>() {
             @Override protected void updateItem(NumericSensorReading r, boolean empty) {
@@ -270,11 +316,4 @@ public class SensorChartDialog extends Dialog<Void> {
             if (d.getNode() != null) d.getNode().setVisible(false);
     }
 
-    private String levelCss(ReadingLevel level) {
-        return switch (level) {
-            case CRITICAL -> "badge-critical";
-            case WARNING  -> "badge-warning";
-            default       -> "badge-normal";
-        };
-    }
 }

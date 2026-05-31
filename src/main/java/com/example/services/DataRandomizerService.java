@@ -177,6 +177,39 @@ public class DataRandomizerService {
             System.out.println("[DataRandomizer]   → " + az.getSpeciesList().size() + " species");
         }
 
+        // Compute farm boundary as bounding box of all zone boundaries + 18 % padding
+        double fbMinLat = Double.MAX_VALUE, fbMaxLat = -Double.MAX_VALUE;
+        double fbMinLon = Double.MAX_VALUE, fbMaxLon = -Double.MAX_VALUE;
+        for (LivestockZONE z : farm.getLivestockZones()) {
+            if (!z.hasBoundaries()) continue;
+            for (double[] p : z.getBoundaries().getPoints()) {
+                if (p[0] < fbMinLat) fbMinLat = p[0]; if (p[0] > fbMaxLat) fbMaxLat = p[0];
+                if (p[1] < fbMinLon) fbMinLon = p[1]; if (p[1] > fbMaxLon) fbMaxLon = p[1];
+            }
+        }
+        for (CropZONE z : farm.getCropZones()) {
+            if (!z.hasBoundaries()) continue;
+            for (double[] p : z.getBoundaries().getPoints()) {
+                if (p[0] < fbMinLat) fbMinLat = p[0]; if (p[0] > fbMaxLat) fbMaxLat = p[0];
+                if (p[1] < fbMinLon) fbMinLon = p[1]; if (p[1] > fbMaxLon) fbMaxLon = p[1];
+            }
+        }
+        for (AquacultureZONE z : farm.getAquacultureZones()) {
+            if (!z.hasBoundaries()) continue;
+            for (double[] p : z.getBoundaries().getPoints()) {
+                if (p[0] < fbMinLat) fbMinLat = p[0]; if (p[0] > fbMaxLat) fbMaxLat = p[0];
+                if (p[1] < fbMinLon) fbMinLon = p[1]; if (p[1] > fbMaxLon) fbMaxLon = p[1];
+            }
+        }
+        if (fbMinLat < Double.MAX_VALUE) {
+            double padLat = (fbMaxLat - fbMinLat) * 0.18;
+            double padLon = (fbMaxLon - fbMinLon) * 0.18;
+            farm.setFarmBoundary(GoegraphicBoundries.createRectangle(
+                fbMinLat - padLat, fbMinLon - padLon,
+                fbMaxLat + padLat, fbMaxLon + padLon));
+            System.out.println("[DataRandomizer] farm boundary set");
+        }
+
         System.out.println("[DataRandomizer] generating alerts...");
         generateAlerts(farm);
         System.out.println("[DataRandomizer] DONE — zones=" + farm.getTotalZoneCount()

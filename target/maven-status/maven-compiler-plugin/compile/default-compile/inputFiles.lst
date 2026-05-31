@@ -9,6 +9,7 @@ C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\contro
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\ReportsController.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\BoundaryEditorDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\ZONES\ZONE.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\services\PdfReportService.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\ZoneAlertHistoryDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\NumericSensor.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\BioMeasureType.java
@@ -16,6 +17,7 @@ C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\contro
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\MainController.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Reports\Report.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\Sensor.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\FarmMapDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\ZONES\GoegraphicBoundries.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\AlertsController.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\MainController.java
@@ -31,6 +33,7 @@ C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\utils\
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\services\AnimalService.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\services\ReportService.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\EnvMeasureType.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\CropsController.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\services\SimulationService.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Entities\AquacultureSpecies.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Reports\ReportLiveStockZone.java
@@ -52,6 +55,7 @@ C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Animals\AnimalHeal
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\SettingsController.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Reports\FarmProductionReport.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\ZONES\ZoneStatus.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\AddSpeciesDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\ZonesController.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\SoilSensor.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\App.java
@@ -75,8 +79,10 @@ C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Sensors\BioSensor.
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Animals\Animal.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\utils\RandomFarmGenerator.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Reports\LivestockProductionReport.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\AddCropDialog.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Animals\HealthEvent.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\services\ZoneService.java
+C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\com\example\controllers\AquacultureController.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\Entities\CropType.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\ZONES\CropZONE.java
 C:\Users\catal\OneDrive\Documents\tp poo\javafx\src\main\java\ZONES\LivestockZONE.java

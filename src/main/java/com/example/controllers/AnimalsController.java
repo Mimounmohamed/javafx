@@ -601,11 +601,11 @@ public class AnimalsController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<Double> dialog = new Dialog<>();
         dialog.setTitle("Record Weight");
-        dialog.setHeaderText("Update weight for " + a.getName());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().setContent(new VBox(0, dialogHeader("⚖", "Record Weight", "Update weight for " + a.getName()), form));
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(360);
-        applyDialogStyle(dialog);
+        styleDlg(dialog);
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Record");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
@@ -629,11 +629,11 @@ public class AnimalsController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Record Eggs");
-        dialog.setHeaderText("Record egg count for " + a.getName());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().setContent(new VBox(0, dialogHeader("🥚", "Record Eggs", "Recording eggs for " + a.getName()), form));
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(360);
-        applyDialogStyle(dialog);
+        styleDlg(dialog);
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Record");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
@@ -653,11 +653,11 @@ public class AnimalsController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<AnimalHealthStatus> dialog = new Dialog<>();
         dialog.setTitle("Resolve Health Event");
-        dialog.setHeaderText("Resolve event for " + a.getName());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().setContent(new VBox(0, dialogHeader("✅", "Resolve Health Event", "Resolving event for " + a.getName()), form));
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(360);
-        applyDialogStyle(dialog);
+        styleDlg(dialog);
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Resolve");
         dialog.setResultConverter(bt -> bt == ButtonType.OK ? statusCombo.getValue() : null);
         dialog.showAndWait().ifPresent(status -> {
@@ -680,13 +680,15 @@ public class AnimalsController {
         descField.setPromptText("Reason / description...");
         VBox form = new VBox(14, formGroup("Reason", descField));
         form.setPadding(new Insets(20, 24, 8, 24));
+        String icon = newStatus == AnimalHealthStatus.Sick ? "🩺" : "🔒";
+        String title = newStatus == AnimalHealthStatus.Sick ? "Mark as Sick" : "Quarantine Animal";
         Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle(newStatus == AnimalHealthStatus.Sick ? "Mark as Sick" : "Quarantine Animal");
-        dialog.setHeaderText(a.getName() + " — " + newStatus);
-        dialog.getDialogPane().setContent(form);
+        dialog.setTitle(title);
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().setContent(new VBox(0, dialogHeader(icon, title, a.getName() + " — " + newStatus), form));
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(360);
-        applyDialogStyle(dialog);
+        styleDlg(dialog);
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Confirm");
         dialog.setResultConverter(bt -> bt == ButtonType.OK ? descField.getText().trim() : null);
         dialog.showAndWait().ifPresent(desc -> {
@@ -706,17 +708,18 @@ public class AnimalsController {
         list.getStyleClass().add("event-list");
         list.setPrefHeight(Math.min(400, entries.size() * 26.0 + 30));
         list.setPrefWidth(460);
-        VBox content = new VBox(list);
-        content.setPadding(new Insets(12, 16, 8, 16));
+        VBox histBody = new VBox(list);
+        histBody.setPadding(new Insets(12, 16, 8, 16));
+        String icon = title.contains("Milk") ? "🥛" : title.contains("Egg") ? "🥚" : title.contains("Weight") ? "⚖" : "📋";
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.setHeaderText(null);
+        dialog.getDialogPane().setContent(new VBox(0, dialogHeader(icon, title, entries.size() + " records"), histBody));
         if (animalTable.getScene() != null)
             dialog.initOwner(animalTable.getScene().getWindow());
-        dialog.getDialogPane().setContent(content);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         dialog.getDialogPane().setMinWidth(500);
-        applyDialogStyle(dialog);
+        styleDlgClose(dialog);
         dialog.showAndWait();
     }
 
@@ -763,26 +766,39 @@ public class AnimalsController {
         return box;
     }
 
-    private void applyDialogStyle(Dialog<?> dialog) {
-        var sheets = animalTable.getScene() == null ? null : animalTable.getScene().getStylesheets();
-        String css = (sheets != null && !sheets.isEmpty()) ? sheets.get(0)
-            : getClass().getResource("/com/example/styles/main.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(css);
-        Button ok     = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        Button cancel = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
-        if (ok != null)     ok.getStyleClass().add("btn-primary");
-        if (cancel != null) cancel.getStyleClass().add("btn-secondary");
+    // ── Dialog style helpers ──────────────────────────────────────────
 
-        String title = dialog.getTitle() == null ? "" : dialog.getTitle();
-        String icon  = "🐄";
-        if      (title.contains("Weight"))  icon = "⚖";
-        else if (title.contains("Milk"))    icon = "🥛";
-        else if (title.contains("Egg"))     icon = "🥚";
-        else if (title.contains("Resolve")) icon = "✅";
-        else if (title.contains("Sick") || title.contains("Quarantine")) icon = "🩺";
-        else if (title.contains("Events"))  icon = "📋";
+    private HBox dialogHeader(String icon, String title, String subtitle) {
         Label iconLbl = new Label(icon);
-        iconLbl.setStyle("-fx-font-size: 18px;");
-        dialog.setGraphic(iconLbl);
+        iconLbl.getStyleClass().add("dialog-custom-header-icon");
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("dialog-custom-header-title");
+        Label subLbl = new Label(subtitle);
+        subLbl.getStyleClass().add("dialog-custom-header-sub");
+        VBox textBox = new VBox(2, titleLbl, subLbl);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(12, iconLbl, textBox, spacer);
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        header.getStyleClass().add("dialog-custom-header");
+        return header;
+    }
+
+    private void styleDlg(Dialog<?> d) {
+        var sheets = animalTable.getScene() == null ? null : animalTable.getScene().getStylesheets();
+        String css = (sheets != null && !sheets.isEmpty()) ? sheets.get(0) : getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        d.getDialogPane().getStylesheets().add(css);
+        Button ok = (Button) d.getDialogPane().lookupButton(ButtonType.OK);
+        Button cancel = (Button) d.getDialogPane().lookupButton(ButtonType.CANCEL);
+        if (ok != null) ok.getStyleClass().add("btn-primary");
+        if (cancel != null) cancel.getStyleClass().add("btn-secondary");
+    }
+
+    private void styleDlgClose(Dialog<?> d) {
+        var sheets = animalTable.getScene() == null ? null : animalTable.getScene().getStylesheets();
+        String css = (sheets != null && !sheets.isEmpty()) ? sheets.get(0) : getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        d.getDialogPane().getStylesheets().add(css);
+        Button close = (Button) d.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (close != null) close.getStyleClass().add("btn-primary");
     }
 }

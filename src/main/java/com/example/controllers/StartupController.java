@@ -7,9 +7,12 @@ import com.example.utils.RandomFarmGenerator;
 import com.example.utils.SceneManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -83,18 +86,19 @@ public class StartupController {
         }
 
         if (populate) {
-            try {
-                DataRandomizerService.getInstance().populateNewFarm();
-            } catch (Exception ex) {
-                System.err.println("[DataRandomizer] populateNewFarm failed:");
-                ex.printStackTrace(System.err);
-            }
+            runWithLoading("Generating farm data, please wait…", () -> {
+                try { DataRandomizerService.getInstance().populateNewFarm(); }
+                catch (Exception ex) { ex.printStackTrace(System.err); }
+            }, () -> {
+                refreshFarmList();
+                offerFarmBoundary();
+                SceneManager.getInstance().loadMainApp();
+            });
+            return;
         }
 
-        List<FarmRepository.SavedFarm> updated = FarmRepository.loadAll();
-        farms.clear();
-        updated.stream().filter(f ->  f.isDemo).forEach(farms::add);
-        updated.stream().filter(f -> !f.isDemo).forEach(farms::add);
+        refreshFarmList();
+        offerFarmBoundary();
         SceneManager.getInstance().loadMainApp();
     }
 
@@ -111,17 +115,14 @@ public class StartupController {
             showError("Failed to create farm: " + e.getMessage());
             return;
         }
-        try {
-            DataRandomizerService.getInstance().populateNewFarm();
-        } catch (Exception ex) {
-            System.err.println("[DataRandomizer] populateNewFarm failed:");
-            ex.printStackTrace(System.err);
-        }
-        List<FarmRepository.SavedFarm> updated = FarmRepository.loadAll();
-        farms.clear();
-        updated.stream().filter(f ->  f.isDemo).forEach(farms::add);
-        updated.stream().filter(f -> !f.isDemo).forEach(farms::add);
-        SceneManager.getInstance().loadMainApp();
+        runWithLoading("Generating random farm data, please wait…", () -> {
+            try { DataRandomizerService.getInstance().populateNewFarm(); }
+            catch (Exception ex) { ex.printStackTrace(System.err); }
+        }, () -> {
+            refreshFarmList();
+            offerFarmBoundary();
+            SceneManager.getInstance().loadMainApp();
+        });
     }
 
     // ── Open / delete actions (called from cells) ─────────────────────
@@ -134,6 +135,64 @@ public class StartupController {
     void deleteFarm(FarmRepository.SavedFarm sf) {
         FarmRepository.delete(sf.id);
         farms.remove(sf);
+    }
+
+    // ── Farm boundary offer ───────────────────────────────────────────
+
+    private void offerFarmBoundary() {
+        if (FarmService.getInstance().hasFarmBoundary()) return;
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Farm Boundary");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Do you want to draw the geographic boundary of your farm?\n"
+            + "This is optional — zone boundaries can be constrained inside it.");
+        confirm.getButtonTypes().setAll(
+            new ButtonType("Draw Boundary"),
+            new ButtonType("Skip")
+        );
+        confirm.showAndWait().ifPresent(bt -> {
+            if (!"Draw Boundary".equals(bt.getText())) return;
+            String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+            new BoundaryEditorDialog("Farm Boundary", null, List.of(css))
+                .showAndWait()
+                .ifPresent(b -> FarmService.getInstance().setFarmBoundary(b));
+        });
+    }
+
+    // ── Background generation helper ──────────────────────────────────
+
+    private void runWithLoading(String msg, Runnable work, Runnable onDone) {
+        javafx.scene.Parent root = farmList.getScene().getRoot();
+        root.setDisable(true);
+        root.setCursor(javafx.scene.Cursor.WAIT);
+        errorLabel.setText("⏳  " + msg);
+        errorLabel.setStyle("-fx-text-fill: #374151; -fx-font-size: 12px;");
+        errorLabel.setVisible(true);
+        errorLabel.setManaged(true);
+
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() { work.run(); return null; }
+        };
+        Runnable cleanup = () -> {
+            root.setDisable(false);
+            root.setCursor(javafx.scene.Cursor.DEFAULT);
+            errorLabel.setVisible(false);
+            errorLabel.setManaged(false);
+        };
+        task.setOnSucceeded(e -> { cleanup.run(); onDone.run(); });
+        task.setOnFailed(e -> {
+            cleanup.run();
+            if (task.getException() != null) task.getException().printStackTrace(System.err);
+            onDone.run();
+        });
+        new Thread(task, "farm-generator").start();
+    }
+
+    private void refreshFarmList() {
+        List<FarmRepository.SavedFarm> updated = FarmRepository.loadAll();
+        farms.clear();
+        updated.stream().filter(f ->  f.isDemo).forEach(farms::add);
+        updated.stream().filter(f -> !f.isDemo).forEach(farms::add);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────

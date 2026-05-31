@@ -140,10 +140,10 @@
         <!-- ── Chart + Recent Alerts ──────────────────────────────── -->
         <HBox spacing="16">
             <VBox fx:id="chartContainer" styleClass="kpi-card" HBox.hgrow="ALWAYS"
-                  spacing="8" minHeight="320">
+                  spacing="8" minHeight="380">
                 <VBox spacing="2">
-                    <Label text="Production Overview" styleClass="card-title" />
-                    <Label text="Total output across all zones" styleClass="dash-chart-subtitle" />
+                    <Label text="Farm Map" styleClass="card-title" />
+                    <Label text="Geographic overview — zones &amp; boundaries" styleClass="dash-chart-subtitle" />
                 </VBox>
             </VBox>
 

@@ -26,6 +26,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.*;
 
+import com.example.services.PdfReportService;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
+
+import java.io.File;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,8 +45,13 @@ public class ReportsController {
     @FXML private Button btnAquaculture;
     @FXML private Button btnAlerts;
     @FXML private Button btnSensors;
+    @FXML private Button btnExport;
     @FXML private Label  farmNameLabel;
     @FXML private Label  farmSubLabel;
+    @FXML private Label  kpiZones;
+    @FXML private Label  kpiAnimals;
+    @FXML private Label  kpiAlerts;
+    @FXML private Label  kpiSensors;
 
     private ZoneService    zoneService;
     private AlertService   alertService;
@@ -63,6 +74,12 @@ public class ReportsController {
 
             farmNameLabel.setText(farmService.getFarmName());
             farmSubLabel.setText(farmService.getFarmLocation());
+
+            kpiZones.setText(String.valueOf(zoneService.getAllZones().size()));
+            kpiAnimals.setText(String.valueOf(animalService.getAllAnimals().size()));
+            kpiAlerts.setText(String.valueOf(alertService.getActiveAlertCount()));
+            kpiSensors.setText(String.valueOf(sensorService.getAllSensors().size()));
+
             showOverview();
         } catch (Throwable t) {
             t.printStackTrace();
@@ -77,7 +94,7 @@ public class ReportsController {
     // ── Nav ───────────────────────────────────────────────────────────
 
     private void setActive(Button btn) {
-        for (Button b : new Button[]{btnOverview, btnLivestock, btnCrops, btnAquaculture, btnAlerts, btnSensors}) {
+        for (Button b : new Button[]{btnOverview, btnLivestock, btnCrops, btnAquaculture, btnAlerts, btnSensors, btnExport}) {
             if (b == null) continue;
             b.getStyleClass().removeAll("nav-active");
             if (!b.getStyleClass().contains("nav-btn")) b.getStyleClass().add("nav-btn");
@@ -93,6 +110,7 @@ public class ReportsController {
     @FXML private void showAquaculture() { setActive(btnAquaculture); buildAquaculture(); }
     @FXML private void showAlerts()      { setActive(btnAlerts);      buildAlerts(); }
     @FXML private void showSensors()     { setActive(btnSensors);     buildSensors(); }
+    @FXML private void showExport()      { setActive(btnExport);      buildExport(); }
 
     // ═══════════════════════════════════════════════════════════════════
     // FARM OVERVIEW
@@ -1080,6 +1098,232 @@ public class ReportsController {
         timeLabel.getStyleClass().add("text-muted");
         row.getChildren().addAll(sevLabel, typeLabel, msgLabel, timeLabel);
         return row;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PDF EXPORT
+    // ═══════════════════════════════════════════════════════════════════
+
+    /*
+     * HOW PDF EXPORT WORKS
+     * ────────────────────
+     * Library : Apache PDFBox 3.x (added to pom.xml)
+     *
+     * PDFBox lets us open a PDDocument, add PDPages, and write
+     * text / lines onto each page via PDPageContentStream.
+     * All rendering is done in PdfReportService using standard
+     * Helvetica Type-1 fonts (built into every PDF viewer — no
+     * font embedding needed). A custom PdfWriter inner class
+     * tracks the current Y coordinate and auto-creates new pages
+     * when content would overflow the bottom margin.
+     *
+     * Each export button:
+     *  1. Opens a JavaFX FileChooser so the user picks a save path.
+     *  2. Calls the matching PdfReportService.export*() method.
+     *  3. Shows an inline success or error notification.
+     *
+     * Charts are NOT in the PDF (bitmap-rendering a JavaFX chart
+     * to PDF is very complex). The PDF contains the same numeric
+     * data as the on-screen tables — all the same key/value rows.
+     */
+
+    private void buildExport() {
+        contentArea.getChildren().clear();
+        contentArea.getChildren().add(sectionTitle("Export PDF Reports"));
+
+        // Intro card
+        VBox intro = new VBox(6);
+        intro.getStyleClass().add("kpi-card");
+        intro.setPadding(new Insets(16));
+        Label introText = new Label(
+            "Generate professional PDF summaries for any section of your farm data. " +
+            "Each PDF contains the same numeric data shown in the reports tables. " +
+            "Charts are available interactively in the other sections above.");
+        introText.setWrapText(true);
+        introText.getStyleClass().add("detail-value");
+        Label techNote = new Label(
+            "Technical note: PDFs are generated with Apache PDFBox 3.x using standard " +
+            "Helvetica fonts. A custom page-manager tracks Y-position and inserts new " +
+            "pages automatically. All text is Latin-1 sanitized for font compatibility.");
+        techNote.setWrapText(true);
+        techNote.getStyleClass().add("text-muted");
+        techNote.setStyle("-fx-font-size: 11px; -fx-font-style: italic;");
+        intro.getChildren().addAll(introText, techNote);
+        contentArea.getChildren().add(intro);
+
+        // Notification placeholder
+        Label notification = new Label();
+        notification.setVisible(false);
+        notification.setManaged(false);
+        notification.setWrapText(true);
+        notification.getStyleClass().add("kpi-card");
+        notification.setPadding(new Insets(12, 16, 12, 16));
+        contentArea.getChildren().add(notification);
+
+        // Export cards grid — 2 per row
+        record ExportDef(String icon, String title, String desc, String[] includes,
+                         ThrowingExporter exporter) {}
+
+        PdfReportService pdf = PdfReportService.getInstance();
+
+        List<ExportDef> defs = List.of(
+            new ExportDef("📊", "Farm Overview",
+                "Complete farm snapshot — all zones, animals, sensors, and alerts at a glance.",
+                new String[]{"Farm identity & location", "Zone breakdown (all types)",
+                             "Animal health summary", "Alert summary"},
+                pdf::exportOverview),
+            new ExportDef("🐄", "Livestock Report",
+                "Detailed livestock production — milk, eggs, health per zone and per animal.",
+                new String[]{"Per-zone animal counts", "Milk & egg totals",
+                             "Health breakdown", "Top milk producers"},
+                pdf::exportLivestock),
+            new ExportDef("🌾", "Crops Report",
+                "Crop production summary — yield, growth stages, and field breakdown per zone.",
+                new String[]{"Per-zone yield totals", "Field-level stage & yield",
+                             "Yield by crop type", "Harvested vs pending"},
+                pdf::exportCrops),
+            new ExportDef("🐟", "Aquaculture Report",
+                "Aquaculture production — stock counts, harvest weights, and survival rates.",
+                new String[]{"Per-zone species list", "Stock & harvest per species",
+                             "Survival & mortality rates"},
+                pdf::exportAquaculture),
+            new ExportDef("🔔", "Alerts Report",
+                "Full alert history — by type, severity, status, and zone.",
+                new String[]{"Alert totals by type & severity", "Status breakdown",
+                             "Active alerts list (up to 30)"},
+                pdf::exportAlerts),
+            new ExportDef("📡", "Sensor History Report",
+                "Sensor inventory — last readings and history counts for all sensor types.",
+                new String[]{"Sensor counts by type", "Per-zone sensor details",
+                             "Last value & reading count per sensor"},
+                pdf::exportSensors)
+        );
+
+        for (int i = 0; i < defs.size(); i += 2) {
+            ExportDef d1 = defs.get(i);
+            VBox card1 = buildExportCard(d1.icon(), d1.title(), d1.desc(), d1.includes(),
+                d1.exporter(), notification);
+            if (i + 1 < defs.size()) {
+                ExportDef d2 = defs.get(i + 1);
+                VBox card2 = buildExportCard(d2.icon(), d2.title(), d2.desc(), d2.includes(),
+                    d2.exporter(), notification);
+                contentArea.getChildren().add(chartRow(card1, card2));
+            } else {
+                HBox row = new HBox(16);
+                HBox.setHgrow(card1, Priority.ALWAYS);
+                card1.setMaxWidth(Double.MAX_VALUE);
+                row.getChildren().add(card1);
+                contentArea.getChildren().add(row);
+            }
+        }
+
+        // Full report card — full width
+        contentArea.getChildren().add(sectionTitle("Complete Report"));
+        VBox fullCard = buildExportCard("📋", "Full Farm Report",
+            "All sections combined into one comprehensive PDF document.",
+            new String[]{"Farm overview", "All livestock zones", "All crop zones",
+                         "All aquaculture zones", "Alert summary"},
+            pdf::exportFull, notification);
+        fullCard.setStyle(fullCard.getStyle() +
+            "-fx-border-color: #16A34A; -fx-border-width: 2; -fx-border-radius: 12;");
+        contentArea.getChildren().add(fullCard);
+    }
+
+    private VBox buildExportCard(String icon, String title, String desc,
+                                  String[] includes, ThrowingExporter exporter,
+                                  Label notification) {
+        VBox card = new VBox(10);
+        card.getStyleClass().add("kpi-card");
+        card.setPadding(new Insets(16));
+
+        // Header row
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 22px;");
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("card-title");
+        HBox header = new HBox(10, iconLbl, titleLbl);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        // Description
+        Label descLbl = new Label(desc);
+        descLbl.setWrapText(true);
+        descLbl.getStyleClass().add("detail-value");
+
+        // Includes bullet list
+        VBox bullets = new VBox(3);
+        for (String inc : includes) {
+            Label bullet = new Label("  ✓  " + inc);
+            bullet.getStyleClass().add("text-muted");
+            bullet.setStyle("-fx-font-size: 11px;");
+            bullets.getChildren().add(bullet);
+        }
+
+        // Export button
+        Button exportBtn = new Button("📄  Export PDF");
+        exportBtn.getStyleClass().add("btn-primary");
+        exportBtn.setMaxWidth(Double.MAX_VALUE);
+        exportBtn.setOnAction(e -> runExport(title, exporter, exportBtn, notification));
+
+        card.getChildren().addAll(header, new Separator(), descLbl, bullets, exportBtn);
+        return card;
+    }
+
+    private void runExport(String section, ThrowingExporter exporter,
+                           Button btn, Label notification) {
+        Window window = contentArea.getScene().getWindow();
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Save PDF — " + section);
+        fc.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        String safeName = section.replaceAll("[^a-zA-Z0-9]", "_");
+        fc.setInitialFileName("FarmReport_" + safeName + "_" +
+            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")) + ".pdf");
+
+        File dest = fc.showSaveDialog(window);
+        if (dest == null) return;
+
+        btn.setDisable(true);
+        btn.setText("⏳  Generating…");
+
+        javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<>() {
+            @Override protected Void call() throws Exception {
+                exporter.export(dest); return null;
+            }
+        };
+        task.setOnSucceeded(ev -> {
+            btn.setDisable(false);
+            btn.setText("📄  Export PDF");
+            showNotification(notification, true,
+                "✅  PDF saved: " + dest.getAbsolutePath());
+        });
+        task.setOnFailed(ev -> {
+            btn.setDisable(false);
+            btn.setText("📄  Export PDF");
+            String err = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+            showNotification(notification, false, "❌  Export failed: " + err);
+            task.getException().printStackTrace();
+        });
+        new Thread(task, "pdf-export").start();
+    }
+
+    private void showNotification(Label lbl, boolean success, String msg) {
+        lbl.setText(msg);
+        lbl.setStyle(success
+            ? "-fx-text-fill: #16A34A; -fx-background-color: #F0FDF4; " +
+              "-fx-background-radius: 8; -fx-border-color: #BBF7D0; " +
+              "-fx-border-radius: 8; -fx-border-width: 1;"
+            : "-fx-text-fill: #DC2626; -fx-background-color: #FEF2F2; " +
+              "-fx-background-radius: 8; -fx-border-color: #FECACA; " +
+              "-fx-border-radius: 8; -fx-border-width: 1;");
+        lbl.setVisible(true);
+        lbl.setManaged(true);
+        // Scroll the notification into view
+        lbl.requestFocus();
+    }
+
+    @FunctionalInterface
+    private interface ThrowingExporter {
+        void export(File dest) throws Exception;
     }
 
     // ═══════════════════════════════════════════════════════════════════

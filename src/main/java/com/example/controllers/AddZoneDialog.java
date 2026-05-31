@@ -45,9 +45,22 @@ public class AddZoneDialog extends Dialog<ZONE> {
 
     private Button okBtn;
     private final String stylesheet;
+    private final GoegraphicBoundries farmBoundary;
+    private final List<GoegraphicBoundries> siblingBoundaries;
 
     public AddZoneDialog(String stylesheet) {
-        this.stylesheet = stylesheet;
+        this(stylesheet, null, List.of());
+    }
+
+    public AddZoneDialog(String stylesheet, GoegraphicBoundries farmBoundary) {
+        this(stylesheet, farmBoundary, List.of());
+    }
+
+    public AddZoneDialog(String stylesheet, GoegraphicBoundries farmBoundary,
+                         List<GoegraphicBoundries> siblingBoundaries) {
+        this.stylesheet        = stylesheet;
+        this.farmBoundary      = farmBoundary;
+        this.siblingBoundaries = siblingBoundaries != null ? siblingBoundaries : List.of();
         setTitle("Add Zone");
         setHeaderText(null);
 
@@ -200,7 +213,7 @@ public class AddZoneDialog extends Dialog<ZONE> {
             default     -> aquaBoundary;
         };
 
-        new BoundaryEditorDialog(zoneName, existing, sheets).showAndWait().ifPresent(bounds -> {
+        new BoundaryEditorDialog(zoneName, existing, farmBoundary, siblingBoundaries, sheets).showAndWait().ifPresent(bounds -> {
             String status = "✓  " + bounds.size() + " boundary points defined";
             String style  = "-fx-font-size: 11px; -fx-text-fill: #16A34A; -fx-font-weight: 600;";
             switch (type) {

@@ -37,6 +37,7 @@ import javafx.util.Duration;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class SensorsController {
@@ -49,6 +50,8 @@ public class SensorsController {
     @FXML private ComboBox<String>  filterSeverity;
     @FXML private ComboBox<String>  filterStatus;
     @FXML private ComboBox<String>  filterZone;
+    // Injected programmatically into the filter bar (not in FXML)
+    private ComboBox<String> sortBy;
     @FXML private VBox              chartContainer;
     @FXML private VBox              sensorActions;
     @FXML private Label             detailTitle;
@@ -118,6 +121,23 @@ public class SensorsController {
         filterSeverity.setOnAction(e -> applyFilters());
         filterStatus.setOnAction(e   -> applyFilters());
         filterZone.setOnAction(e     -> applyFilters());
+
+        // Sort combo — injected into the same filter bar at runtime
+        // Core: a Comparator is applied to the filtered list before rendering cards.
+        // (For TableView you'd use SortedList + TableColumn.setComparator instead.)
+        sortBy = new ComboBox<>();
+        sortBy.getItems().addAll(
+            "Default", "Severity ↑ (critical first)", "Severity ↓ (normal first)",
+            "Zone A→Z", "Type A→Z", "Most Readings");
+        sortBy.setValue("Default");
+        sortBy.getStyleClass().setAll("animals-filter-combo");
+        sortBy.setPrefWidth(190);
+        sortBy.setOnAction(e -> applyFilters());
+        if (filterZone.getParent() instanceof HBox filterBar) {
+            Label sortLbl = new Label("Sort:");
+            sortLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280; -fx-padding: 0 0 0 8;");
+            filterBar.getChildren().addAll(sortLbl, sortBy);
+        }
     }
 
     private void applyFilters() {
@@ -130,8 +150,37 @@ public class SensorsController {
             .filter(s -> matchesSeverity(s, sev))
             .filter(s -> matchesStatus(s, stat))
             .filter(s -> matchesZone(s, zone))
-            .toList();
-        loadCards(result);
+            .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+        loadCards(applySortOrder(result));
+    }
+
+    // Core of sorting: apply a Comparator to the filtered list.
+    // For TableView you'd use SortedList + column.setComparator() instead;
+    // for card grids like this one, we sort the list before rendering.
+    private List<Sensor> applySortOrder(List<Sensor> list) {
+        if (sortBy == null) return list;
+        return switch (sortBy.getValue()) {
+            case "Severity ↑ (critical first)" -> list.stream()
+                .sorted(Comparator.comparingInt(s -> severityRank(sensorService.getLastReadingLevel(s))))
+                .toList();
+            case "Severity ↓ (normal first)" -> list.stream()
+                .sorted(Comparator.comparingInt((Sensor s) -> severityRank(sensorService.getLastReadingLevel(s))).reversed())
+                .toList();
+            case "Zone A→Z" -> list.stream()
+                .sorted(Comparator.comparing(s -> s.getZone().getName()))
+                .toList();
+            case "Type A→Z" -> list.stream()
+                .sorted(Comparator.comparing(s -> sensorService.getSensorTypeLabel(s)))
+                .toList();
+            case "Most Readings" -> list.stream()
+                .sorted(Comparator.comparingInt((Sensor s) -> s.getReadingHistory().size()).reversed())
+                .toList();
+            default -> list;
+        };
+    }
+
+    private int severityRank(ReadingLevel l) {
+        return switch (l) { case CRITICAL -> 0; case WARNING -> 1; default -> 2; };
     }
 
     private boolean matchesType(Sensor s, String f) {
@@ -493,16 +542,23 @@ public class SensorsController {
     private void showInjectReadingDialog(NumericSensor ns, Sensor sensor) {
         String hint = String.format("%.2f – %.2f %s", ns.getMinThreshold(), ns.getMaxThreshold(), ns.getUnit());
         TextField valueField = new TextField(Double.isNaN(ns.getLastValue()) ? "0.0" : String.format("%.2f", ns.getLastValue()));
+        styleFormField(valueField);
         VBox form = new VBox(14, formGroup("Value  [" + hint + "]", valueField));
         form.setPadding(new Insets(20, 24, 8, 24));
+
         Dialog<Double> dialog = new Dialog<>();
         dialog.setTitle("Inject Reading");
-        dialog.setHeaderText("Inject reading for sensor " + ns.getCode());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().setContent(new VBox(0,
+            buildDialogHeader("📥", "Inject Reading",
+                "Sensor #" + ns.getCode() + " — " + SensorService.getInstance().getSensorTypeLabel(ns)),
+            form));
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(380);
-        applyDialogStyle(dialog);
+        dialog.getDialogPane().setMinWidth(400);
+        applyDialogCss(dialog);
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Inject");
+        ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).getStyleClass().add("btn-primary");
+        ((Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL)).getStyleClass().add("btn-secondary");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
             try { return Double.parseDouble(valueField.getText().trim()); }
@@ -519,19 +575,27 @@ public class SensorsController {
     private void showEditThresholdsDialog(NumericSensor ns, Sensor sensor) {
         TextField minField = new TextField(String.format("%.2f", ns.getMinThreshold()));
         TextField maxField = new TextField(String.format("%.2f", ns.getMaxThreshold()));
+        styleFormField(minField);
+        styleFormField(maxField);
         VBox form = new VBox(14,
             formGroup("Min Threshold (" + ns.getUnit() + ")", minField),
             formGroup("Max Threshold (" + ns.getUnit() + ")", maxField)
         );
         form.setPadding(new Insets(20, 24, 8, 24));
+
         Dialog<double[]> dialog = new Dialog<>();
         dialog.setTitle("Edit Thresholds");
-        dialog.setHeaderText("Thresholds for sensor " + ns.getCode());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().setContent(new VBox(0,
+            buildDialogHeader("⚙", "Edit Thresholds",
+                "Sensor #" + ns.getCode() + " — " + SensorService.getInstance().getSensorTypeLabel(ns)),
+            form));
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(380);
-        applyDialogStyle(dialog);
+        dialog.getDialogPane().setMinWidth(400);
+        applyDialogCss(dialog);
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Save");
+        ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).getStyleClass().add("btn-primary");
+        ((Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL)).getStyleClass().add("btn-secondary");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
             try {
@@ -606,7 +670,7 @@ public class SensorsController {
 
     private VBox formGroup(String labelText, Node input) {
         Label lbl = new Label(labelText);
-        lbl.getStyleClass().add("dialog-form-label");
+        lbl.getStyleClass().add("az-form-label");
         if (input instanceof TextField tf) {
             tf.getStyleClass().setAll("dialog-form-field");
             tf.setMaxWidth(Double.MAX_VALUE);
@@ -618,20 +682,35 @@ public class SensorsController {
         return new VBox(6, lbl, input);
     }
 
-    private void applyDialogStyle(Dialog<?> dialog) {
+    private void styleFormField(TextField f) {
+        f.getStyleClass().setAll("dialog-form-field");
+        f.setMaxWidth(Double.MAX_VALUE);
+    }
+
+    private HBox buildDialogHeader(String icon, String title, String subtitle) {
+        Label iconLbl = new Label(icon);
+        iconLbl.getStyleClass().add("dialog-custom-header-icon");
+
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("dialog-custom-header-title");
+
+        Label subLbl = new Label(subtitle);
+        subLbl.getStyleClass().add("dialog-custom-header-sub");
+
+        VBox textBox = new VBox(2, titleLbl, subLbl);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(12, iconLbl, textBox, spacer);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getStyleClass().add("dialog-custom-header");
+        return header;
+    }
+
+    private void applyDialogCss(Dialog<?> d) {
         var sheets = sensorGrid.getScene() == null ? null : sensorGrid.getScene().getStylesheets();
         String css = (sheets != null && !sheets.isEmpty()) ? sheets.get(0)
             : getClass().getResource("/com/example/styles/main.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(css);
-        Button ok     = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        Button cancel = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
-        if (ok != null)     ok.getStyleClass().add("btn-primary");
-        if (cancel != null) cancel.getStyleClass().add("btn-secondary");
-
-        String title = dialog.getTitle() == null ? "" : dialog.getTitle();
-        String icon  = title.contains("Inject") ? "📊" : "📡";
-        Label iconLbl = new Label(icon);
-        iconLbl.setStyle("-fx-font-size: 18px;");
-        dialog.setGraphic(iconLbl);
+        d.getDialogPane().getStylesheets().add(css);
     }
 }

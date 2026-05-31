@@ -244,10 +244,10 @@ public class SensorHistoryDialog extends Dialog<Void> {
         chart.getData().add(minSeries);
         chart.getData().add(maxSeries);
 
-        // 65 px per point so x labels never crowd
-        double chartW = Math.max(600, readings.size() * 65);
-        chart.setPrefWidth(chartW);
-        chart.setMinWidth(chartW);
+        double minW = Math.max(600, readings.size() * 65.0);
+        chart.setPrefWidth(minW);
+        chart.setMinWidth(minW);
+        chart.setMaxWidth(Double.MAX_VALUE);
 
         Platform.runLater(() -> applyChartStyle(dataSeries, minSeries, maxSeries, readings));
 

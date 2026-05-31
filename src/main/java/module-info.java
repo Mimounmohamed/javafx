@@ -3,6 +3,7 @@ module com.example {
     requires javafx.fxml;
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.ikonli.fontawesome5;
+    requires org.apache.pdfbox;
 
     opens com.example to javafx.fxml;
     opens com.example.controllers to javafx.fxml;

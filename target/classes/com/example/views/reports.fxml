@@ -8,55 +8,89 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<HBox xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns:fx="http://javafx.com/fxml/1"
       xmlns="http://javafx.com/javafx/21"
       fx:controller="com.example.controllers.ReportsController"
       styleClass="content-root">
 
-    <!-- ── Left nav sidebar ──────────────────────────────────────────── -->
-    <VBox styleClass="detail-panel" minWidth="210" maxWidth="210" prefWidth="210">
-        <padding><Insets top="20" right="0" bottom="20" left="0" /></padding>
+    <!-- ── Page header ──────────────────────────────────────────────────── -->
+    <HBox styleClass="zones-page-header" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="14" right="24" bottom="14" left="24" /></padding>
+        <VBox spacing="1">
+            <Label fx:id="farmNameLabel" text="Smart Farm" styleClass="zones-farm-name" />
+            <Label text="Reports &amp; Analytics" styleClass="zones-page-title" />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS" />
+        <Label fx:id="farmSubLabel" text="" styleClass="text-muted" />
+    </HBox>
 
-        <Label text="Reports" styleClass="page-title">
-            <padding><Insets top="0" right="16" bottom="12" left="16" /></padding>
-        </Label>
-        <Separator />
+    <!-- ── KPI strip ────────────────────────────────────────────────────── -->
+    <HBox spacing="16" styleClass="zones-kpi-strip">
+        <padding><Insets top="16" right="24" bottom="16" left="24" /></padding>
 
-        <VBox spacing="2">
-            <padding><Insets top="12" right="8" bottom="12" left="8" /></padding>
-            <Button fx:id="btnOverview"    text="Farm Overview"  maxWidth="Infinity" onAction="#showOverview"
-                    styleClass="nav-btn" />
-            <Button fx:id="btnLivestock"   text="Livestock"      maxWidth="Infinity" onAction="#showLivestock"
-                    styleClass="nav-btn" />
-            <Button fx:id="btnCrops"       text="Crops"          maxWidth="Infinity" onAction="#showCrops"
-                    styleClass="nav-btn" />
-            <Button fx:id="btnAquaculture" text="Aquaculture"    maxWidth="Infinity" onAction="#showAquaculture"
-                    styleClass="nav-btn" />
-            <Button fx:id="btnAlerts"      text="Alerts"         maxWidth="Infinity" onAction="#showAlerts"
-                    styleClass="nav-btn" />
-            <Button fx:id="btnSensors"     text="Sensor History" maxWidth="Infinity" onAction="#showSensors"
-                    styleClass="nav-btn" />
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #4F46E5, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <Label text="ZONES" styleClass="zones-kpi-label" />
+            <Label fx:id="kpiZones" text="—" styleClass="zones-kpi-value" />
+            <Label text="all types" styleClass="zones-kpi-sub" />
         </VBox>
 
-        <Separator />
-        <Region VBox.vgrow="ALWAYS" />
-
-        <Label fx:id="farmNameLabel" text="" styleClass="text-muted" wrapText="true">
-            <padding><Insets top="12" right="16" bottom="4" left="16" /></padding>
-        </Label>
-        <Label fx:id="farmSubLabel" text="" styleClass="text-muted">
-            <padding><Insets top="0" right="16" bottom="12" left="16" /></padding>
-        </Label>
-    </VBox>
-
-    <Separator orientation="VERTICAL" />
-
-    <!-- ── Main content area ─────────────────────────────────────────── -->
-    <ScrollPane HBox.hgrow="ALWAYS" fitToWidth="true" fitToHeight="false"
-                styleClass="content-scroll">
-        <VBox fx:id="contentArea" spacing="20" HBox.hgrow="ALWAYS">
-            <padding><Insets top="24" right="24" bottom="24" left="24" /></padding>
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #16A34A, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <Label text="ANIMALS" styleClass="zones-kpi-label" />
+            <Label fx:id="kpiAnimals" text="—" styleClass="zones-kpi-value" />
+            <Label text="registered" styleClass="zones-kpi-sub" />
         </VBox>
-    </ScrollPane>
 
-</HBox>
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #DC2626, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(220,38,38,0.12), 8, 0, 0, 2);">
+            <Label text="ACTIVE ALERTS" styleClass="zones-kpi-label" />
+            <Label fx:id="kpiAlerts" text="—" styleClass="zones-kpi-value" />
+            <Label text="unresolved" styleClass="zones-kpi-sub" />
+        </VBox>
+
+        <VBox HBox.hgrow="ALWAYS" spacing="4"
+              style="-fx-background-color: #D97706, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(217,119,6,0.12), 8, 0, 0, 2);">
+            <Label text="SENSORS" styleClass="zones-kpi-label" />
+            <Label fx:id="kpiSensors" text="—" styleClass="zones-kpi-value" />
+            <Label text="monitoring" styleClass="zones-kpi-sub" />
+        </VBox>
+
+    </HBox>
+
+    <!-- ── Main body: left nav sidebar + right content ──────────────────── -->
+    <HBox VBox.vgrow="ALWAYS">
+
+        <!-- LEFT nav ───────────────────────────────────────────────────── -->
+        <VBox styleClass="zones-list-panel" minWidth="196" maxWidth="196" prefWidth="196">
+            <padding><Insets top="14" right="8" bottom="14" left="8" /></padding>
+
+            <Label text="SECTIONS" styleClass="zones-kpi-label">
+                <padding><Insets top="0" right="8" bottom="8" left="8" /></padding>
+            </Label>
+
+            <Button fx:id="btnOverview"    text="📊  Farm Overview"   maxWidth="Infinity" onAction="#showOverview"    styleClass="nav-btn" />
+            <Button fx:id="btnLivestock"   text="🐄  Livestock"       maxWidth="Infinity" onAction="#showLivestock"   styleClass="nav-btn" />
+            <Button fx:id="btnCrops"       text="🌾  Crops"           maxWidth="Infinity" onAction="#showCrops"       styleClass="nav-btn" />
+            <Button fx:id="btnAquaculture" text="🐟  Aquaculture"     maxWidth="Infinity" onAction="#showAquaculture" styleClass="nav-btn" />
+            <Button fx:id="btnAlerts"      text="🔔  Alerts"          maxWidth="Infinity" onAction="#showAlerts"      styleClass="nav-btn" />
+            <Button fx:id="btnSensors"     text="📡  Sensor History"  maxWidth="Infinity" onAction="#showSensors"     styleClass="nav-btn" />
+
+            <Region VBox.vgrow="ALWAYS" />
+            <Separator />
+            <Button fx:id="btnExport"      text="📄  Export PDF"      maxWidth="Infinity" onAction="#showExport"      styleClass="nav-btn" />
+        </VBox>
+
+        <Separator orientation="VERTICAL" />
+
+        <!-- RIGHT content area ─────────────────────────────────────────── -->
+        <ScrollPane HBox.hgrow="ALWAYS" fitToWidth="true" fitToHeight="false"
+                    styleClass="content-scroll">
+            <VBox fx:id="contentArea" spacing="20">
+                <padding><Insets top="24" right="24" bottom="24" left="24" /></padding>
+            </VBox>
+        </ScrollPane>
+
+    </HBox>
+
+</VBox>

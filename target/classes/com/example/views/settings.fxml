@@ -49,6 +49,16 @@
             <Button text="💾  Save Changes" onAction="#saveFarmInfo" styleClass="btn-primary" />
         </VBox>
 
+        <!-- ── Farm Boundary ────────────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="16">
+            <Label text="Farm Boundary" styleClass="card-title" />
+            <Separator />
+            <Label text="Draw the geographic boundary of your farm. When set, zone boundaries must be drawn inside it."
+                   styleClass="text-muted" wrapText="true" />
+            <Label fx:id="farmBoundaryStatus" styleClass="text-muted" />
+            <Button text="🗺  Draw / Edit Farm Boundary" onAction="#editFarmBoundary" styleClass="btn-secondary" />
+        </VBox>
+
         <!-- ── Appearance ────────────────────────────────────────── -->
         <VBox styleClass="kpi-card" spacing="16">
             <Label text="Appearance" styleClass="card-title" />

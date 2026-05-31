@@ -33,8 +33,10 @@ public class SceneManager {
     static {
         ROUTES.put("dashboard", "/com/example/views/dashboard.fxml");
         ROUTES.put("zones",     "/com/example/views/zones.fxml");
-        ROUTES.put("animals",   "/com/example/views/animals.fxml");
-        ROUTES.put("sensors",   "/com/example/views/sensors.fxml");
+        ROUTES.put("animals",      "/com/example/views/animals.fxml");
+        ROUTES.put("crops",        "/com/example/views/crops.fxml");
+        ROUTES.put("aquaculture",  "/com/example/views/aquaculture.fxml");
+        ROUTES.put("sensors",      "/com/example/views/sensors.fxml");
         ROUTES.put("alerts",    "/com/example/views/alerts.fxml");
         ROUTES.put("reports",    "/com/example/views/reports.fxml");
         ROUTES.put("simulation", "/com/example/views/simulation.fxml");

@@ -110,7 +110,20 @@ public class FarmRepository {
             sz.type       = p.getProperty("farm." + i + ".zone." + j + ".type",    "CROP");
             sz.name       = p.getProperty("farm." + i + ".zone." + j + ".name",    "");
             sz.lstType    = p.getProperty("farm." + i + ".zone." + j + ".lstType", "RUMINANT");
+            int bc = intProp(p, "farm." + i + ".zone." + j + ".boundary.count", 0);
+            for (int k = 0; k < bc; k++) {
+                double lat = doubleProp(p, "farm." + i + ".zone." + j + ".boundary." + k + ".lat", 0);
+                double lon = doubleProp(p, "farm." + i + ".zone." + j + ".boundary." + k + ".lon", 0);
+                sz.boundaryPoints.add(new double[]{lat, lon});
+            }
             sf.zones.add(sz);
+        }
+
+        int fbc = intProp(p, "farm." + i + ".farmBoundary.count", 0);
+        for (int k = 0; k < fbc; k++) {
+            double lat = doubleProp(p, "farm." + i + ".farmBoundary." + k + ".lat", 0);
+            double lon = doubleProp(p, "farm." + i + ".farmBoundary." + k + ".lon", 0);
+            sf.farmBoundaryPoints.add(new double[]{lat, lon});
         }
 
         int ac = intProp(p, "farm." + i + ".animal.count", 0);
@@ -144,6 +157,19 @@ public class FarmRepository {
             p.setProperty(pre + "zone." + j + ".type", sz.type);
             p.setProperty(pre + "zone." + j + ".name", sz.name);
             if (sz.lstType != null) p.setProperty(pre + "zone." + j + ".lstType", sz.lstType);
+            p.setProperty(pre + "zone." + j + ".boundary.count", String.valueOf(sz.boundaryPoints.size()));
+            for (int k = 0; k < sz.boundaryPoints.size(); k++) {
+                double[] pt = sz.boundaryPoints.get(k);
+                p.setProperty(pre + "zone." + j + ".boundary." + k + ".lat", String.valueOf(pt[0]));
+                p.setProperty(pre + "zone." + j + ".boundary." + k + ".lon", String.valueOf(pt[1]));
+            }
+        }
+
+        p.setProperty(pre + "farmBoundary.count", String.valueOf(sf.farmBoundaryPoints.size()));
+        for (int k = 0; k < sf.farmBoundaryPoints.size(); k++) {
+            double[] pt = sf.farmBoundaryPoints.get(k);
+            p.setProperty(pre + "farmBoundary." + k + ".lat", String.valueOf(pt[0]));
+            p.setProperty(pre + "farmBoundary." + k + ".lon", String.valueOf(pt[1]));
         }
 
         p.setProperty(pre + "animal.count", String.valueOf(sf.animals.size()));
@@ -180,6 +206,7 @@ public class FarmRepository {
         public boolean wasRandomized;
         public List<SavedZone>   zones   = new ArrayList<>();
         public List<SavedAnimal> animals = new ArrayList<>();
+        public List<double[]> farmBoundaryPoints = new ArrayList<>();
 
         /** Build an entry for a brand-new user farm (not yet saved). */
         public static SavedFarm fromNew(String name, String location, String owner) {
@@ -216,6 +243,7 @@ public class FarmRepository {
         public String type;     // LIVESTOCK | CROP | AQUACULTURE
         public String name;
         public String lstType;  // RUMINANT | POULTRY  (only used for LIVESTOCK)
+        public List<double[]> boundaryPoints = new ArrayList<>();
     }
 
     public static class SavedAnimal {

@@ -29,6 +29,8 @@ public class MainController {
     @FXML private Button btnDashboard;
     @FXML private Button btnZones;
     @FXML private Button btnAnimals;
+    @FXML private Button btnCrops;
+    @FXML private Button btnAqua;
     @FXML private Button btnSensors;
     @FXML private Button btnAlerts;
     @FXML private Button btnReports;
@@ -41,8 +43,9 @@ public class MainController {
     private static final DateTimeFormatter CLOCK_FMT =
         DateTimeFormatter.ofPattern("EEE dd MMM  HH:mm:ss");
 
-    private static final String[] ICONS  = {"📊", "🗺", "🐄", "📡", "🔔", "📋", "⏩", "⚙"};
+    private static final String[] ICONS  = {"📊", "🗺", "🐄", "🌾", "🐟", "📡", "🔔", "📋", "⏩", "⚙"};
     private static final String[] LABELS = {"Dashboard", "Zones", "Animals",
+                                            "Crops", "Aquaculture",
                                             "Sensors", "Alerts", "Reports", "Simulation", "Settings"};
 
     @FXML
@@ -105,6 +108,7 @@ public class MainController {
         if (sidebarFarmName != null) { sidebarFarmName.setVisible(expanded); sidebarFarmName.setManaged(expanded); }
 
         Button[] buttons = {btnDashboard, btnZones, btnAnimals,
+                            btnCrops, btnAqua,
                             btnSensors,  btnAlerts, btnReports, btnSimulation, btnSettings};
         for (int i = 0; i < buttons.length; i++) {
             buttons[i].setText(expanded ? ICONS[i] + "   " + LABELS[i] : ICONS[i]);
@@ -152,6 +156,8 @@ public class MainController {
     @FXML private void navDashboard() { setActive(btnDashboard); SceneManager.getInstance().navigateTo("dashboard"); }
     @FXML private void navZones()     { setActive(btnZones);     SceneManager.getInstance().navigateTo("zones"); }
     @FXML private void navAnimals()   { setActive(btnAnimals);   SceneManager.getInstance().navigateTo("animals"); }
+    @FXML private void navCrops()     { setActive(btnCrops);     SceneManager.getInstance().navigateTo("crops"); }
+    @FXML private void navAqua()      { setActive(btnAqua);      SceneManager.getInstance().navigateTo("aquaculture"); }
     @FXML private void navSensors()   { setActive(btnSensors);   SceneManager.getInstance().navigateTo("sensors"); }
     @FXML private void navAlerts()    { setActive(btnAlerts);    SceneManager.getInstance().navigateTo("alerts"); }
     @FXML private void navReports()    { setActive(btnReports);    SceneManager.getInstance().navigateTo("reports"); }

@@ -7,6 +7,7 @@ import Farm.Farm;
 import Menu.DemoData;
 import ZONES.AquacultureZONE;
 import ZONES.CropZONE;
+import ZONES.GoegraphicBoundries;
 import ZONES.LivestockZONE;
 import com.example.utils.FarmRepository;
 
@@ -68,12 +69,26 @@ public class FarmService {
                 switch (sz.type) {
                     case "LIVESTOCK" -> {
                         LivestockZONE lz = new LivestockZONE(sz.name, LIvestockType.valueOf(sz.lstType));
+                        if (!sz.boundaryPoints.isEmpty())
+                            lz.setBoundaries(new GoegraphicBoundries(sz.boundaryPoints));
                         farm.addZone(lz);
                     }
-                    case "CROP"        -> farm.addZone(new CropZONE(sz.name));
-                    case "AQUACULTURE" -> farm.addZone(new AquacultureZONE(sz.name));
+                    case "CROP" -> {
+                        CropZONE cz = new CropZONE(sz.name);
+                        if (!sz.boundaryPoints.isEmpty())
+                            cz.setBoundaries(new GoegraphicBoundries(sz.boundaryPoints));
+                        farm.addZone(cz);
+                    }
+                    case "AQUACULTURE" -> {
+                        AquacultureZONE az = new AquacultureZONE(sz.name);
+                        if (!sz.boundaryPoints.isEmpty())
+                            az.setBoundaries(new GoegraphicBoundries(sz.boundaryPoints));
+                        farm.addZone(az);
+                    }
                 }
             }
+            if (!saved.farmBoundaryPoints.isEmpty())
+                farm.setFarmBoundary(new GoegraphicBoundries(saved.farmBoundaryPoints));
             for (FarmRepository.SavedAnimal sa : saved.animals) {
                 LivestockZONE zone = farm.getLivestockZones().stream()
                     .filter(z -> z.getName().equals(sa.zoneName))
@@ -113,6 +128,7 @@ public class FarmService {
             sz.type    = "LIVESTOCK";
             sz.name    = z.getName();
             sz.lstType = z.getType().name();
+            if (z.hasBoundaries()) sz.boundaryPoints = z.getBoundaries().getPoints();
             sf.zones.add(sz);
             for (Animal a : z.getAnimals()) {
                 FarmRepository.SavedAnimal sa = new FarmRepository.SavedAnimal();
@@ -130,14 +146,17 @@ public class FarmService {
             FarmRepository.SavedZone sz = new FarmRepository.SavedZone();
             sz.type = "CROP";
             sz.name = z.getName();
+            if (z.hasBoundaries()) sz.boundaryPoints = z.getBoundaries().getPoints();
             sf.zones.add(sz);
         }
         for (AquacultureZONE z : farm.getAquacultureZones()) {
             FarmRepository.SavedZone sz = new FarmRepository.SavedZone();
             sz.type = "AQUACULTURE";
             sz.name = z.getName();
+            if (z.hasBoundaries()) sz.boundaryPoints = z.getBoundaries().getPoints();
             sf.zones.add(sz);
         }
+        if (farm.hasFarmBoundary()) sf.farmBoundaryPoints = farm.getFarmBoundary().getPoints();
         FarmRepository.save(sf);
     }
 
@@ -153,6 +172,10 @@ public class FarmService {
     public void setFarmName(String name)    { farm.setName(name);      autoSave(); }
     public void setFarmLocation(String loc) { farm.setLocation(loc);   autoSave(); }
     public void setOwnerName(String owner)  { farm.setOwnerName(owner); autoSave(); }
+
+    public boolean hasFarmBoundary()              { return farm.hasFarmBoundary(); }
+    public GoegraphicBoundries getFarmBoundary()  { return farm.getFarmBoundary(); }
+    public void setFarmBoundary(GoegraphicBoundries b) { farm.setFarmBoundary(b); autoSave(); }
 
     public Farm.FarmStats getStats() { return farm.getStats(); }
 

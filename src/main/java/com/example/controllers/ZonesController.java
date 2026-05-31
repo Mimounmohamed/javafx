@@ -57,7 +57,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import ZONES.GoegraphicBoundries;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -458,12 +460,30 @@ public class ZonesController {
 
     // ── Add Zone dialog ───────────────────────────────────────────────
 
+    /** Collects the boundaries of all zones except {@code exclude} (pass null to include all). */
+    private List<GoegraphicBoundries> zoneSiblings(Object exclude) {
+        var farm = FarmService.getInstance().getFarm();
+        List<GoegraphicBoundries> sibs = new ArrayList<>();
+        farm.getLivestockZones().stream()
+            .filter(o -> o != exclude && o.hasBoundaries())
+            .map(o -> o.getBoundaries()).forEach(sibs::add);
+        farm.getCropZones().stream()
+            .filter(o -> o != exclude && o.hasBoundaries())
+            .map(o -> o.getBoundaries()).forEach(sibs::add);
+        farm.getAquacultureZones().stream()
+            .filter(o -> o != exclude && o.hasBoundaries())
+            .map(o -> o.getBoundaries()).forEach(sibs::add);
+        return sibs;
+    }
+
     @FXML
     private void showAddZoneDialog() {
         var sheets = detailPanel.getScene() == null ? null : detailPanel.getScene().getStylesheets();
         String css = (sheets != null && !sheets.isEmpty()) ? sheets.get(0)
             : getClass().getResource("/com/example/styles/main.css").toExternalForm();
-        AddZoneDialog dialog = new AddZoneDialog(css);
+        AddZoneDialog dialog = new AddZoneDialog(css,
+            FarmService.getInstance().hasFarmBoundary() ? FarmService.getInstance().getFarmBoundary() : null,
+            zoneSiblings(null));
         dialog.showAndWait().ifPresent(zone -> {
             zoneService.addZone(zone);
             reloadTables();
@@ -474,49 +494,10 @@ public class ZonesController {
     // ── Add Crop dialog ───────────────────────────────────────────────
 
     private void showAddCropDialog(CropZONE zone) {
-        TextField varietyField = new TextField();
-        varietyField.setPromptText("e.g. Golden Wheat");
-
-        ComboBox<CropType> typeCombo = new ComboBox<>();
-        typeCombo.getItems().addAll(CropType.values());
-        typeCombo.setValue(CropType.cereals);
-
-        TextField weeksField = new TextField("12");
-
-        VBox form = new VBox(16,
-            formGroup("Variety", varietyField),
-            formGroup("Crop Type", typeCombo),
-            formGroup("Weeks to Harvest", weeksField)
-        );
-        form.setPadding(new Insets(20, 24, 8, 24));
-
-        Dialog<Crop> dialog = new Dialog<>();
-        dialog.setTitle("Add Crop");
-        dialog.setHeaderText("Add crop to \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(400);
-        applyDialogStyle(dialog);
-
-        Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okBtn.setText("Add Crop");
-        okBtn.setDisable(true);
-        varietyField.textProperty().addListener((obs, o, n) -> okBtn.setDisable(n.trim().isEmpty()));
-
-        dialog.setResultConverter(bt -> {
-            if (bt != ButtonType.OK) return null;
-            try {
-                String variety = varietyField.getText().trim();
-                CropType type  = typeCombo.getValue();
-                int weeks      = Math.max(1, Integer.parseInt(weeksField.getText().trim()));
-                Date now       = new Date();
-                Date harvest   = new Date(now.getTime() + (long) weeks * 7 * 24 * 3600 * 1000L);
-                return new Crop(type, variety, now, harvest,
-                    new Range(6.0, 7.5), new Range(30.0, 70.0), zone);
-            } catch (NumberFormatException e) { return null; }
-        });
-
-        dialog.showAndWait().ifPresent(crop -> {
+        var sheets = detailPanel.getScene() == null ? null : detailPanel.getScene().getStylesheets();
+        String css = (sheets != null && !sheets.isEmpty()) ? sheets.get(0)
+            : getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        new AddCropDialog(css, zone).showAndWait().ifPresent(crop -> {
             zone.addField(crop);
             FarmService.getInstance().autoSave();
             showCropDetail(zone);
@@ -527,40 +508,10 @@ public class ZonesController {
     // ── Add Species dialog ────────────────────────────────────────────
 
     private void showAddSpeciesDialog(AquacultureZONE zone) {
-        TextField nameField  = new TextField();
-        nameField.setPromptText("e.g. Tilapia, Salmon");
-
-        TextField countField = new TextField("100");
-
-        VBox form = new VBox(16,
-            formGroup("Species Name", nameField),
-            formGroup("Initial Count", countField)
-        );
-        form.setPadding(new Insets(20, 24, 8, 24));
-
-        Dialog<AquacultureSpecies> dialog = new Dialog<>();
-        dialog.setTitle("Add Species");
-        dialog.setHeaderText("Add species to \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setMinWidth(400);
-        applyDialogStyle(dialog);
-
-        Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okBtn.setText("Add Species");
-        okBtn.setDisable(true);
-        nameField.textProperty().addListener((obs, o, n) -> okBtn.setDisable(n.trim().isEmpty()));
-
-        dialog.setResultConverter(bt -> {
-            if (bt != ButtonType.OK) return null;
-            try {
-                String name = nameField.getText().trim();
-                int count   = Math.max(1, Integer.parseInt(countField.getText().trim()));
-                return new AquacultureSpecies(name, count, zone);
-            } catch (NumberFormatException e) { return null; }
-        });
-
-        dialog.showAndWait().ifPresent(species -> {
+        var sheets = detailPanel.getScene() == null ? null : detailPanel.getScene().getStylesheets();
+        String css = (sheets != null && !sheets.isEmpty()) ? sheets.get(0)
+            : getClass().getResource("/com/example/styles/main.css").toExternalForm();
+        new AddSpeciesDialog(css, zone).showAndWait().ifPresent(species -> {
             zone.addSpecies(species);
             FarmService.getInstance().autoSave();
             showAquaDetail(zone);
@@ -589,11 +540,13 @@ public class ZonesController {
 
         Dialog<FeedingProgram> dialog = new Dialog<>();
         dialog.setTitle("Create Feeding Program");
-        dialog.setHeaderText("Feeding program for \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(440);
         applyDialogStyle(dialog);
+        HBox feedingHeader = dialogHeader("🍽", "Create Feeding Program",
+            "Feeding program for \"" + zone.getName() + "\"", dialog, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(0, feedingHeader, form));
 
         Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okBtn.setText("Create");
@@ -843,6 +796,8 @@ public class ZonesController {
         lsBoundaryBtn.setOnAction(e -> {
             BoundaryEditorDialog dlg = new BoundaryEditorDialog(z.getName(),
                 z.hasBoundaries() ? z.getBoundaries() : null,
+                FarmService.getInstance().hasFarmBoundary() ? FarmService.getInstance().getFarmBoundary() : null,
+                zoneSiblings(z),
                 detailPanel.getScene().getStylesheets());
             dlg.showAndWait().ifPresent(bounds -> {
                 z.setBoundaries(bounds);
@@ -997,11 +952,13 @@ public class ZonesController {
             form.setPadding(new Insets(20, 24, 8, 24));
             Dialog<Double> d = new Dialog<>();
             d.setTitle("Set Surface Area");
-            d.setHeaderText("Surface area for \"" + z.getName() + "\"");
-            d.getDialogPane().setContent(form);
+            d.setHeaderText(null);
             d.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
             d.getDialogPane().setMinWidth(360);
             applyDialogStyle(d);
+            HBox surfaceHeader = dialogHeader("📐", "Set Surface Area",
+                "Surface area for \"" + z.getName() + "\"", d, ButtonType.CANCEL);
+            d.getDialogPane().setContent(new VBox(0, surfaceHeader, form));
             ((Button) d.getDialogPane().lookupButton(ButtonType.OK)).setText("Set");
             d.setResultConverter(bt -> {
                 if (bt != ButtonType.OK) return null;
@@ -1030,6 +987,8 @@ public class ZonesController {
         crBoundaryBtn.setOnAction(e -> {
             BoundaryEditorDialog dlg = new BoundaryEditorDialog(z.getName(),
                 z.hasBoundaries() ? z.getBoundaries() : null,
+                FarmService.getInstance().hasFarmBoundary() ? FarmService.getInstance().getFarmBoundary() : null,
+                zoneSiblings(z),
                 detailPanel.getScene().getStylesheets());
             dlg.showAndWait().ifPresent(bounds -> {
                 z.setBoundaries(bounds);
@@ -1199,6 +1158,8 @@ public class ZonesController {
         aqBoundaryBtn.setOnAction(e -> {
             BoundaryEditorDialog dlg = new BoundaryEditorDialog(z.getName(),
                 z.hasBoundaries() ? z.getBoundaries() : null,
+                FarmService.getInstance().hasFarmBoundary() ? FarmService.getInstance().getFarmBoundary() : null,
+                zoneSiblings(z),
                 detailPanel.getScene().getStylesheets());
             dlg.showAndWait().ifPresent(bounds -> {
                 z.setBoundaries(bounds);
@@ -1424,11 +1385,13 @@ public class ZonesController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<Double> dialog = new Dialog<>();
         dialog.setTitle("Record Harvest");
-        dialog.setHeaderText("Harvest for " + c.getVariety());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(360);
         applyDialogStyle(dialog);
+        HBox cropHarvestHeader = dialogHeader("🌾", "Record Harvest",
+            "Harvest for " + c.getVariety(), dialog, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(0, cropHarvestHeader, form));
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Record");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
@@ -1448,11 +1411,13 @@ public class ZonesController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<GrowthStage> dialog = new Dialog<>();
         dialog.setTitle("Update Growth Stage");
-        dialog.setHeaderText("Growth stage for " + c.getVariety());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(360);
         applyDialogStyle(dialog);
+        HBox stageHeader = dialogHeader("🌱", "Update Growth Stage",
+            "Growth stage for " + c.getVariety(), dialog, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(0, stageHeader, form));
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Update");
         dialog.setResultConverter(bt -> bt == ButtonType.OK ? stageCombo.getValue() : null);
         dialog.showAndWait().ifPresent(stage -> {
@@ -1473,12 +1438,13 @@ public class ZonesController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<int[]> dialog = new Dialog<>();
         dialog.setTitle("Record Harvest");
-        dialog.setHeaderText("Harvest " + s.getName());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(380);
         applyDialogStyle(dialog);
-        ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Record");
+        HBox aquaHarvestHeader = dialogHeader("🐟", "Record Harvest",
+            "Harvest " + s.getName(), dialog, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(0, aquaHarvestHeader, form));
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
             try {
@@ -1509,11 +1475,13 @@ public class ZonesController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Record Mortality");
-        dialog.setHeaderText("Mortality for " + s.getName());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(360);
         applyDialogStyle(dialog);
+        HBox mortalityHeader = dialogHeader("📦", "Record Mortality",
+            "Mortality for " + s.getName(), dialog, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(0, mortalityHeader, form));
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Record");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
@@ -1540,11 +1508,13 @@ public class ZonesController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Restock");
-        dialog.setHeaderText("Restock " + s.getName());
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(360);
         applyDialogStyle(dialog);
+        HBox restockHeader = dialogHeader("📦", "Restock",
+            "Restock " + s.getName(), dialog, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(0, restockHeader, form));
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Restock");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
@@ -1602,11 +1572,13 @@ public class ZonesController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<EnvSensor> dialog = new Dialog<>();
         dialog.setTitle("Add Environment Sensor");
-        dialog.setHeaderText("Add env sensor to \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(400);
         applyDialogStyle(dialog);
+        HBox envSensorHeader = dialogHeader("📡", "Add Environment Sensor",
+            "Add env sensor to \"" + zone.getName() + "\"", dialog, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(0, envSensorHeader, form));
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Add Sensor");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
@@ -1636,11 +1608,13 @@ public class ZonesController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<SoilSensor> dialog = new Dialog<>();
         dialog.setTitle("Add Soil Sensor");
-        dialog.setHeaderText("Add soil sensor to \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(400);
         applyDialogStyle(dialog);
+        HBox soilSensorHeader = dialogHeader("📡", "Add Soil Sensor",
+            "Add soil sensor to \"" + zone.getName() + "\"", dialog, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(0, soilSensorHeader, form));
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Add Sensor");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
@@ -1670,11 +1644,13 @@ public class ZonesController {
         form.setPadding(new Insets(20, 24, 8, 24));
         Dialog<WaterSensor> dialog = new Dialog<>();
         dialog.setTitle("Add Water Sensor");
-        dialog.setHeaderText("Add water sensor to \"" + zone.getName() + "\"");
-        dialog.getDialogPane().setContent(form);
+        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.getDialogPane().setMinWidth(400);
         applyDialogStyle(dialog);
+        HBox waterSensorHeader = dialogHeader("📡", "Add Water Sensor",
+            "Add water sensor to \"" + zone.getName() + "\"", dialog, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(0, waterSensorHeader, form));
         ((Button) dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Add Sensor");
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
@@ -1730,28 +1706,16 @@ public class ZonesController {
 
     private void applyDialogStyle(Dialog<?> dialog) {
         var sheets = detailPanel.getScene() == null ? null : detailPanel.getScene().getStylesheets();
-        String css = (sheets != null && !sheets.isEmpty()) ? sheets.get(0)
-            : getClass().getResource("/com/example/styles/main.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(css);
+        if (sheets != null && !sheets.isEmpty()) {
+            dialog.getDialogPane().getStylesheets().addAll(sheets);
+        } else {
+            dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/com/example/styles/main.css").toExternalForm());
+        }
         Button ok     = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         Button cancel = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
         if (ok != null)     ok.getStyleClass().add("btn-primary");
         if (cancel != null) cancel.getStyleClass().add("btn-secondary");
-
-        String title = dialog.getTitle() == null ? "" : dialog.getTitle();
-        String icon  = "🌿";
-        if      (title.contains("Animal"))   icon = "🐄";
-        else if (title.contains("Zone"))     icon = "📍";
-        else if (title.contains("Sensor"))   icon = "📡";
-        else if (title.contains("Feeding"))  icon = "🍽";
-        else if (title.contains("Rename"))   icon = "✏";
-        else if (title.contains("Crop"))     icon = "🌾";
-        else if (title.contains("Species") || title.contains("Aqua")) icon = "🐟";
-        else if (title.contains("Harvest") || title.contains("Mortality") || title.contains("Restock")) icon = "📦";
-        else if (title.contains("Inject") || title.contains("Reading")) icon = "📊";
-        Label iconLbl = new Label(icon);
-        iconLbl.setStyle("-fx-font-size: 18px;");
-        dialog.setGraphic(iconLbl);
     }
 
     private void reloadTables() {
@@ -1829,5 +1793,28 @@ public class ZonesController {
         livestockTable.refresh();
         cropTable.refresh();
         aquaTable.refresh();
+    }
+
+    private static HBox dialogHeader(String icon, String title, String subtitle,
+                                      Dialog<?> dlg, ButtonType cancelType) {
+        Label iconLbl = new Label(icon);
+        iconLbl.getStyleClass().add("dialog-custom-header-icon");
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("dialog-custom-header-title");
+        Label subLbl = new Label(subtitle);
+        subLbl.getStyleClass().add("dialog-custom-header-sub");
+        VBox textBox = new VBox(2, titleLbl, subLbl);
+        Button closeBtn = new Button("✕");
+        closeBtn.getStyleClass().add("dialog-header-close-btn");
+        closeBtn.setOnAction(e -> {
+            Button fc = (Button) dlg.getDialogPane().lookupButton(cancelType);
+            if (fc != null) fc.fire();
+        });
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(12, iconLbl, textBox, spacer, closeBtn);
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        header.getStyleClass().add("dialog-custom-header");
+        return header;
     }
 }
