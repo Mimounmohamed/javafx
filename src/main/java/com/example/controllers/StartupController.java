@@ -166,7 +166,9 @@ public class StartupController {
         root.setDisable(true);
         root.setCursor(javafx.scene.Cursor.WAIT);
         errorLabel.setText("⏳  " + msg);
-        errorLabel.setStyle("-fx-text-fill: #374151; -fx-font-size: 12px;");
+        errorLabel.getStyleClass().removeAll("startup-error");
+        errorLabel.getStyleClass().add("detail-value");
+        errorLabel.setStyle("-fx-font-size: 12px;");
         errorLabel.setVisible(true);
         errorLabel.setManaged(true);
 

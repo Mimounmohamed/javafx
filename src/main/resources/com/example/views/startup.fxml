@@ -5,88 +5,156 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1"
+<HBox xmlns:fx="http://javafx.com/fxml/1"
       xmlns="http://javafx.com/javafx/21"
       fx:controller="com.example.controllers.StartupController"
-      styleClass="startup-root"
-      spacing="24">
+      styleClass="startup-shell">
 
-    <!-- ── Header ──────────────────────────────────────────────────── -->
-    <VBox alignment="CENTER" spacing="6">
-        <Label text="🌾  Smart Farm Manager" styleClass="startup-title" />
-        <Label text="Select an existing farm or create a new one" styleClass="startup-subtitle" />
-    </VBox>
+    <!-- ═══════════════════════════════════════════════════════════════
+         LEFT — Branding / hero panel
+         ═══════════════════════════════════════════════════════════════ -->
+    <VBox styleClass="startup-brand-panel" prefWidth="320" minWidth="260" spacing="0">
+        <padding><Insets top="48" right="36" bottom="36" left="36" /></padding>
 
-    <!-- ── Two-panel body ─────────────────────────────────────────── -->
-    <HBox spacing="28" VBox.vgrow="ALWAYS">
-
-        <!-- Left: saved farm list -->
-        <VBox HBox.hgrow="ALWAYS" spacing="12">
-            <Label text="Your Farms" styleClass="startup-section-title" />
-            <ListView fx:id="farmList" VBox.vgrow="ALWAYS" styleClass="farm-list" />
-            <Label fx:id="emptyLabel" text="No farms yet — create your first farm on the right."
-                   styleClass="startup-subtitle" wrapText="true"
-                   visible="false" managed="false" />
+        <!-- Logo + app name -->
+        <VBox spacing="14" alignment="CENTER">
+            <Label text="🌾" styleClass="startup-brand-icon" />
+            <VBox spacing="3" alignment="CENTER">
+                <Label text="Smart Farm" styleClass="startup-brand-name" />
+                <Label text="Manager" styleClass="startup-brand-name-accent" />
+            </VBox>
+            <Label text="Intelligent farm management" styleClass="startup-brand-sub" />
         </VBox>
 
-        <!-- Vertical divider -->
-        <Separator orientation="VERTICAL" />
+        <Region VBox.vgrow="ALWAYS" minHeight="32" />
 
-        <!-- Right: create new farm -->
-        <VBox spacing="16" prefWidth="320" minWidth="280">
-            <Label text="New Farm" styleClass="startup-section-title" />
+        <!-- Divider line -->
+        <HBox styleClass="startup-brand-divider" />
 
-            <GridPane hgap="12" vgap="12">
-                <columnConstraints>
-                    <ColumnConstraints minWidth="80" prefWidth="90" />
-                    <ColumnConstraints hgrow="ALWAYS" />
-                </columnConstraints>
+        <Region minHeight="28" maxHeight="28" />
 
-                <Label text="Name *" styleClass="form-label"
-                       GridPane.rowIndex="0" GridPane.columnIndex="0" />
-                <TextField fx:id="newFarmName" promptText="e.g. Green Valley Farm"
-                           styleClass="form-field"
-                           GridPane.rowIndex="0" GridPane.columnIndex="1" />
+        <!-- Feature list -->
+        <VBox spacing="16">
+            <Label text="WHAT'S INCLUDED" styleClass="startup-features-heading" />
 
-                <Label text="Location" styleClass="form-label"
-                       GridPane.rowIndex="1" GridPane.columnIndex="0" />
-                <TextField fx:id="newFarmLocation" promptText="e.g. Algiers, Algeria"
-                           styleClass="form-field"
-                           GridPane.rowIndex="1" GridPane.columnIndex="1" />
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="📡" styleClass="startup-feature-icon" />
+                <VBox spacing="1">
+                    <Label text="Live Sensor Monitoring" styleClass="startup-feature-title" />
+                    <Label text="Bio, GPS, Env, Soil, Water sensors" styleClass="startup-feature-desc" />
+                </VBox>
+            </HBox>
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="🐄" styleClass="startup-feature-icon" />
+                <VBox spacing="1">
+                    <Label text="Animal &amp; Zone Management" styleClass="startup-feature-title" />
+                    <Label text="Health tracking, GPS collars, feeding" styleClass="startup-feature-desc" />
+                </VBox>
+            </HBox>
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="🌾" styleClass="startup-feature-icon" />
+                <VBox spacing="1">
+                    <Label text="Crop &amp; Aquaculture" styleClass="startup-feature-title" />
+                    <Label text="Growth stages, yield, harvest tracking" styleClass="startup-feature-desc" />
+                </VBox>
+            </HBox>
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="🔔" styleClass="startup-feature-icon" />
+                <VBox spacing="1">
+                    <Label text="Alerts &amp; PDF Reports" styleClass="startup-feature-title" />
+                    <Label text="Real-time alerts with chart export" styleClass="startup-feature-desc" />
+                </VBox>
+            </HBox>
+        </VBox>
 
-                <Label text="Owner *" styleClass="form-label"
-                       GridPane.rowIndex="2" GridPane.columnIndex="0" />
-                <TextField fx:id="newFarmOwner" promptText="Your name"
-                           styleClass="form-field"
-                           GridPane.rowIndex="2" GridPane.columnIndex="1" />
-            </GridPane>
+        <Region VBox.vgrow="ALWAYS" />
 
-            <Label fx:id="errorLabel" styleClass="startup-error"
-                   text="" visible="false" managed="false" wrapText="true" />
+        <!-- Footer -->
+        <Label text="Smart Farm Manager  ·  v1.0" styleClass="startup-brand-footer" />
+    </VBox>
 
-            <Region VBox.vgrow="ALWAYS" />
+    <!-- ═══════════════════════════════════════════════════════════════
+         RIGHT — Farm picker + creator
+         ═══════════════════════════════════════════════════════════════ -->
+    <VBox HBox.hgrow="ALWAYS" styleClass="startup-content-panel" spacing="0">
+        <padding><Insets top="44" right="52" bottom="40" left="52" /></padding>
 
-            <Label text="Start with:" styleClass="form-label" />
-            <HBox spacing="8">
-                <Button text="📋  Sample Data" onAction="#createWithSampleData"
+        <!-- Greeting -->
+        <VBox spacing="5">
+            <Label text="Welcome back" styleClass="startup-greeting" />
+            <Label text="Select a farm to open, or fill in the form below to create a new one."
+                   styleClass="startup-greeting-sub" wrapText="true" />
+        </VBox>
+
+        <Region minHeight="30" maxHeight="30" />
+
+        <!-- ── Your Farms ──────────────────────────────────────── -->
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="YOUR FARMS" styleClass="startup-section-label" />
+            <Region HBox.hgrow="ALWAYS" />
+        </HBox>
+        <Region minHeight="10" maxHeight="10" />
+        <ListView fx:id="farmList" prefHeight="200" minHeight="100"
+                  styleClass="startup-farm-list" VBox.vgrow="NEVER" />
+        <Label fx:id="emptyLabel"
+               text="No farms yet — create your first farm below."
+               styleClass="startup-empty" wrapText="true"
+               visible="false" managed="false" />
+
+        <Region minHeight="30" maxHeight="30" />
+
+        <!-- ── Create New Farm ────────────────────────────────── -->
+        <Label text="CREATE NEW FARM" styleClass="startup-section-label" />
+        <Region minHeight="12" maxHeight="12" />
+
+        <!-- Form card -->
+        <VBox styleClass="startup-form-card" spacing="16">
+
+            <!-- Name + Owner row -->
+            <HBox spacing="16">
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="Farm Name *" styleClass="startup-field-label" />
+                    <TextField fx:id="newFarmName"
+                               promptText="e.g. Green Valley Farm"
+                               styleClass="startup-field" maxWidth="Infinity" />
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="Owner *" styleClass="startup-field-label" />
+                    <TextField fx:id="newFarmOwner"
+                               promptText="Your name"
+                               styleClass="startup-field" maxWidth="Infinity" />
+                </VBox>
+            </HBox>
+
+            <!-- Location -->
+            <VBox spacing="6">
+                <Label text="Location" styleClass="startup-field-label" />
+                <TextField fx:id="newFarmLocation"
+                           promptText="e.g. Algiers, Algeria"
+                           styleClass="startup-field" maxWidth="Infinity" />
+            </VBox>
+
+            <!-- Error / loading label -->
+            <Label fx:id="errorLabel" text="" styleClass="startup-error"
+                   visible="false" managed="false" wrapText="true" />
+
+            <!-- Action buttons -->
+            <Separator />
+            <HBox spacing="10">
+                <Button text="📋  With Sample Data" onAction="#createWithSampleData"
                         styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
                 <Button text="⬜  Empty Farm" onAction="#createEmptyFarm"
                         styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                <Button text="🎲  Random" onAction="#generateRandomFarm"
+                        styleClass="btn-secondary" />
             </HBox>
 
-            <Button text="🎲  Generate Random Farm" onAction="#generateRandomFarm"
-                    styleClass="btn-secondary" maxWidth="Infinity" />
         </VBox>
 
-    </HBox>
+    </VBox>
 
-    <Label text="Data is saved in ~/.smartfarm between sessions."
-           styleClass="startup-footer" />
-
-</VBox>
+</HBox>

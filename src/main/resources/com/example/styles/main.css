@@ -653,32 +653,141 @@
     -fx-font-size: 12px;
 }
 
-/* ── Startup screen ───────────────────────────────────────────────── */
-.startup-root {
-    -fx-background-color: #f1f5f9;
-    -fx-padding: 48 60;
+/* ── Startup screen — redesigned hero split layout ──────────────────── */
+
+/* Shell: full-height HBox */
+.startup-shell {
+    -fx-background-color: #f8fafc;
+    -fx-min-width: 880;
+    -fx-min-height: 580;
 }
-.startup-title {
-    -fx-text-fill: #0f172a;
-    -fx-font-size: 32px;
+
+/* ── Left brand panel (always dark green regardless of theme) ─────── */
+.startup-brand-panel {
+    -fx-background-color: linear-gradient(to bottom, #0a3320 0%, #145f38 55%, #1a7a4a 100%);
+}
+.startup-brand-icon {
+    -fx-font-size: 52px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 6, 0, 0, 2);
+}
+.startup-brand-name {
+    -fx-text-fill: #f0fdf4;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+}
+.startup-brand-name-accent {
+    -fx-text-fill: #4ade80;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+}
+.startup-brand-sub {
+    -fx-text-fill: rgba(240,253,244,0.55);
+    -fx-font-size: 12px;
+    -fx-alignment: center;
+}
+.startup-brand-divider {
+    -fx-background-color: rgba(255,255,255,0.12);
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+}
+.startup-features-heading {
+    -fx-text-fill: rgba(74,222,128,0.65);
+    -fx-font-size: 10px;
     -fx-font-weight: bold;
 }
-.startup-subtitle { -fx-text-fill: #64748b; -fx-font-size: 14px; }
-.startup-card {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 16;
-    -fx-border-color: #e2e8f0;
-    -fx-border-radius: 16;
-    -fx-border-width: 1;
-    -fx-padding: 28;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 12, 0, 0, 3);
+.startup-feature-icon { -fx-font-size: 18px; -fx-min-width: 28; }
+.startup-feature-title {
+    -fx-text-fill: rgba(240,253,244,0.92);
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
 }
-.startup-card-icon { -fx-font-size: 36px; }
-.startup-card-title { -fx-text-fill: #0f172a; -fx-font-size: 18px; -fx-font-weight: bold; }
-.startup-card-desc { -fx-text-fill: #64748b; -fx-font-size: 13px; }
-.startup-feature { -fx-text-fill: #15803d; -fx-font-size: 13px; }
+.startup-feature-desc {
+    -fx-text-fill: rgba(240,253,244,0.45);
+    -fx-font-size: 11px;
+}
+.startup-brand-footer {
+    -fx-text-fill: rgba(240,253,244,0.25);
+    -fx-font-size: 10px;
+    -fx-alignment: center;
+}
+
+/* ── Right content panel ─────────────────────────────────────────── */
+.startup-content-panel  { -fx-background-color: #f8fafc; }
+
+.startup-greeting {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+.startup-greeting-sub { -fx-text-fill: #64748b; -fx-font-size: 13px; }
+
+.startup-section-label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+/* Farm list */
+.startup-farm-list {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.04), 6, 0, 0, 1);
+}
+.startup-farm-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.startup-farm-list .list-cell:selected { -fx-background-color: #f0fdf4; }
+.startup-farm-list .list-cell:hover    { -fx-background-color: #f8fafc; }
+
+.startup-empty {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 13px;
+    -fx-padding: 6 2 0 2;
+}
+
+/* Create form card */
+.startup-form-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 22;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 8, 0, 0, 2);
+}
+.startup-field-label {
+    -fx-text-fill: #374151;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+.startup-field {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #0f172a;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-padding: 8 12;
+    -fx-font-size: 13px;
+}
+.startup-field:focused {
+    -fx-border-color: #22c55e;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(three-pass-box, rgba(34,197,94,0.15), 5, 0, 0, 0);
+}
 .startup-error { -fx-text-fill: #b91c1c; -fx-font-size: 12px; }
-.startup-footer { -fx-text-fill: #94a3b8; -fx-font-size: 11px; }
+
+/* Keep old names as aliases for backwards compat */
+.startup-root        { -fx-background-color: #f1f5f9; -fx-padding: 48 60; }
+.startup-title       { -fx-text-fill: #0f172a; -fx-font-size: 32px; -fx-font-weight: bold; }
+.startup-subtitle    { -fx-text-fill: #64748b; -fx-font-size: 14px; }
+.startup-footer      { -fx-text-fill: #94a3b8; -fx-font-size: 11px; }
 
 /* ── Stats bar ────────────────────────────────────────────────────── */
 .stats-bar {

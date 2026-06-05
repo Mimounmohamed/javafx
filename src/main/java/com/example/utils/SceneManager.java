@@ -60,17 +60,23 @@ public class SceneManager {
     /** Step 2 — called by StartupController once a farm is chosen. Loads the main shell. */
     public void loadMainApp() {
         try {
-            boolean wasFullScreen = stage.isFullScreen();
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/com/example/views/main.fxml"));
             root = loader.load();
-            Scene scene = new Scene(root, 1280, 780);
-            scene.getStylesheets().add(
-                getClass().getResource("/com/example/styles/main.css").toExternalForm());
+
+            Scene scene = stage.getScene();
+            String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+            if (scene != null) {
+                // Reuse existing scene — preserves fullscreen without flicker
+                scene.getStylesheets().setAll(css);
+                scene.setRoot(root);
+            } else {
+                scene = new Scene(root, 1280, 780);
+                scene.getStylesheets().add(css);
+                stage.setScene(scene);
+            }
             stage.setMinWidth(1100);
             stage.setMinHeight(700);
-            stage.setScene(scene);
-            if (wasFullScreen) stage.setFullScreen(true);
             navigateTo("dashboard");
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,23 +115,31 @@ public class SceneManager {
     /** Go back to the startup/farm-selection screen from anywhere in the app. */
     public void navigateToStartup() {
         try {
-            boolean wasFullScreen = stage.isFullScreen();
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/com/example/views/startup.fxml"));
-            Scene scene = new Scene(loader.load(), 920, 600);
-            scene.getStylesheets().add(
-                getClass().getResource("/com/example/styles/main.css").toExternalForm());
+            javafx.scene.Parent startupRoot = loader.load();
+
+            Scene scene = stage.getScene();
+            String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+            if (scene != null) {
+                scene.getStylesheets().setAll(css);
+                scene.setRoot(startupRoot);
+            } else {
+                scene = new Scene(startupRoot, 920, 600);
+                scene.getStylesheets().add(css);
+                stage.setScene(scene);
+            }
             stage.setMinWidth(920);
             stage.setMinHeight(600);
-            stage.setScene(scene);
-            if (wasFullScreen) stage.setFullScreen(true);
+            root = null;
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void applyStylesheet(String cssResourcePath) {
-        Scene scene = root.getScene();
+        Scene scene = stage.getScene();
+        if (scene == null) return;
         scene.getStylesheets().clear();
         scene.getStylesheets().add(
             getClass().getResource(cssResourcePath).toExternalForm());
