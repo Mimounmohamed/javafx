@@ -32,33 +32,24 @@
     </HBox>
 
     <!-- ── Stats cards row ───────────────────────────────────────────── -->
-    <HBox spacing="16"
-          style="-fx-background-color: #F5F5F3; -fx-border-color: transparent transparent #e0e0e0 transparent; -fx-border-width: 0 0 1 0;">
+    <HBox spacing="16" styleClass="zones-kpi-strip">
         <padding><Insets top="16" right="24" bottom="16" left="24" /></padding>
-
-        <VBox HBox.hgrow="ALWAYS" spacing="4"
-              style="-fx-background-color: #0EA5E9, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(14,165,233,0.12), 8, 0, 0, 2);">
+        <VBox HBox.hgrow="ALWAYS" spacing="4" styleClass="kpi-card-stripe kpi-card-stripe-sky">
             <Label fx:id="statTotalSpecies" text="—" styleClass="zones-kpi-value" />
             <Label text="TOTAL SPECIES" styleClass="zones-kpi-label" />
             <Label text="registered" styleClass="zones-kpi-sub" />
         </VBox>
-
-        <VBox HBox.hgrow="ALWAYS" spacing="4"
-              style="-fx-background-color: #06B6D4, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(6,182,212,0.12), 8, 0, 0, 2);">
+        <VBox HBox.hgrow="ALWAYS" spacing="4" styleClass="kpi-card-stripe kpi-card-stripe-cyan">
             <Label fx:id="statTotalStock" text="—" styleClass="zones-kpi-value" />
             <Label text="TOTAL STOCK" styleClass="zones-kpi-label" />
             <Label text="live specimens" styleClass="zones-kpi-sub" />
         </VBox>
-
-        <VBox HBox.hgrow="ALWAYS" spacing="4"
-              style="-fx-background-color: #8B5CF6, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(139,92,246,0.12), 8, 0, 0, 2);">
+        <VBox HBox.hgrow="ALWAYS" spacing="4" styleClass="kpi-card-stripe kpi-card-stripe-purple">
             <Label fx:id="statHarvested" text="—" styleClass="zones-kpi-value" />
             <Label text="HARVESTED" styleClass="zones-kpi-label" />
             <Label text="total count" styleClass="zones-kpi-sub" />
         </VBox>
-
-        <VBox HBox.hgrow="ALWAYS" spacing="4"
-              style="-fx-background-color: #6366F1, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(99,102,241,0.12), 8, 0, 0, 2);">
+        <VBox HBox.hgrow="ALWAYS" spacing="4" styleClass="kpi-card-stripe kpi-card-stripe-violet">
             <Label fx:id="statAquaZones" text="—" styleClass="zones-kpi-value" />
             <Label text="AQUA ZONES" styleClass="zones-kpi-label" />
             <Label text="active zones" styleClass="zones-kpi-sub" />

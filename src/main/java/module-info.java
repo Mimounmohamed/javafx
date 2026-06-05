@@ -4,6 +4,8 @@ module com.example {
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.ikonli.fontawesome5;
     requires org.apache.pdfbox;
+    requires javafx.swing;
+    requires transitive java.desktop;
 
     opens com.example to javafx.fxml;
     opens com.example.controllers to javafx.fxml;

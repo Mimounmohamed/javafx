@@ -100,8 +100,10 @@ public class AlertsController {
             private final Label timeLbl = new Label();
             private final VBox  box     = new VBox(1, dateLbl, timeLbl);
             {
-                dateLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #111827;");
-                timeLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #6B7280;");
+                dateLbl.getStyleClass().add("detail-value");
+                dateLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 600;");
+                timeLbl.getStyleClass().add("text-muted");
+                timeLbl.setStyle("-fx-font-size: 10px;");
                 box.setPadding(new Insets(2, 0, 2, 0));
             }
             @Override protected void updateItem(String item, boolean empty) {
@@ -291,15 +293,15 @@ public class AlertsController {
 
         Label msgLbl = new Label(alert.getMessage());
         msgLbl.setWrapText(true);
-        msgLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #111827; -fx-padding: 8 0 0 0;");
+        msgLbl.getStyleClass().add("detail-value");
+        msgLbl.setStyle("-fx-font-size: 13px; -fx-padding: 8 0 0 0;");
 
         detailSeverityBanner.getChildren().addAll(headerRow, msgLbl);
 
         // Info card
         detailInfoCard.getChildren().clear();
-        detailInfoCard.setStyle(
-            "-fx-background-color: #F9FAFB; -fx-border-color: #E5E7EB;" +
-            "-fx-border-radius: 8; -fx-background-radius: 8; -fx-border-width: 1; -fx-padding: 0;");
+        detailInfoCard.getStyleClass().add("kpi-card");
+        detailInfoCard.setStyle("-fx-padding: 0;");
 
         addDetailRow(detailInfoCard, "Zone",    alert.getZone() != null ? alert.getZone().getName() : "N/A", false);
         addDetailRow(detailInfoCard, "Time",    alert.getTimestamp().format(DETAIL_FMT), true);
@@ -318,10 +320,12 @@ public class AlertsController {
         row.setPadding(new Insets(8, 12, 8, 12));
 
         Label keyLbl = new Label(key);
-        keyLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #6B7280; -fx-min-width: 56;");
+        keyLbl.getStyleClass().add("detail-key");
+        keyLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 700; -fx-min-width: 56;");
 
         Label valLbl = new Label(value);
-        valLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #111827;");
+        valLbl.getStyleClass().add("detail-value");
+        valLbl.setStyle("-fx-font-size: 12px;");
         valLbl.setWrapText(true);
         HBox.setHgrow(valLbl, Priority.ALWAYS);
 

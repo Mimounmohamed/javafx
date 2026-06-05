@@ -63,14 +63,7 @@ public class SensorsController {
     @FXML private Label             statWarningReadings;
     @FXML private Label             statNormalReadings;
 
-    private static final String SEL_STYLE =
-        "-fx-background-color: #16A34A, #F0FDF4;" +
-        "-fx-background-insets: 0, 0 0 0 4;" +
-        "-fx-background-radius: 12, 0 12 12 0;" +
-        "-fx-border-width: 0;" +
-        "-fx-padding: 0;" +
-        "-fx-cursor: hand;" +
-        "-fx-effect: dropshadow(three-pass-box, rgba(134,239,172,0.7), 12, 0, 0, 0);";
+    private static final String SEL_CLASS = "sensor-card-selected";
 
     private final SensorService  sensorService   = SensorService.getInstance();
     private final List<Timeline> activeTimelines = new ArrayList<>();
@@ -135,7 +128,7 @@ public class SensorsController {
         sortBy.setOnAction(e -> applyFilters());
         if (filterZone.getParent() instanceof HBox filterBar) {
             Label sortLbl = new Label("Sort:");
-            sortLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280; -fx-padding: 0 0 0 8;");
+            sortLbl.getStyleClass().add("sensor-sort-label");
             filterBar.getChildren().addAll(sortLbl, sortBy);
         }
     }
@@ -233,42 +226,18 @@ public class SensorsController {
         SensorStatus status = sensor.getStatus();
         ReadingLevel level  = sensorService.getLastReadingLevel(sensor);
 
-        // Two-layer stripe background (same pattern as zones/dashboard)
-        String stripeColor, cardBg, shadowColor;
-        if (status == SensorStatus.Suspended || status == SensorStatus.Faulty) {
-            stripeColor = "#6B7280"; cardBg = "#F9FAFB";
-            shadowColor = "rgba(107,114,128,0.10)";
-        } else {
-            stripeColor = switch (level) {
-                case CRITICAL -> "#DC2626";
-                case WARNING  -> "#D97706";
-                default       -> "#1D9E75";
+        // CSS class encodes the state — no inline styles needed
+        String stateClass = (status == SensorStatus.Suspended || status == SensorStatus.Faulty)
+            ? "sensor-card-suspended"
+            : switch (level) {
+                case CRITICAL -> "sensor-card-critical";
+                case WARNING  -> "sensor-card-warning";
+                default       -> "sensor-card-normal";
             };
-            cardBg = switch (level) {
-                case CRITICAL -> "#FFF5F5";
-                case WARNING  -> "#FFFBEB";
-                default       -> "#ffffff";
-            };
-            shadowColor = switch (level) {
-                case CRITICAL -> "rgba(220,38,38,0.12)";
-                case WARNING  -> "rgba(245,158,11,0.12)";
-                default       -> "rgba(0,0,0,0.07)";
-            };
-        }
-
-        String cardStyle =
-            "-fx-background-color: " + stripeColor + ", " + cardBg + ";" +
-            "-fx-background-insets: 0, 0 0 0 4;" +
-            "-fx-background-radius: 12, 0 12 12 0;" +
-            "-fx-border-width: 0;" +
-            "-fx-padding: 0;" +
-            "-fx-cursor: hand;" +
-            "-fx-effect: dropshadow(three-pass-box, " + shadowColor + ", 10, 0, 0, 2);";
 
         VBox card = new VBox(0);
-        card.getStyleClass().add("sensor-card");
-        card.setStyle(cardStyle);
-        card.getProperties().put("origStyle", cardStyle);
+        card.getStyleClass().addAll("sensor-card", stateClass);
+        card.getProperties().put("stateClass", stateClass);
         card.setPrefWidth(215);
         card.setMinHeight(160);
 
@@ -276,18 +245,18 @@ public class SensorsController {
         Label typeBadge = new Label(sensorService.getSensorTypeLabel(sensor));
         typeBadge.getStyleClass().addAll("sensor-type-badge", "sensor-type-" + sensorTypeKey(sensor));
 
-        // 8px status dot with pulse animation for Active/Faulty
+        // 8px status dot — CSS class drives the colour
         Label statusDot = new Label();
-        String dotColor = switch (status) {
-            case Active    -> "#16A34A";
-            case Faulty    -> "#DC2626";
-            default        -> "#9CA3AF";
+        String dotCssColor = switch (status) {
+            case Active  -> "#22c55e";
+            case Faulty  -> "#ef4444";
+            default      -> "#64748b";
         };
         statusDot.setStyle(
-            "-fx-background-color: " + dotColor + ";" +
-            "-fx-background-radius: 99;" +
-            "-fx-min-width: 8; -fx-min-height: 8;" +
-            "-fx-max-width: 8; -fx-max-height: 8;"
+            "-fx-background-color:" + dotCssColor + ";" +
+            "-fx-background-radius:99;" +
+            "-fx-min-width:8;-fx-min-height:8;" +
+            "-fx-max-width:8;-fx-max-height:8;"
         );
         if (status == SensorStatus.Active || status == SensorStatus.Faulty) {
             Timeline dotPulse = new Timeline(
@@ -308,27 +277,23 @@ public class SensorsController {
 
         // ── BODY ──────────────────────────────────────────────────────
         Label sensorName = new Label("Sensor #" + sensor.getCode());
-        sensorName.setStyle("-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #111827;");
+        sensorName.getStyleClass().add("sensor-card-name");
         sensorName.setWrapText(true);
 
         Label zoneLbl = new Label("📍 " + sensor.getZone().getName());
         zoneLbl.getStyleClass().add("sensor-card-zone");
 
-        String readingColor;
-        if (status == SensorStatus.Suspended || status == SensorStatus.Faulty) {
-            readingColor = "#6B7280";
-        } else {
-            readingColor = switch (level) {
-                case CRITICAL -> "#DC2626";
-                case WARNING  -> "#D97706";
-                default       -> "#16A34A";
+        String readingCssClass = (status == SensorStatus.Suspended || status == SensorStatus.Faulty)
+            ? "sensor-card-reading-muted"
+            : switch (level) {
+                case CRITICAL -> "sensor-card-reading-critical";
+                case WARNING  -> "sensor-card-reading-warning";
+                default       -> "sensor-card-reading-normal";
             };
-        }
         Label reading = new Label(sensorService.getLastReadingDisplay(sensor));
+        reading.getStyleClass().add(readingCssClass);
         reading.setWrapText(true);
-        reading.setStyle("-fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: " + readingColor + ";");
 
-        // Opacity pulse for CRITICAL reading value only (not WARNING)
         if (level == ReadingLevel.CRITICAL && status == SensorStatus.Active) {
             Timeline readingPulse = new Timeline(
                 new KeyFrame(Duration.ZERO,         new KeyValue(reading.opacityProperty(), 1.0)),
@@ -392,13 +357,16 @@ public class SensorsController {
     // ── Detail panel ─────────────────────────────────────────────────
 
     private void showDetail(Sensor sensor, VBox card) {
-        // Restore previous card's original style
+        // Restore previous card to its state class
         if (selectedCard != null) {
-            Object orig = selectedCard.getProperties().get("origStyle");
-            if (orig instanceof String s) selectedCard.setStyle(s);
+            selectedCard.getStyleClass().remove(SEL_CLASS);
+            String sc = (String) selectedCard.getProperties().get("stateClass");
+            if (sc != null && !selectedCard.getStyleClass().contains(sc))
+                selectedCard.getStyleClass().add(sc);
         }
         selectedCard = card;
-        card.setStyle(SEL_STYLE);
+        card.getStyleClass().remove((String) card.getProperties().get("stateClass"));
+        if (!card.getStyleClass().contains(SEL_CLASS)) card.getStyleClass().add(SEL_CLASS);
 
         // Toggle empty / detail views
         noSelectionState.setVisible(false);
@@ -430,73 +398,39 @@ public class SensorsController {
         SensorStatus status = sensor.getStatus();
 
         if (status == SensorStatus.Active) {
-            Button suspendBtn = new Button("⏸  Suspend");
-            suspendBtn.setMaxWidth(Double.MAX_VALUE);
-            styledActionBtn(suspendBtn, "white", "#D1D5DB", "#374151");
-            suspendBtn.setOnAction(e -> { sensor.suspend(); refreshAfterAction(sensor); });
-            sensorActions.getChildren().add(suspendBtn);
-
-            Button faultyBtn = new Button("⚠  Mark Faulty");
-            faultyBtn.setMaxWidth(Double.MAX_VALUE);
-            styledActionBtn(faultyBtn, "#FEF2F2", "#FCA5A5", "#DC2626");
-            faultyBtn.setOnAction(e -> confirmMarkFaulty(sensor));
-            sensorActions.getChildren().add(faultyBtn);
+            sensorActions.getChildren().add(actionBtn("⏸  Suspend",     "sensor-action-default",
+                e -> { sensor.suspend(); refreshAfterAction(sensor); }));
+            sensorActions.getChildren().add(actionBtn("⚠  Mark Faulty", "sensor-action-danger",
+                e -> confirmMarkFaulty(sensor)));
 
         } else if (status == SensorStatus.Suspended) {
-            Button reactivateBtn = new Button("▶  Reactivate");
-            reactivateBtn.setMaxWidth(Double.MAX_VALUE);
-            styledActionBtn(reactivateBtn, "#F0FDF4", "#6EE7B7", "#16A34A");
-            reactivateBtn.setOnAction(e -> { sensor.reactivate(); refreshAfterAction(sensor); });
-            sensorActions.getChildren().add(reactivateBtn);
-
-            Button faultyBtn = new Button("⚠  Mark Faulty");
-            faultyBtn.setMaxWidth(Double.MAX_VALUE);
-            styledActionBtn(faultyBtn, "#FEF2F2", "#FCA5A5", "#DC2626");
-            faultyBtn.setOnAction(e -> confirmMarkFaulty(sensor));
-            sensorActions.getChildren().add(faultyBtn);
-
+            sensorActions.getChildren().add(actionBtn("▶  Reactivate",  "sensor-action-success",
+                e -> { sensor.reactivate(); refreshAfterAction(sensor); }));
+            sensorActions.getChildren().add(actionBtn("⚠  Mark Faulty", "sensor-action-danger",
+                e -> confirmMarkFaulty(sensor)));
         } else {
-            Button unfaultBtn = new Button("✅  Reactivate Sensor");
-            unfaultBtn.setMaxWidth(Double.MAX_VALUE);
-            styledActionBtn(unfaultBtn, "#F0FDF4", "#6EE7B7", "#16A34A");
-            unfaultBtn.setOnAction(e -> { sensor.reactivate(); refreshAfterAction(sensor); });
-            sensorActions.getChildren().add(unfaultBtn);
+            sensorActions.getChildren().add(actionBtn("✅  Reactivate Sensor", "sensor-action-success",
+                e -> { sensor.reactivate(); refreshAfterAction(sensor); }));
         }
 
-        Button clearBtn = new Button("🗑  Clear History");
-        clearBtn.setMaxWidth(Double.MAX_VALUE);
-        styledActionBtn(clearBtn, "#FEF2F2", "#FCA5A5", "#DC2626");
-        clearBtn.setOnAction(e -> confirmClearHistory(sensor));
-        sensorActions.getChildren().add(clearBtn);
+        sensorActions.getChildren().add(actionBtn("🗑  Clear History", "sensor-action-danger",
+            e -> confirmClearHistory(sensor)));
 
         if (sensor instanceof NumericSensor ns) {
-            Button threshBtn = new Button("⚙  Edit Thresholds");
-            threshBtn.setMaxWidth(Double.MAX_VALUE);
-            styledActionBtn(threshBtn, "#EFF6FF", "#93C5FD", "#2563EB");
-            threshBtn.setOnAction(e -> showEditThresholdsDialog(ns, sensor));
-            sensorActions.getChildren().add(threshBtn);
-
-            Button injectBtn = new Button("📥  Inject Reading");
-            injectBtn.setMaxWidth(Double.MAX_VALUE);
-            styledActionBtn(injectBtn, "#F0FDF4", "#6EE7B7", "#16A34A");
-            injectBtn.setOnAction(e -> showInjectReadingDialog(ns, sensor));
-            sensorActions.getChildren().add(injectBtn);
+            sensorActions.getChildren().add(actionBtn("⚙  Edit Thresholds", "sensor-action-primary",
+                e -> showEditThresholdsDialog(ns, sensor)));
+            sensorActions.getChildren().add(actionBtn("📥  Inject Reading",  "sensor-action-success",
+                e -> showInjectReadingDialog(ns, sensor)));
         }
     }
 
-    private void styledActionBtn(Button btn, String bg, String border, String color) {
-        btn.setStyle(
-            "-fx-background-color: " + bg + ";" +
-            "-fx-border-color: " + border + ";" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 8;" +
-            "-fx-background-radius: 8;" +
-            "-fx-text-fill: " + color + ";" +
-            "-fx-font-size: 13px;" +
-            "-fx-min-height: 38px;" +
-            "-fx-cursor: hand;" +
-            "-fx-padding: 8 16;"
-        );
+    private Button actionBtn(String text, String cssClass,
+                             javafx.event.EventHandler<javafx.event.ActionEvent> handler) {
+        Button btn = new Button(text);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.getStyleClass().add(cssClass);
+        btn.setOnAction(handler);
+        return btn;
     }
 
     private void confirmMarkFaulty(Sensor sensor) {
@@ -533,7 +467,8 @@ public class SensorsController {
             .map(n -> (VBox) n)
             .findFirst()
             .ifPresent(newCard -> {
-                newCard.setStyle(SEL_STYLE);
+                newCard.getStyleClass().remove((String) newCard.getProperties().get("stateClass"));
+                if (!newCard.getStyleClass().contains(SEL_CLASS)) newCard.getStyleClass().add(SEL_CLASS);
                 selectedCard = newCard;
             });
         refreshStats();

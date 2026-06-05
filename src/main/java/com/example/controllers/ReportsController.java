@@ -26,9 +26,13 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
 import com.example.services.PdfReportService;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -135,7 +139,8 @@ public class ReportsController {
         List<Alert>  alerts   = alertService.getAllAlerts();
         long activeAlerts     = alerts.stream().filter(Alert::isActive).count();
 
-        contentArea.getChildren().add(sectionTitle("Farm Overview"));
+        contentArea.getChildren().add(sectionTitleRow("Farm Overview", "Export PDF",
+            PdfReportService.getInstance()::exportOverview));
         contentArea.getChildren().add(kpiRow(
             kpi("Zones",         String.valueOf(allZones.size()),                      "stat-accent-blue"),
             kpi("Animals",       String.valueOf(animals.size()),                       "stat-accent-green"),
@@ -148,8 +153,8 @@ public class ReportsController {
             wrappedChart("Animal Health",      animalHealthPie(animals), true)
         ));
         contentArea.getChildren().add(chartRow(
-            wrappedChart("Production by Zone", productionByZoneBar(),       false),
-            wrappedChart("Alert Severity",      alertSeverityPie(alerts),   true)
+            wrappedChart("Production by Zone",  productionByZoneBar(),     false),
+            wrappedChart("Alert Severity",       alertSeverityPie(alerts), true)
         ));
 
         // ── Farm Report data table ──
@@ -212,7 +217,8 @@ public class ReportsController {
         long   totalEggs    = zones.stream().mapToLong(LivestockZONE::getTotalEggCount).sum();
         long   totalAnimals = zones.stream().mapToLong(z -> z.getAnimals().size()).sum();
 
-        contentArea.getChildren().add(sectionTitle("Livestock Production"));
+        contentArea.getChildren().add(sectionTitleRow("Livestock Production", "Export PDF",
+            PdfReportService.getInstance()::exportLivestock));
         contentArea.getChildren().add(kpiRow(
             kpi("Livestock Zones", String.valueOf(zones.size()),             "stat-accent-blue"),
             kpi("Total Animals",   String.valueOf(totalAnimals),             "stat-accent-green"),
@@ -282,7 +288,8 @@ public class ReportsController {
         long   harvested  = zones.stream().flatMap(z -> z.getFields().stream()).filter(Crop::wasHarvested).count();
         long   total      = zones.stream().mapToLong(z -> z.getFields().size()).sum();
 
-        contentArea.getChildren().add(sectionTitle("Crop Production"));
+        contentArea.getChildren().add(sectionTitleRow("Crop Production", "Export PDF",
+            PdfReportService.getInstance()::exportCrops));
         contentArea.getChildren().add(kpiRow(
             kpi("Crop Zones",       String.valueOf(zones.size()),       "stat-accent-blue"),
             kpi("Total Yield (kg)", String.format("%.1f", totalYield), "stat-accent-green"),
@@ -353,7 +360,8 @@ public class ReportsController {
                                    .average().orElse(0.0);
         long   totalStock   = zones.stream().mapToLong(AquacultureZONE::getTotalSpeciesCount).sum();
 
-        contentArea.getChildren().add(sectionTitle("Aquaculture Production"));
+        contentArea.getChildren().add(sectionTitleRow("Aquaculture Production", "Export PDF",
+            PdfReportService.getInstance()::exportAquaculture));
         contentArea.getChildren().add(kpiRow(
             kpi("Aquaculture Zones",  String.valueOf(zones.size()),           "stat-accent-blue"),
             kpi("Total Stock",        String.valueOf(totalStock),             "stat-accent-green"),
@@ -421,7 +429,8 @@ public class ReportsController {
         long resolved = alerts.stream().filter(Alert::isResolved).count();
         long critical = alertService.getAlertsBySeverity(AlertSeverity.Critical).size();
 
-        contentArea.getChildren().add(sectionTitle("Alerts & Incidents"));
+        contentArea.getChildren().add(sectionTitleRow("Alerts & Incidents", "Export PDF",
+            PdfReportService.getInstance()::exportAlerts));
         contentArea.getChildren().add(kpiRow(
             kpi("Total Alerts", String.valueOf(alerts.size()), "stat-accent-blue"),
             kpi("Active",       String.valueOf(active),        "stat-accent-red"),
@@ -564,10 +573,10 @@ public class ReportsController {
         sensorRangeLabel.getStyleClass().add("text-muted");
         sensorRangeLabel.setStyle("-fx-font-size: 11px;");
 
-        // Export all CSV button
-        Button exportAllBtn = new Button("↓ Export All CSV");
+        // Export all PDF button
+        Button exportAllBtn = new Button("📄 Export All PDF");
         exportAllBtn.getStyleClass().add("btn-secondary");
-        exportAllBtn.setOnAction(e -> exportAllSensorsCsv());
+        exportAllBtn.setOnAction(e -> exportAllSensorsPdf());
 
         toolbar.getChildren().addAll(zoneCombo, typePills, spacer, datePills, sensorRangeLabel, exportAllBtn);
         return toolbar;
@@ -758,14 +767,14 @@ public class ReportsController {
         card.getStyleClass().add("kpi-card");
         card.setPadding(new Insets(14));
 
-        // Header: title left, CSV button right
+        // Header: title left, PDF button right
         Label titleLbl = new Label(title); titleLbl.getStyleClass().add("card-title"); titleLbl.setWrapText(true);
-        Button csvBtn = new Button("↓ CSV");
-        csvBtn.getStyleClass().add("btn-secondary");
-        csvBtn.setStyle("-fx-font-size: 10px; -fx-padding: 3 8;");
-        csvBtn.setOnAction(e -> exportSensorCsv(sensor));
+        Button pdfBtn = new Button("↓ PDF");
+        pdfBtn.getStyleClass().add("btn-secondary");
+        pdfBtn.setStyle("-fx-font-size: 10px; -fx-padding: 3 8;");
+        pdfBtn.setOnAction(e -> exportSensorPdf(sensor, card));
         Region hSpacer = new Region(); HBox.setHgrow(hSpacer, Priority.ALWAYS);
-        HBox header = new HBox(8, titleLbl, hSpacer, csvBtn);
+        HBox header = new HBox(8, titleLbl, hSpacer, pdfBtn);
         header.setAlignment(Pos.CENTER_LEFT);
 
         // Chart (Feature 1: date-filtered, Feature 6: synced X-axis)
@@ -804,12 +813,12 @@ public class ReportsController {
 
         String title = "GPS: " + sensor.getAnimal().getName() + "  [" + sensor.getCode() + "]";
         Label titleLbl = new Label(title); titleLbl.getStyleClass().add("card-title");
-        Button csvBtn = new Button("↓ CSV");
-        csvBtn.getStyleClass().add("btn-secondary");
-        csvBtn.setStyle("-fx-font-size: 10px; -fx-padding: 3 8;");
-        csvBtn.setOnAction(e -> exportGpsCsv(sensor));
+        Button pdfBtn = new Button("↓ PDF");
+        pdfBtn.getStyleClass().add("btn-secondary");
+        pdfBtn.setStyle("-fx-font-size: 10px; -fx-padding: 3 8;");
+        pdfBtn.setOnAction(e -> exportGpsPdf(sensor, card));
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox header = new HBox(8, titleLbl, sp, csvBtn);
+        HBox header = new HBox(8, titleLbl, sp, pdfBtn);
         header.setAlignment(Pos.CENTER_LEFT);
 
         LineChart<String, Number> chart = rangedGpsChart(sensor);
@@ -876,7 +885,7 @@ public class ReportsController {
                 String color = switch (reading.getSeverity()) {
                     case CRITICAL -> "#ef4444"; case WARNING -> "#f59e0b"; default -> "#22c55e";
                 };
-                node.setStyle("-fx-background-color: " + color + ", white; -fx-background-radius: 5px; -fx-padding: 4px;");
+                node.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 5px; -fx-padding: 4px;");
                 String ttText = "Sensor: " + sCode + "\nTime: " + reading.getTimestamp().format(DATE_FMT)
                     + "\nValue: " + String.format("%.4f", reading.getValue()) + " " + sUnit
                     + "\nStatus: " + reading.getSeverity().name();
@@ -917,7 +926,7 @@ public class ReportsController {
                 GPSSensorReading r = readings.get(i);
                 Node node = inSeries.getData().get(i).getNode();
                 if (node == null) continue;
-                node.setStyle("-fx-background-color: " + (r.isInsideZone() ? "#22c55e" : "#ef4444") + ", white; -fx-background-radius: 5px; -fx-padding: 4px;");
+                node.setStyle("-fx-background-color: " + (r.isInsideZone() ? "#22c55e" : "#ef4444") + "; -fx-background-radius: 5px; -fx-padding: 4px;");
                 Tooltip tip = new Tooltip("Time: " + r.getTimestamp().format(DATE_FMT) + "\nLat: " + String.format("%.5f", r.getLat()) + "\nLon: " + String.format("%.5f", r.getLon()) + "\nZone: " + (r.isInsideZone() ? "INSIDE" : "OUTSIDE"));
                 Tooltip.install(node, tip);
             }
@@ -942,7 +951,7 @@ public class ReportsController {
                 Alert a = alerts.get(i);
                 javafx.scene.Node node = alertSeries.getData().get(i).getNode();
                 if (node == null) continue;
-                node.setStyle("-fx-background-color: #ef4444, white; -fx-background-radius: 0; -fx-padding: 8 3 0 3; -fx-shape: 'M 0 -3.5 L 3 3.5 L -3 3.5 Z';");
+                node.setStyle("-fx-background-color: #ef4444; -fx-background-radius: 0; -fx-padding: 8 3 0 3; -fx-shape: 'M 0 -3.5 L 3 3.5 L -3 3.5 Z';");
                 Tooltip tip = new Tooltip("ALERT  [" + a.getSeverity().name() + "]\n"
                     + a.getTimestamp().format(DATE_FMT) + "\n" + a.getMessage());
                 tip.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
@@ -985,62 +994,123 @@ public class ReportsController {
         for (XYChart.Data<?,?> d : s.getData()) if (d.getNode() != null) d.getNode().setVisible(false);
     }
 
-    // ── Feature 7: CSV export ─────────────────────────────────────────────
+    // ── PDF export helpers ────────────────────────────────────────────────
 
-    private void exportSensorCsv(NumericSensor sensor) {
-        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
-        fc.setTitle("Export Sensor CSV");
-        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV Files","*.csv"));
-        fc.setInitialFileName("sensor_" + sensor.getCode() + "_"
-            + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv");
-        if (contentArea.getScene() == null) return;
-        java.io.File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
-        if (dest == null) return;
-        try (var w = new java.io.FileWriter(dest)) {
-            w.write("Timestamp,Value,Unit,Status\n");
-            for (NumericSensorReading r : filteredNumericReadings(sensor))
-                w.write(r.getTimestamp().format(CSV_FMT) + ","
-                    + String.format("%.4f", r.getValue()) + ","
-                    + sensor.getUnit() + "," + r.getSeverity().name() + "\n");
-        } catch (Exception ex) { ex.printStackTrace(); }
+    /** Section title row with inline Export PDF button. */
+    private HBox sectionTitleRow(String text, String btnLabel, ThrowingExporter exporter) {
+        Label l = new Label(text);
+        l.getStyleClass().add("page-title");
+        Button btn = new Button("📄 " + btnLabel);
+        btn.getStyleClass().add("btn-secondary");
+        btn.setStyle("-fx-font-size: 11px; -fx-padding: 5 12;");
+        btn.setOnAction(e -> {
+            if (contentArea.getScene() == null) return;
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Export PDF — " + text);
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            fc.setInitialFileName("FarmReport_" + text.replaceAll("[^a-zA-Z0-9]", "_")
+                + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")) + ".pdf");
+            File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
+            if (dest == null) return;
+            btn.setDisable(true); btn.setText("⏳");
+            javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<>() {
+                @Override protected Void call() throws Exception { exporter.export(dest); return null; }
+            };
+            task.setOnSucceeded(ev -> { btn.setDisable(false); btn.setText("📄 " + btnLabel); });
+            task.setOnFailed(ev -> {
+                btn.setDisable(false); btn.setText("📄 " + btnLabel);
+                if (task.getException() != null) task.getException().printStackTrace();
+            });
+            new Thread(task, "section-pdf").start();
+        });
+        Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox row = new HBox(12, l, spacer, btn);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 
-    private void exportGpsCsv(GPSCollarSensor sensor) {
-        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
-        fc.setTitle("Export GPS CSV");
-        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV Files","*.csv"));
-        fc.setInitialFileName("gps_" + sensor.getCode() + ".csv");
+    /** Snapshots a chart card and exports it as a PDF with embedded image. */
+    private void exportChartNodePdf(String title, Node card) {
+        WritableImage img = card.snapshot(new SnapshotParameters(), null);
+        BufferedImage buffImg = SwingFXUtils.fromFXImage(img, null);
         if (contentArea.getScene() == null) return;
-        java.io.File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Export Chart — " + title);
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        fc.setInitialFileName("chart_" + title.replaceAll("[^a-zA-Z0-9]", "_") + ".pdf");
+        File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
         if (dest == null) return;
-        try (var w = new java.io.FileWriter(dest)) {
-            w.write("Timestamp,Latitude,Longitude,InsideZone\n");
-            for (GPSSensorReading r : filteredGpsReadings(sensor))
-                w.write(r.getTimestamp().format(CSV_FMT) + ","
-                    + r.getLat() + "," + r.getLon() + "," + r.isInsideZone() + "\n");
-        } catch (Exception ex) { ex.printStackTrace(); }
-    }
-
-    private void exportAllSensorsCsv() {
-        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
-        fc.setTitle("Export All Sensors CSV");
-        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV Files","*.csv"));
-        fc.setInitialFileName("all_sensors_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")) + ".csv");
-        if (contentArea.getScene() == null) return;
-        java.io.File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
-        if (dest == null) return;
-        try (var w = new java.io.FileWriter(dest)) {
-            w.write("SensorCode,Zone,Type,Timestamp,Value,Unit,Status\n");
-            for (NumericSensor s : sensorService.getAllSensors().stream()
-                    .filter(s2 -> s2 instanceof NumericSensor).map(s2 -> (NumericSensor)s2).toList()) {
-                for (NumericSensorReading r : filteredNumericReadings(s))
-                    w.write(s.getCode() + "," + s.getZone().getName() + ","
-                        + s.getClass().getSimpleName() + ","
-                        + r.getTimestamp().format(CSV_FMT) + ","
-                        + String.format("%.4f", r.getValue()) + ","
-                        + s.getUnit() + "," + r.getSeverity().name() + "\n");
+        javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<>() {
+            @Override protected Void call() throws Exception {
+                PdfReportService.getInstance().exportChartImage(title, buffImg, dest); return null;
             }
-        } catch (Exception ex) { ex.printStackTrace(); }
+        };
+        task.setOnFailed(ev -> { if (task.getException() != null) task.getException().printStackTrace(); });
+        new Thread(task, "chart-pdf").start();
+    }
+
+    /** Per-sensor PDF: snapshots the card + includes a data table. */
+    private void exportSensorPdf(NumericSensor sensor, Node card) {
+        WritableImage img = card.snapshot(new SnapshotParameters(), null);
+        BufferedImage buffImg = SwingFXUtils.fromFXImage(img, null);
+        List<NumericSensorReading> readings = filteredNumericReadings(sensor);
+        if (contentArea.getScene() == null) return;
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Export Sensor PDF");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        fc.setInitialFileName("sensor_" + sensor.getCode() + "_"
+            + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".pdf");
+        File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
+        if (dest == null) return;
+        javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<>() {
+            @Override protected Void call() throws Exception {
+                PdfReportService.getInstance().exportSensorChart(sensor, readings, buffImg, dest);
+                return null;
+            }
+        };
+        task.setOnFailed(ev -> { if (task.getException() != null) task.getException().printStackTrace(); });
+        new Thread(task, "sensor-pdf").start();
+    }
+
+    /** Per-GPS-sensor PDF: snapshots the card + includes readings summary. */
+    private void exportGpsPdf(GPSCollarSensor sensor, Node card) {
+        WritableImage img = card.snapshot(new SnapshotParameters(), null);
+        BufferedImage buffImg = SwingFXUtils.fromFXImage(img, null);
+        List<GPSSensorReading> readings = filteredGpsReadings(sensor);
+        if (contentArea.getScene() == null) return;
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Export GPS PDF");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        fc.setInitialFileName("gps_" + sensor.getCode() + ".pdf");
+        File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
+        if (dest == null) return;
+        javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<>() {
+            @Override protected Void call() throws Exception {
+                PdfReportService.getInstance().exportGpsChart(sensor, readings, buffImg, dest);
+                return null;
+            }
+        };
+        task.setOnFailed(ev -> { if (task.getException() != null) task.getException().printStackTrace(); });
+        new Thread(task, "gps-pdf").start();
+    }
+
+    /** Export all sensors as a formatted PDF with data tables. */
+    private void exportAllSensorsPdf() {
+        if (contentArea.getScene() == null) return;
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Export All Sensors PDF");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        fc.setInitialFileName("all_sensors_"
+            + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")) + ".pdf");
+        File dest = fc.showSaveDialog(contentArea.getScene().getWindow());
+        if (dest == null) return;
+        javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<>() {
+            @Override protected Void call() throws Exception {
+                PdfReportService.getInstance().exportSensors(dest); return null;
+            }
+        };
+        task.setOnFailed(ev -> { if (task.getException() != null) task.getException().printStackTrace(); });
+        new Thread(task, "all-sensors-pdf").start();
     }
 
     // ── Custom date dialog ────────────────────────────────────────────────
@@ -1829,16 +1899,11 @@ public class ReportsController {
 
     private void showNotification(Label lbl, boolean success, String msg) {
         lbl.setText(msg);
-        lbl.setStyle(success
-            ? "-fx-text-fill: #16A34A; -fx-background-color: #F0FDF4; " +
-              "-fx-background-radius: 8; -fx-border-color: #BBF7D0; " +
-              "-fx-border-radius: 8; -fx-border-width: 1;"
-            : "-fx-text-fill: #DC2626; -fx-background-color: #FEF2F2; " +
-              "-fx-background-radius: 8; -fx-border-color: #FECACA; " +
-              "-fx-border-radius: 8; -fx-border-width: 1;");
+        lbl.setStyle(null);
+        lbl.getStyleClass().removeAll("notification-success", "notification-error", "kpi-card");
+        lbl.getStyleClass().add(success ? "notification-success" : "notification-error");
         lbl.setVisible(true);
         lbl.setManaged(true);
-        // Scroll the notification into view
         lbl.requestFocus();
     }
 
@@ -1894,9 +1959,22 @@ public class ReportsController {
         VBox box = new VBox(8);
         box.getStyleClass().add("kpi-card");
         box.setPadding(new Insets(16));
-        Label titleLabel = new Label(title); titleLabel.getStyleClass().add("card-title");
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("card-title");
+
+        Button pdfBtn = new Button("↓ PDF");
+        pdfBtn.getStyleClass().add("btn-secondary");
+        pdfBtn.setStyle("-fx-font-size: 10px; -fx-padding: 3 8;");
+        pdfBtn.setOnAction(e -> exportChartNodePdf(title, box));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox headerRow = new HBox(8, titleLabel, spacer, pdfBtn);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+
         if (chart instanceof Region r) { r.setPrefHeight(smallHeight ? 240 : 280); r.setMinHeight(smallHeight ? 200 : 240); }
-        box.getChildren().addAll(titleLabel, new Separator(), chart);
+        box.getChildren().addAll(headerRow, new Separator(), chart);
         return box;
     }
 

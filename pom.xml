@@ -45,6 +45,13 @@
             <version>3.0.2</version>
         </dependency>
 
+        <!-- JavaFX Swing bridge — needed for SwingFXUtils.fromFXImage() when embedding chart snapshots in PDFs -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

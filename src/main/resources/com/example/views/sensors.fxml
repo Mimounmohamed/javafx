@@ -30,30 +30,25 @@
     </HBox>
 
     <!-- ── Stats cards row ───────────────────────────────────────────── -->
-    <HBox spacing="16"
-          style="-fx-background-color: #F5F5F3; -fx-border-color: transparent transparent #e0e0e0 transparent; -fx-border-width: 0 0 1 0;">
+    <HBox spacing="16" styleClass="zones-kpi-strip">
         <padding><Insets top="16" right="24" bottom="16" left="24" /></padding>
 
-        <VBox HBox.hgrow="ALWAYS" spacing="4"
-              style="-fx-background-color: #4F46E5, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+        <VBox HBox.hgrow="ALWAYS" spacing="4" styleClass="kpi-card-stripe kpi-card-stripe-indigo">
             <Label fx:id="statTotalSensors" text="—" styleClass="zones-kpi-value" />
             <Label text="TOTAL SENSORS" styleClass="zones-kpi-label" />
         </VBox>
 
-        <VBox HBox.hgrow="ALWAYS" spacing="4"
-              style="-fx-background-color: #DC2626, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(220,38,38,0.12), 8, 0, 0, 2);">
+        <VBox HBox.hgrow="ALWAYS" spacing="4" styleClass="kpi-card-stripe kpi-card-stripe-red">
             <Label fx:id="statCriticalReadings" text="—" styleClass="zones-kpi-value" />
             <Label text="CRITICAL" styleClass="zones-kpi-label" />
         </VBox>
 
-        <VBox HBox.hgrow="ALWAYS" spacing="4"
-              style="-fx-background-color: #D97706, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(217,119,6,0.12), 8, 0, 0, 2);">
+        <VBox HBox.hgrow="ALWAYS" spacing="4" styleClass="kpi-card-stripe kpi-card-stripe-amber">
             <Label fx:id="statWarningReadings" text="—" styleClass="zones-kpi-value" />
             <Label text="WARNING" styleClass="zones-kpi-label" />
         </VBox>
 
-        <VBox HBox.hgrow="ALWAYS" spacing="4"
-              style="-fx-background-color: #16A34A, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 14 18; -fx-effect: dropshadow(three-pass-box, rgba(22,163,74,0.12), 8, 0, 0, 2);">
+        <VBox HBox.hgrow="ALWAYS" spacing="4" styleClass="kpi-card-stripe kpi-card-stripe-green">
             <Label fx:id="statNormalReadings" text="—" styleClass="zones-kpi-value" />
             <Label text="NORMAL" styleClass="zones-kpi-label" />
         </VBox>

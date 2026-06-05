@@ -36,7 +36,10 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -320,6 +323,85 @@ public class PdfReportService {
         }
     }
 
+    // ── Chart image exports ───────────────────────────────────────────
+
+    /** Export a single numeric sensor card: embedded chart image + data table. */
+    public void exportSensorChart(NumericSensor sensor,
+                                   List<NumericSensorReading> readings,
+                                   BufferedImage chartImage, File dest) throws IOException {
+        try (PdfWriter w = open()) {
+            writeDocHeader(w, "Sensor Report — " + sensor.getCode());
+            w.writeSectionTitle("Sensor Details");
+            w.writeRow("Code",      sensor.getCode());
+            w.writeRow("Type",      sensor.getClass().getSimpleName());
+            w.writeRow("Unit",      sensor.getUnit());
+            w.writeRow("Threshold", sensor.getMinThreshold() + " – " + sensor.getMaxThreshold() + " " + sensor.getUnit());
+            w.writeRow("Last value",String.format("%.4f %s", sensor.getLastValue(), sensor.getUnit()));
+            w.writeRow("Status",    sensor.getStatus().name());
+            w.writeRow("Readings in range", String.valueOf(readings.size()));
+
+            w.space(10);
+            w.writeSectionTitle("Sensor Chart");
+            w.addImage(chartImage, PdfWriter.RIGHT - PdfWriter.LEFT, 230);
+
+            if (!readings.isEmpty()) {
+                w.writeSectionTitle("Reading History");
+                w.writeSubHeader("Timestamp                  Value          Status");
+                w.drawDivider();
+                for (NumericSensorReading r : readings) {
+                    String line = pad(r.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")), 27)
+                        + pad(String.format("%.4f %s", r.getValue(), sensor.getUnit()), 16)
+                        + r.getSeverity().name();
+                    w.writeMono(line);
+                }
+            }
+            w.save(dest);
+        }
+    }
+
+    /** Export a single GPS sensor card: embedded chart image + readings summary. */
+    public void exportGpsChart(GPSCollarSensor sensor,
+                                List<GPSSensorReading> readings,
+                                BufferedImage chartImage, File dest) throws IOException {
+        try (PdfWriter w = open()) {
+            writeDocHeader(w, "GPS Sensor — " + sensor.getAnimal().getName());
+            w.writeSectionTitle("GPS Sensor Details");
+            w.writeRow("Code",    sensor.getCode());
+            w.writeRow("Animal",  sensor.getAnimal().getName());
+            w.writeRow("Status",  sensor.getStatus().name());
+            w.writeRow("Escaped", sensor.hasEscaped() ? "YES — outside zone boundary" : "No");
+            w.writeRow("Readings in range", String.valueOf(readings.size()));
+
+            w.space(10);
+            w.writeSectionTitle("Zone Status Chart");
+            w.addImage(chartImage, PdfWriter.RIGHT - PdfWriter.LEFT, 230);
+
+            if (!readings.isEmpty()) {
+                w.writeSectionTitle("Position Log");
+                w.writeSubHeader("Timestamp              Latitude        Longitude       Zone");
+                w.drawDivider();
+                for (GPSSensorReading r : readings) {
+                    String line = pad(r.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")), 23)
+                        + pad(String.format("%.5f", r.getLat()), 16)
+                        + pad(String.format("%.5f", r.getLon()), 16)
+                        + (r.isInsideZone() ? "INSIDE" : "OUTSIDE");
+                    w.writeMono(line);
+                }
+            }
+            w.save(dest);
+        }
+    }
+
+    /** Export any chart card as a PDF with only the embedded image. */
+    public void exportChartImage(String title, BufferedImage chartImage, File dest) throws IOException {
+        try (PdfWriter w = open()) {
+            writeDocHeader(w, title);
+            w.writeSectionTitle("Chart: " + title);
+            w.addImage(chartImage, PdfWriter.RIGHT - PdfWriter.LEFT, 350);
+            w.save(dest);
+        }
+    }
+
     public void exportFull(File dest) throws IOException {
         try (PdfWriter w = open()) {
             writeDocHeader(w, "Complete Farm Report");
@@ -596,6 +678,22 @@ public class PdfReportService {
         }
 
         void space(float pts) { y -= pts; }
+
+        /** Embeds a BufferedImage into the PDF, scaled to fit within maxWidth × maxHeight. */
+        void addImage(BufferedImage img, float maxWidth, float maxHeight) throws IOException {
+            if (img == null) return;
+            PDImageXObject pdImg = LosslessFactory.createFromImage(doc, img);
+            float iw = pdImg.getWidth();
+            float ih = pdImg.getHeight();
+            if (iw <= 0 || ih <= 0) return;
+            float scale = Math.min(maxWidth / iw, maxHeight / ih);
+            float w = iw * scale;
+            float h = ih * scale;
+            checkBreak(h + 10);
+            y -= h;
+            cs.drawImage(pdImg, LEFT, y, w, h);
+            y -= 6;
+        }
 
         // ── Footer ────────────────────────────────────────────────────
 

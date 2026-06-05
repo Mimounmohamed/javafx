@@ -28,8 +28,7 @@
 
         <!-- ── KPI Cards row 1 ────────────────────────────────────── -->
         <HBox spacing="16">
-            <VBox styleClass="kpi-card kpi-card-animals" HBox.hgrow="ALWAYS"
-                  style="-fx-background-color: #1D9E75, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <VBox styleClass="kpi-card kpi-card-animals kpi-card-stripe kpi-card-stripe-emerald" HBox.hgrow="ALWAYS" style="-fx-padding: 16 20;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label fx:id="kpiAnimals" text="—" styleClass="kpi-value dash-kpi-value" />
@@ -40,8 +39,7 @@
                     </StackPane>
                 </HBox>
             </VBox>
-            <VBox styleClass="kpi-card kpi-card-sick" HBox.hgrow="ALWAYS"
-                  style="-fx-background-color: #EF4444, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <VBox styleClass="kpi-card kpi-card-sick kpi-card-stripe kpi-card-stripe-rose" HBox.hgrow="ALWAYS" style="-fx-padding: 16 20;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label fx:id="kpiSickAnimals" text="—" styleClass="kpi-value dash-kpi-value" />
@@ -52,8 +50,7 @@
                     </StackPane>
                 </HBox>
             </VBox>
-            <VBox styleClass="kpi-card kpi-card-zones" HBox.hgrow="ALWAYS"
-                  style="-fx-background-color: #3B82F6, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <VBox styleClass="kpi-card kpi-card-zones kpi-card-stripe kpi-card-stripe-blue" HBox.hgrow="ALWAYS" style="-fx-padding: 16 20;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label fx:id="kpiZones" text="—" styleClass="kpi-value dash-kpi-value" />
@@ -64,8 +61,7 @@
                     </StackPane>
                 </HBox>
             </VBox>
-            <VBox styleClass="kpi-card kpi-card-zones" HBox.hgrow="ALWAYS"
-                  style="-fx-background-color: #3B82F6, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <VBox styleClass="kpi-card kpi-card-zones kpi-card-stripe kpi-card-stripe-indigo" HBox.hgrow="ALWAYS" style="-fx-padding: 16 20;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label fx:id="kpiTotalZones" text="—" styleClass="kpi-value dash-kpi-value" />
@@ -80,8 +76,7 @@
 
         <!-- ── KPI Cards row 2 ────────────────────────────────────── -->
         <HBox spacing="16">
-            <VBox styleClass="kpi-card kpi-card-sensors" HBox.hgrow="ALWAYS"
-                  style="-fx-background-color: #8B5CF6, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <VBox styleClass="kpi-card kpi-card-sensors kpi-card-stripe kpi-card-stripe-purple" HBox.hgrow="ALWAYS" style="-fx-padding: 16 20;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label fx:id="kpiSensors" text="—" styleClass="kpi-value dash-kpi-value" />
@@ -92,8 +87,7 @@
                     </StackPane>
                 </HBox>
             </VBox>
-            <VBox styleClass="kpi-card kpi-card-alerts" HBox.hgrow="ALWAYS"
-                  style="-fx-background-color: #F97316, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <VBox styleClass="kpi-card kpi-card-alerts kpi-card-stripe kpi-card-stripe-orange" HBox.hgrow="ALWAYS" style="-fx-padding: 16 20;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label fx:id="kpiAlerts" text="—" styleClass="kpi-value dash-kpi-value" />
@@ -104,8 +98,7 @@
                     </StackPane>
                 </HBox>
             </VBox>
-            <VBox styleClass="kpi-card kpi-card-crops" HBox.hgrow="ALWAYS"
-                  style="-fx-background-color: #22C55E, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <VBox styleClass="kpi-card kpi-card-crops kpi-card-stripe kpi-card-stripe-lime" HBox.hgrow="ALWAYS" style="-fx-padding: 16 20;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label fx:id="kpiFields" text="—" styleClass="kpi-value dash-kpi-value" />
@@ -116,8 +109,7 @@
                     </StackPane>
                 </HBox>
             </VBox>
-            <VBox styleClass="kpi-card kpi-card-aqua" HBox.hgrow="ALWAYS"
-                  style="-fx-background-color: #0EA5E9, #ffffff; -fx-background-insets: 0, 0 0 0 4; -fx-background-radius: 12, 0 12 12 0; -fx-border-width: 0; -fx-padding: 16 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);">
+            <VBox styleClass="kpi-card kpi-card-aqua kpi-card-stripe kpi-card-stripe-sky" HBox.hgrow="ALWAYS" style="-fx-padding: 16 20;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label fx:id="kpiSpecies" text="—" styleClass="kpi-value dash-kpi-value" />

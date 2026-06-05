@@ -2811,6 +2811,163 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   KPI strip cards — replaces hardcoded inline styles in FXMLs
+   ═══════════════════════════════════════════════════════════════════ */
+.kpi-card-stripe {
+    -fx-background-insets: 0, 0 0 0 4;
+    -fx-background-radius: 12, 0 12 12 0;
+    -fx-border-width: 0;
+    -fx-padding: 14 18;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 8, 0, 0, 2);
+}
+.kpi-card-stripe-indigo { -fx-background-color: #4F46E5, #ffffff; }
+.kpi-card-stripe-green  { -fx-background-color: #16A34A, #ffffff; }
+.kpi-card-stripe-red    { -fx-background-color: #DC2626, #ffffff; }
+.kpi-card-stripe-amber  { -fx-background-color: #D97706, #ffffff; }
+.kpi-card-stripe-teal   { -fx-background-color: #059669, #ffffff; }
+.kpi-card-stripe-blue   { -fx-background-color: #0891B2, #ffffff; }
+.kpi-card-stripe-purple { -fx-background-color: #7C3AED, #ffffff; }
+.kpi-card-stripe-orange { -fx-background-color: #F97316, #ffffff; }
+.kpi-card-stripe-sky    { -fx-background-color: #0EA5E9, #ffffff; }
+.kpi-card-stripe-cyan   { -fx-background-color: #06B6D4, #ffffff; }
+.kpi-card-stripe-violet { -fx-background-color: #6366F1, #ffffff; }
+.kpi-card-stripe-lime   { -fx-background-color: #22C55E, #ffffff; }
+.kpi-card-stripe-rose   { -fx-background-color: #EF4444, #ffffff; }
+.kpi-card-stripe-emerald{ -fx-background-color: #1D9E75, #ffffff; }
+
+/* ── Sensor card state classes (replaces inline styles in SensorsController) ── */
+.sensor-card-normal {
+    -fx-background-color: #1D9E75, #ffffff;
+    -fx-background-insets: 0, 0 0 0 4;
+    -fx-background-radius: 12, 0 12 12 0;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 10, 0, 0, 2);
+}
+.sensor-card-critical {
+    -fx-background-color: #DC2626, #FFF5F5;
+    -fx-background-insets: 0, 0 0 0 4;
+    -fx-background-radius: 12, 0 12 12 0;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(220,38,38,0.14), 10, 0, 0, 2);
+}
+.sensor-card-warning {
+    -fx-background-color: #D97706, #FFFBEB;
+    -fx-background-insets: 0, 0 0 0 4;
+    -fx-background-radius: 12, 0 12 12 0;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(217,119,6,0.12), 10, 0, 0, 2);
+}
+.sensor-card-suspended {
+    -fx-background-color: #6B7280, #F9FAFB;
+    -fx-background-insets: 0, 0 0 0 4;
+    -fx-background-radius: 12, 0 12 12 0;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(107,114,128,0.10), 10, 0, 0, 2);
+}
+.sensor-card.sensor-card-selected {
+    -fx-background-color: #16A34A, #F0FDF4;
+    -fx-background-insets: 0, 0 0 0 4;
+    -fx-background-radius: 12, 0 12 12 0;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(134,239,172,0.7), 14, 0, 0, 0);
+}
+.sensor-card-name              { -fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #111827; }
+.sensor-card-reading-normal    { -fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #16A34A; }
+.sensor-card-reading-critical  { -fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #DC2626; }
+.sensor-card-reading-warning   { -fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #D97706; }
+.sensor-card-reading-muted     { -fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #6B7280; }
+.sensor-sort-label             { -fx-font-size: 12px; -fx-text-fill: #6B7280; -fx-padding: 0 0 0 8; }
+
+/* Action buttons in sensor detail panel */
+.sensor-action-default {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #374151;
+    -fx-font-size: 13px;
+    -fx-min-height: 38px;
+    -fx-cursor: hand;
+    -fx-padding: 8 16;
+}
+.sensor-action-default:hover { -fx-background-color: #F9FAFB; }
+.sensor-action-danger {
+    -fx-background-color: #FEF2F2;
+    -fx-border-color: #FCA5A5;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 13px;
+    -fx-min-height: 38px;
+    -fx-cursor: hand;
+    -fx-padding: 8 16;
+}
+.sensor-action-danger:hover { -fx-background-color: #FEE2E2; }
+.sensor-action-success {
+    -fx-background-color: #F0FDF4;
+    -fx-border-color: #6EE7B7;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #16A34A;
+    -fx-font-size: 13px;
+    -fx-min-height: 38px;
+    -fx-cursor: hand;
+    -fx-padding: 8 16;
+}
+.sensor-action-success:hover { -fx-background-color: #DCFCE7; }
+.sensor-action-primary {
+    -fx-background-color: #EFF6FF;
+    -fx-border-color: #93C5FD;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #2563EB;
+    -fx-font-size: 13px;
+    -fx-min-height: 38px;
+    -fx-cursor: hand;
+    -fx-padding: 8 16;
+}
+.sensor-action-primary:hover { -fx-background-color: #DBEAFE; }
+
+/* ── Toggle pill — selected / hover states ────────────────────────── */
+.animals-pill-type:selected {
+    -fx-background-color: #1D9E75;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #1D9E75;
+}
+.animals-pill-type:hover { -fx-background-color: #D1FAE5; }
+
+/* ── Theme-aware notification labels ─────────────────────────────── */
+.notification-success {
+    -fx-text-fill: #16A34A;
+    -fx-background-color: #F0FDF4;
+    -fx-background-radius: 8;
+    -fx-border-color: #BBF7D0;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 10 14;
+    -fx-font-size: 12px;
+}
+.notification-error {
+    -fx-text-fill: #DC2626;
+    -fx-background-color: #FEF2F2;
+    -fx-background-radius: 8;
+    -fx-border-color: #FECACA;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 10 14;
+    -fx-font-size: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    Alert detail panel — action buttons + section title
    ═══════════════════════════════════════════════════════════════════ */
 
