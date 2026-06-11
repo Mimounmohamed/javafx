@@ -1230,3 +1230,25 @@
     -fx-border-width: 1;
     -fx-padding: 10 14;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   AUTO-SAVE & HISTORY (dark overrides)
+   ══════════════════════════════════════════════════════════════════ */
+.autosave-status-on  { -fx-text-fill: #4ade80; }
+.autosave-status-off { -fx-text-fill: #4f6880; }
+.last-saved-label    { -fx-text-fill: #7a9ab5; }
+
+.save-history-row            { -fx-border-color: #2d3f55; }
+.save-history-time           { -fx-text-fill: #c8d5e8; }
+.save-history-type-scheduled { -fx-background-color: rgba(22,163,74,.18);   -fx-text-fill: #4ade80; }
+.save-history-type-manual    { -fx-background-color: rgba(59,130,246,.18);  -fx-text-fill: #60a5fa; }
+.save-history-type-settings  { -fx-background-color: rgba(245,158,11,.18);  -fx-text-fill: #fbbf24; }
+.save-history-farm           { -fx-text-fill: #8baabf; }
+.save-history-empty          { -fx-text-fill: #4f6880; }
+
+/* ══════════════════════════════════════════════════════════════════
+   HELP DIALOG (dark overrides)
+   ══════════════════════════════════════════════════════════════════ */
+.help-section-header { -fx-text-fill: #4ade80; }
+.help-item-title     { -fx-text-fill: #c8d5e8; }
+.help-item-desc      { -fx-text-fill: #7a9ab5; }

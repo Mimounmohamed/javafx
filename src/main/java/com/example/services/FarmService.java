@@ -9,7 +9,15 @@ import ZONES.AquacultureZONE;
 import ZONES.CropZONE;
 import ZONES.GoegraphicBoundries;
 import ZONES.LivestockZONE;
+import com.example.utils.AppPreferences;
 import com.example.utils.FarmRepository;
+import com.example.utils.SaveHistoryRepository;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class FarmService {
 
@@ -20,6 +28,11 @@ public class FarmService {
     private final boolean demo;
 
     private boolean wasRandomized = false;
+
+    private ScheduledExecutorService autoSaveScheduler;
+    private volatile LocalDateTime   lastSavedAt;
+
+    private static final DateTimeFormatter TS_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private FarmService(Farm farm, String savedId, boolean demo) {
         this.farm    = farm;
@@ -43,6 +56,7 @@ public class FarmService {
         FarmRepository.SavedFarm entry = FarmRepository.SavedFarm.fromNew(name, location, owner);
         FarmRepository.save(entry);
         instance = new FarmService(new Farm(name, location, owner), entry.id, false);
+        instance.startAutoSaveTimer();
     }
 
     /** Reload a previously saved farm from its SavedFarm snapshot. */
@@ -101,6 +115,7 @@ public class FarmService {
             }
             instance = svc;
         }
+        instance.startAutoSaveTimer();
     }
 
     public static FarmService getInstance() {
@@ -114,6 +129,10 @@ public class FarmService {
     /** Serialize current farm state to disk. No-op for the demo farm. */
     public void autoSave() {
         if (demo || savedId == null) return;
+        doSave();
+    }
+
+    private void doSave() {
         FarmRepository.SavedFarm sf = new FarmRepository.SavedFarm();
         sf.id        = savedId;
         sf.name      = farm.getName();
@@ -158,6 +177,46 @@ public class FarmService {
         }
         if (farm.hasFarmBoundary()) sf.farmBoundaryPoints = farm.getFarmBoundary().getPoints();
         FarmRepository.save(sf);
+        lastSavedAt = LocalDateTime.now();
+    }
+
+    /** Called by the scheduled timer — saves and records history. */
+    private void timedSave() {
+        if (!AppPreferences.getInstance().isAutoSaveEnabled()) return;
+        if (demo || savedId == null) return;
+        doSave();
+        SaveHistoryRepository.record(savedId, farm.getName(), "Scheduled");
+    }
+
+    /** Called by the 'Save Now' button — saves and records history. */
+    public void manualSave() {
+        if (demo || savedId == null) return;
+        doSave();
+        SaveHistoryRepository.record(savedId, farm.getName(), "Manual");
+    }
+
+    /** Returns formatted HH:mm:ss of the last save, or null if never saved this session. */
+    public String getLastSavedAt() {
+        return lastSavedAt == null ? null : lastSavedAt.format(TS_FMT);
+    }
+
+    public void startAutoSaveTimer() {
+        stopAutoSaveTimer();
+        if (!AppPreferences.getInstance().isAutoSaveEnabled()) return;
+        int interval = AppPreferences.getInstance().getAutoSaveIntervalSeconds();
+        autoSaveScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "farm-auto-save");
+            t.setDaemon(true);
+            return t;
+        });
+        autoSaveScheduler.scheduleAtFixedRate(this::timedSave, interval, interval, TimeUnit.SECONDS);
+    }
+
+    public void stopAutoSaveTimer() {
+        if (autoSaveScheduler != null && !autoSaveScheduler.isShutdown()) {
+            autoSaveScheduler.shutdown();
+            autoSaveScheduler = null;
+        }
     }
 
     // ── Accessors ─────────────────────────────────────────────────────

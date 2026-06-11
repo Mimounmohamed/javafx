@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
@@ -9,6 +10,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fitToWidth="true" styleClass="content-scroll"
@@ -68,6 +70,57 @@
                 <ToggleButton fx:id="themeToggle" onAction="#toggleTheme"
                               styleClass="theme-toggle" text="☀  Light Mode" selected="false" />
             </HBox>
+        </VBox>
+
+        <!-- ── Auto-Save ──────────────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="14">
+            <Label text="Auto-Save" styleClass="card-title" />
+            <Separator />
+            <Label text="Farm data is saved automatically at a regular interval. Sensor readings and alerts are in-memory only and are not persisted."
+                   styleClass="text-muted" wrapText="true" />
+
+            <HBox spacing="14" alignment="CENTER_LEFT">
+                <Label text="Status:" styleClass="form-label" minWidth="80" />
+                <ToggleButton fx:id="autoSaveToggle" onAction="#toggleAutoSave"
+                              styleClass="theme-toggle" text="🟢  Enabled" selected="true" />
+                <Label fx:id="autoSaveStatusLabel" styleClass="autosave-status-on"
+                       text="Saving every 1 minute" />
+            </HBox>
+
+            <HBox spacing="14" alignment="CENTER_LEFT">
+                <Label text="Interval:" styleClass="form-label" minWidth="80" />
+                <ComboBox fx:id="autoSaveIntervalCombo" onAction="#changeInterval"
+                          styleClass="form-field" prefWidth="160" />
+            </HBox>
+
+            <Separator />
+            <HBox spacing="14" alignment="CENTER_LEFT">
+                <Button text="💾  Save Now" onAction="#saveNow" styleClass="btn-primary" />
+                <Label fx:id="lastSavedLabel" styleClass="last-saved-label"
+                       text="Not saved yet this session" />
+            </HBox>
+        </VBox>
+
+        <!-- ── Save History ───────────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="12">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Save History" styleClass="card-title" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="↺  Refresh" onAction="#refreshHistory" styleClass="btn-secondary" />
+            </HBox>
+            <Separator />
+            <Label text="Last 15 saves for this farm (Scheduled = auto-timer, Manual = Save Now, Settings = form save)."
+                   styleClass="text-muted" wrapText="true" />
+            <VBox fx:id="historyContainer" spacing="0" />
+        </VBox>
+
+        <!-- ── Help &amp; Guide ───────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="12">
+            <Label text="Help &amp; Guide" styleClass="card-title" />
+            <Separator />
+            <Label text="Step-by-step guide covering every feature of Smart Farm Manager."
+                   styleClass="text-muted" wrapText="true" />
+            <Button text="📖  Open Help Guide" onAction="#openHelp" styleClass="btn-secondary" />
         </VBox>
 
         <!-- ── Farm Selection ────────────────────────────────────── -->

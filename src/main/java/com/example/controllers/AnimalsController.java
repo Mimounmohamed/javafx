@@ -4,8 +4,12 @@ import Animals.Animal;
 import Animals.AnimalHealthStatus;
 import Animals.HealthEvent;
 import Entities.LIvestockType;
+import Alerts.AlertSeverity;
+import Alerts.AlertType;
+import Alerts.SensorAlert;
 import Sensors.BioSensor;
 import Sensors.GPSCollarSensor;
+import Sensors.GPSSensorReading;
 import com.example.services.AnimalService;
 import com.example.services.FarmService;
 import com.example.services.ZoneService;
@@ -422,7 +426,16 @@ public class AnimalsController {
                 HBox rangeRow = new HBox(minLbl, sp2, statusLbl, sp3, maxLbl);
                 rangeRow.setAlignment(Pos.CENTER);
 
-                VBox card = new VBox(8, nameRow, bar, rangeRow);
+                Label bioAnimalKeyLbl = new Label("Animal");
+                bioAnimalKeyLbl.getStyleClass().add("detail-key");
+                Label bioAnimalValLbl = new Label(s.getAnimal().getName()
+                    + "  ·  " + s.getAnimal().getSpecies());
+                bioAnimalValLbl.getStyleClass().add("detail-value");
+                HBox.setHgrow(bioAnimalValLbl, Priority.ALWAYS);
+                HBox bioAnimalRow = new HBox(bioAnimalKeyLbl, bioAnimalValLbl);
+                bioAnimalRow.getStyleClass().add("detail-row");
+
+                VBox card = new VBox(8, nameRow, bioAnimalRow, bar, rangeRow);
                 card.getStyleClass().add(alert ? "animals-sensor-card-alert" : "animals-sensor-card");
                 card.setPadding(new Insets(10, 12, 10, 12));
                 sensorsPanel.getChildren().add(card);
@@ -441,6 +454,15 @@ public class AnimalsController {
             HBox gpsRow = new HBox(gpsLbl, sp, activeLbl);
             gpsRow.setAlignment(Pos.CENTER_LEFT);
 
+            Label animalKeyLbl = new Label("Animal");
+            animalKeyLbl.getStyleClass().add("detail-key");
+            Label animalValLbl = new Label(gps.getAnimal().getName()
+                + "  ·  " + gps.getAnimal().getSpecies());
+            animalValLbl.getStyleClass().add("detail-value");
+            HBox.setHgrow(animalValLbl, Priority.ALWAYS);
+            HBox animalRow = new HBox(animalKeyLbl, animalValLbl);
+            animalRow.getStyleClass().add("detail-row");
+
             Label codeLbl = new Label("Code");
             codeLbl.getStyleClass().add("detail-key");
             Label codeVal = new Label(gps.getCode());
@@ -450,12 +472,16 @@ public class AnimalsController {
             codeRow.getStyleClass().add("detail-row");
 
             double lat = gps.getCurrentLatitude(), lon = gps.getCurrentLongitude();
-            VBox card = new VBox(8, gpsRow, codeRow);
+            VBox card = new VBox(8, gpsRow, animalRow, codeRow);
             if (lat != 0.0 || lon != 0.0) {
                 Label posLbl = new Label(String.format("%.5f°, %.5f°", lat, lon));
                 posLbl.getStyleClass().add("animals-sensor-range-lbl");
                 card.getChildren().add(posLbl);
             }
+            Button editLocBtn = new Button("✎  Edit Location");
+            editLocBtn.getStyleClass().add("sensor-action-primary");
+            editLocBtn.setOnAction(ev -> openGpsEditor(a));
+            card.getChildren().add(editLocBtn);
             card.getStyleClass().add("animals-sensor-card");
             card.setPadding(new Insets(10, 12, 10, 12));
             sensorsPanel.getChildren().add(card);
@@ -510,6 +536,12 @@ public class AnimalsController {
         Button zoneMapBtn = actionTile("📍 View in zone boundaries");
         zoneMapBtn.setOnAction(e -> openZoneMap(a));
         actionsPanel.getChildren().add(zoneMapBtn);
+
+        if (a.hasGPSCollar()) {
+            Button gpsEditBtn = actionTile("🗺  Edit GPS location");
+            gpsEditBtn.setOnAction(e -> openGpsEditor(a));
+            actionsPanel.getChildren().add(gpsEditBtn);
+        }
 
         if (a.getHealthStatus() != AnimalHealthStatus.Healthy) {
             Button resolveBtn = actionTile("✅ Resolve health status");
@@ -572,6 +604,31 @@ public class AnimalsController {
     }
 
     // ── Zone map ──────────────────────────────────────────────────────
+
+    private void openGpsEditor(Animal a) {
+        List<String> sheets = animalTable.getScene() == null
+            ? new ArrayList<>()
+            : new ArrayList<>(animalTable.getScene().getStylesheets());
+        GpsLocationEditorDialog dlg = new GpsLocationEditorDialog(a, sheets);
+        if (animalTable.getScene() != null)
+            dlg.initOwner(animalTable.getScene().getWindow());
+        dlg.showAndWait().ifPresent(coords -> {
+            GPSCollarSensor gps = a.getGpsCollarSensor();
+            boolean wasInside = gps.isInsideZone();
+            gps.updateLocation(coords[0], coords[1]);
+            gps.sendReading();
+            if (wasInside && gps.hasEscaped()) {
+                GPSSensorReading last = gps.getLastReading();
+                if (last != null) {
+                    FarmService.getInstance().getFarm().registerAlert(
+                        new SensorAlert(last, AlertType.GPS_ESCAPE_ALERT, AlertSeverity.Critical,
+                            a.getName() + " moved outside zone bounds in " + a.getZone().getName()));
+                }
+            }
+            FarmService.getInstance().autoSave();
+            showDetail(a);
+        });
+    }
 
     private void openZoneMap(Animal a) {
         List<String> sheets = animalTable.getScene() == null

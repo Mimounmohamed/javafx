@@ -3115,3 +3115,49 @@
 }
 .alert-btn-dismiss:hover { -fx-background-color: #FEE2E2; }
 .alert-btn-dismiss:disabled { -fx-opacity: 0.5; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   AUTO-SAVE STATUS & HISTORY ROWS
+   ═══════════════════════════════════════════════════════════════════ */
+.autosave-status-on  { -fx-text-fill: #16a34a; -fx-font-size: 12px; -fx-font-weight: 600; }
+.autosave-status-off { -fx-text-fill: #94a3b8; -fx-font-size: 12px; }
+.last-saved-label    { -fx-text-fill: #64748b; -fx-font-size: 12px; }
+
+.save-history-row {
+    -fx-padding: 9 12;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-color: transparent;
+}
+.save-history-time {
+    -fx-font-size: 12px;
+    -fx-text-fill: #374151;
+    -fx-font-weight: 600;
+    -fx-min-width: 160;
+}
+.save-history-type {
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-padding: 2 8;
+    -fx-background-radius: 4;
+    -fx-min-width: 72;
+    -fx-alignment: center;
+}
+.save-history-type-scheduled { -fx-background-color: #dcfce7; -fx-text-fill: #166534; }
+.save-history-type-manual    { -fx-background-color: #dbeafe; -fx-text-fill: #1e40af; }
+.save-history-type-settings  { -fx-background-color: #fef3c7; -fx-text-fill: #92400e; }
+.save-history-farm  { -fx-font-size: 12px; -fx-text-fill: #64748b; }
+.save-history-empty { -fx-text-fill: #94a3b8; -fx-font-size: 12px; -fx-padding: 6 0; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   HELP DIALOG
+   ═══════════════════════════════════════════════════════════════════ */
+.help-section-header {
+    -fx-text-fill: #15803d;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+.help-item-icon  { -fx-font-size: 20px; }
+.help-item-title { -fx-text-fill: #0f172a; -fx-font-size: 13px; -fx-font-weight: bold; }
+.help-item-desc  { -fx-text-fill: #64748b; -fx-font-size: 12px; }
+.help-item-row   { -fx-background-color: transparent; }

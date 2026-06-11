@@ -280,7 +280,7 @@ public class SensorsController {
         sensorName.getStyleClass().add("sensor-card-name");
         sensorName.setWrapText(true);
 
-        Label zoneLbl = new Label("📍 " + sensor.getZone().getName());
+        Label zoneLbl = new Label("📍 " + sensor.getZone().getName() + animalSuffix(sensor));
         zoneLbl.getStyleClass().add("sensor-card-zone");
 
         String readingCssClass = (status == SensorStatus.Suspended || status == SensorStatus.Faulty)
@@ -385,9 +385,15 @@ public class SensorsController {
         buildChart(sensor);
     }
 
+    private String animalSuffix(Sensor sensor) {
+        if (sensor instanceof BioSensor bs)        return "  ·  " + bs.getAnimal().getName();
+        if (sensor instanceof GPSCollarSensor gs)  return "  ·  " + gs.getAnimal().getName();
+        return "";
+    }
+
     private void updateDetailHeader(Sensor sensor) {
         detailTitle.setText(sensorService.getSensorTypeLabel(sensor));
-        detailZone.setText("📍  " + sensor.getZone().getName());
+        detailZone.setText("📍  " + sensor.getZone().getName() + animalSuffix(sensor));
         detailStatus.setText(sensor.getStatus().toString());
         detailStatus.getStyleClass().removeIf(c -> c.startsWith("badge-") || c.equals("badge"));
         detailStatus.getStyleClass().addAll("badge", "badge-" + sensor.getStatus().toString().toLowerCase());

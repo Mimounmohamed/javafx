@@ -12,6 +12,8 @@ package com.example.utils;
  * 6. Add a sidebar navigation button in main.fxml and MainController
  */
 
+import com.example.services.FarmService;
+import com.example.utils.AppPreferences;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -65,7 +67,10 @@ public class SceneManager {
             root = loader.load();
 
             Scene scene = stage.getScene();
-            String css = getClass().getResource("/com/example/styles/main.css").toExternalForm();
+            String cssPath = AppPreferences.getInstance().isDarkTheme()
+                ? "/com/example/styles/dark.css"
+                : "/com/example/styles/main.css";
+            String css = getClass().getResource(cssPath).toExternalForm();
             if (scene != null) {
                 // Reuse existing scene — preserves fullscreen without flicker
                 scene.getStylesheets().setAll(css);
@@ -114,6 +119,8 @@ public class SceneManager {
 
     /** Go back to the startup/farm-selection screen from anywhere in the app. */
     public void navigateToStartup() {
+        try { FarmService.getInstance().stopAutoSaveTimer(); }
+        catch (IllegalStateException ignored) {}
         try {
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/com/example/views/startup.fxml"));
